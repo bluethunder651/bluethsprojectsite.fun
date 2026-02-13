@@ -63,7 +63,7 @@ class MusicQuizGame {
       const redirectUri = 'https://bluethsprojectsite.fun/callback.html';
       const scope = 'streaming';
 
-      window.location.href = 'https://accoutns.spotify.com/authorize?' + 
+      window.location.href = 'https://accounts.spotify.com/authorize?' + 
         'client_id=' + clientId + '&response_type=token' + '&redirect_uri=' + encodeURIComponent(redirectUri) + 
         '&scope=' + encodeURIComponent(scope);
     });
