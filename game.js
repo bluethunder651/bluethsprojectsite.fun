@@ -20,8 +20,9 @@ class MusicQuizGame {
         this.preloadedVideoId = null;
         this.preloadedSong = null;
         this.isPreloaded = false;
-        this.isLoading = false; // Flag to prevent multiple simultaneous loads
-        this.randomStartTime = 15; // Default value
+        this.isLoading = false;
+        this.randomStartTime = 15;
+        this.snippetDuration = 10; // Play 10 seconds of the song
         
         // IMPORTANT: Add your YouTube API key here
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; // Replace with your actual key
@@ -33,19 +34,16 @@ class MusicQuizGame {
     
     // Load YouTube IFrame API
     loadYouTubeAPI() {
-        // Don't load if already loaded
         if (window.YT) {
             this.onYouTubeAPIReady();
             return;
         }
         
-        // Create script tag to load YouTube API
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         
-        // Set up callback for when API is ready
         window.onYouTubeIframeAPIReady = () => {
             console.log('YouTube API loaded');
             this.onYouTubeAPIReady();
@@ -57,9 +55,12 @@ class MusicQuizGame {
         console.log('YouTube player ready');
     }
     
-    // New method: Preload the video when round starts
+    getRandomStartTime() {
+        // Random time between 15 and 45 seconds
+        return Math.floor(Math.random() * (45 - 15 + 1)) + 15; // 15-45
+    }
+    
     async preloadVideoForCurrentSong() {
-        // Prevent multiple simultaneous preloads
         if (this.isLoading) {
             console.log('Already loading a song, please wait...');
             return false;
@@ -67,7 +68,6 @@ class MusicQuizGame {
         
         if (!this.currentSong) return false;
         
-        // Don't preload if we already have this song preloaded
         if (this.isPreloaded && this.preloadedSong === this.currentSong) {
             console.log('Song already preloaded');
             return true;
@@ -76,13 +76,12 @@ class MusicQuizGame {
         this.isLoading = true;
         
         try {
+            // Generate random start time for this song
+            this.randomStartTime = this.getRandomStartTime();
+            console.log(`Random start time: ${this.randomStartTime} seconds (playing until ${this.randomStartTime + this.snippetDuration})`);
+            
             document.getElementById('result-message').innerHTML = '🔍 Loading song...';
             
-            // Generate random start time for this song
-            this.randomStartTime = Math.floor(Math.random() * (45 - 15 + 1)) + 15;
-            console.log(`Random start time: ${this.randomStartTime} seconds`);
-            
-            // Search for the song on YouTube
             const searchQuery = encodeURIComponent(`${this.currentSong.title} ${this.currentSong.artist} audio`);
             const response = await fetch(
                 `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&type=video&key=${this.YOUTUBE_API_KEY}&maxResults=1`
@@ -100,13 +99,11 @@ class MusicQuizGame {
                 return false;
             }
 
-            // Store the video ID
             this.preloadedVideoId = data.items[0].id.videoId;
             this.preloadedSong = this.currentSong;
             
             console.log(`Preloaded: ${this.currentSong.title} - Video ID: ${this.preloadedVideoId}`);
             
-            // Create hidden player container
             await this.createHiddenPlayer(this.preloadedVideoId);
             
             this.isPreloaded = true;
@@ -122,10 +119,8 @@ class MusicQuizGame {
         }
     }
     
-    // New method: Create hidden player for preloading
     async createHiddenPlayer(videoId) {
         return new Promise((resolve) => {
-            // Create or get player container
             let playerContainer = document.getElementById('youtube-player-container');
             if (!playerContainer) {
                 playerContainer = document.createElement('div');
@@ -137,19 +132,15 @@ class MusicQuizGame {
                 document.body.appendChild(playerContainer);
             }
             
-            // Clear previous player
             playerContainer.innerHTML = '';
             
-            // Create new player div
             const playerDiv = document.createElement('div');
             playerDiv.id = 'youtube-player';
             playerContainer.appendChild(playerDiv);
             
-            // Check if API is ready
             if (window.YT && window.YT.Player) {
                 this.createPlayerInstance(playerDiv, videoId, resolve);
             } else {
-                // Wait for API to load
                 const checkAPI = setInterval(() => {
                     if (window.YT && window.YT.Player) {
                         clearInterval(checkAPI);
@@ -160,32 +151,30 @@ class MusicQuizGame {
         });
     }
     
-    // New method: Create player instance without playing
     createPlayerInstance(playerDiv, videoId, resolve) {
-        // Destroy existing player if it exists
         if (this.youtubePlayer && this.youtubePlayer.destroy) {
             this.youtubePlayer.destroy();
         }
         
-        // Create new player (cued but not playing)
+        // Create new player
         this.youtubePlayer = new YT.Player(playerDiv.id, {
             height: '0',
             width: '0',
             videoId: videoId,
             playerVars: {
-                autoplay: 0,  // Don't autoplay
+                autoplay: 0,
                 controls: 0,
                 disablekb: 1,
                 fs: 0,
                 modestbranding: 1,
                 rel: 0,
                 showinfo: 0,
-                start: this.randomStartTime // Cue at the random start time
+                start: this.randomStartTime // This cues the video at the right time
             },
             events: {
                 'onReady': (event) => {
-                    console.log('Player ready, video cued at', this.randomStartTime);
-                    // Just cue the video, don't play
+                    console.log('Player ready');
+                    // Just cue the video at the random start time
                     event.target.cueVideoById({
                         videoId: videoId,
                         startSeconds: this.randomStartTime
@@ -193,12 +182,17 @@ class MusicQuizGame {
                     resolve(true);
                 },
                 'onStateChange': (event) => {
-                    if (event.data === YT.PlayerState.CUED) {
-                        console.log('Video cued and ready to play at', this.randomStartTime);
-                    } else if (event.data === YT.PlayerState.PLAYING) {
-                        console.log('Video playing at position:', this.randomStartTime);
-                    } else if (event.data === YT.PlayerState.ENDED) {
-                        console.log('Video ended');
+                    if (event.data === YT.PlayerState.PLAYING) {
+                        console.log(`Video playing at position: ${this.randomStartTime} seconds`);
+                        
+                        // Set a timer to stop playback after snippetDuration seconds
+                        setTimeout(() => {
+                            if (this.youtubePlayer && this.youtubePlayer.pauseVideo) {
+                                this.youtubePlayer.pauseVideo();
+                                console.log(`Playback stopped after ${this.snippetDuration} seconds`);
+                                document.getElementById('result-message').innerHTML = '⏸️ Playback finished';
+                            }
+                        }, this.snippetDuration * 1000);
                     }
                 },
                 'onError': (event) => {
@@ -211,75 +205,46 @@ class MusicQuizGame {
         });
     }
     
-    // Updated: Play the preloaded video with proper error handling
     playPreloadedVideo() {
-        // Check if we have a player and preloaded video
         if (!this.youtubePlayer || !this.preloadedVideoId) {
             console.log('No preloaded video, loading now...');
-            this.playCurrentSong(); // Recursively call with fallback
+            this.playCurrentSong();
             return;
         }
         
         try {
-            // Check if player is in a valid state
-            const playerState = this.youtubePlayer.getPlayerState();
+            console.log(`Playing from ${this.randomStartTime} to ${this.randomStartTime + this.snippetDuration}`);
             
-            // If player is not ready or has error, reload
-            if (playerState === -1 || playerState === 5) { // -1: unstarted, 5: video cued
-                console.log('Player state:', playerState);
-            }
-            
-            const duration = 15; // Play for 15 seconds
-            
-            console.log(`Playing preloaded video from ${this.randomStartTime} seconds`);
-            
-            // Seek to start time and play
+            // Make sure we're at the right position before playing
             this.youtubePlayer.seekTo(this.randomStartTime, true);
-            this.youtubePlayer.playVideo();
             
-            // Update UI
-            document.getElementById('result-message').innerHTML = '🔊 Playing...';
-            
-            // Clear any existing timeout
-            if (this.playbackTimeout) {
-                clearTimeout(this.playbackTimeout);
-            }
-            
-            // Set timer to stop playback after duration
-            this.playbackTimeout = setTimeout(() => {
-                if (this.youtubePlayer && this.youtubePlayer.stopVideo) {
-                    this.youtubePlayer.stopVideo();
-                    console.log('Playback finished');
-                    
-                    // Recue the video for next play at the same start time
-                    this.youtubePlayer.cueVideoById({
-                        videoId: this.preloadedVideoId,
-                        startSeconds: this.randomStartTime
-                    });
-                    
-                    document.getElementById('result-message').innerHTML = '⏸️ Stopped';
-                }
-            }, duration * 1000);
+            // Small delay to ensure seek completes
+            setTimeout(() => {
+                this.youtubePlayer.playVideo();
+                document.getElementById('result-message').innerHTML = '🔊 Playing...';
+            }, 100);
             
         } catch (e) {
             console.error('Playback failed:', e);
             document.getElementById('result-message').innerHTML = '⚠️ Playback failed, retrying...';
             
-            // Reset preload state and try again
             this.isPreloaded = false;
             this.preloadVideoForCurrentSong().then(() => {
-                // Try playing again after preload
                 setTimeout(() => this.playPreloadedVideo(), 1000);
             });
         }
     }
     
-    // Modified: Original playYouTube method (keep as fallback)
     async playYouTube(song) {
         console.log("Fallback: Playing song with YouTube API:", song);
         if(!song || !song.title) return false;
 
         try {
+            // Generate random start time if not set
+            if (!this.randomStartTime) {
+                this.randomStartTime = this.getRandomStartTime();
+            }
+            
             document.getElementById('result-message').innerHTML = '🔍 Searching for song...';
 
             const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
@@ -300,7 +265,7 @@ class MusicQuizGame {
 
             const videoId = data.items[0].id.videoId;
             
-            // Play immediately with random start time
+            // Play with random start and end times
             this.playVideoWithIframe(videoId, song);
             return true;
             
@@ -312,10 +277,14 @@ class MusicQuizGame {
     }
     
     playVideoWithIframe(videoId, song) {
-        // Use the current random start time
         const startTime = this.randomStartTime;
-        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${startTime + 15}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0`;
+        const endTime = startTime + this.snippetDuration;
+        
+        // Using end parameter to stop automatically
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${endTime}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0`;
 
+        console.log(`Playing with iframe: ${startTime} to ${endTime}`);
+        
         const playerDiv = document.createElement('div');
         playerDiv.innerHTML = `
             <iframe 
@@ -334,22 +303,20 @@ class MusicQuizGame {
         }, 20000);
     }
     
-    // Stop current playback
     stopPlayback() {
-        if (this.playbackTimeout) {
-            clearTimeout(this.playbackTimeout);
-            this.playbackTimeout = null;
-        }
-        
-        if (this.youtubePlayer && this.youtubePlayer.stopVideo) {
-            this.youtubePlayer.stopVideo();
+        if (this.youtubePlayer) {
+            if (this.youtubePlayer.pauseVideo) {
+                this.youtubePlayer.pauseVideo();
+            }
+            if (this.youtubePlayer.stopVideo) {
+                this.youtubePlayer.stopVideo();
+            }
         }
     }
     
-    // Modified: Start new round with preloading
     startNewRound() {
         this.replaysLeft = 1;
-        this.isPreloaded = false; // Reset preload status for new round
+        this.isPreloaded = false;
 
         document.getElementById('replay-snippet').disabled = false;
         document.getElementById('title-guess').value = '';
@@ -368,7 +335,6 @@ class MusicQuizGame {
 
         document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
-        // Get random song
         const songs = songDatabase[difficulty];
         this.currentSong = songs[Math.floor(Math.random() * songs.length)];
 
@@ -376,22 +342,17 @@ class MusicQuizGame {
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
         
-        // Preload the video immediately
         this.preloadVideoForCurrentSong();
     }
     
-    // Modified: Play current song with loading state check
     async playCurrentSong() {
         if(!this.currentSong) return;
 
-        // Stop any currently playing audio
         this.stopPlayback();
 
-        // Check if we're still loading
         if (this.isLoading) {
             document.getElementById('result-message').innerHTML = '⏳ Still loading, please wait...';
             
-            // Wait for loading to complete and try again
             const checkLoading = setInterval(() => {
                 if (!this.isLoading) {
                     clearInterval(checkLoading);
@@ -402,10 +363,8 @@ class MusicQuizGame {
         }
 
         if (this.isPreloaded && this.preloadedVideoId && this.youtubePlayer) {
-            // Play the preloaded video
             this.playPreloadedVideo();
         } else {
-            // Fallback: load and play immediately
             document.getElementById('result-message').innerHTML = 'Loading song...';
             const success = await this.playYouTube(this.currentSong);
             if(!success) { 
@@ -413,7 +372,6 @@ class MusicQuizGame {
             }
         }
         
-        // Decrement replays if this was a replay
         if (this.replaysLeft > 0) {
             this.replaysLeft--;
             if (this.replaysLeft === 0) {
@@ -422,23 +380,29 @@ class MusicQuizGame {
         }
     }
     
-    // Update replay method to work with preloading
     handleReplay() {
         if (this.replaysLeft > 0) {
+            // Generate a NEW random start time for the replay
+            this.randomStartTime = this.getRandomStartTime();
+            console.log(`Replay with new random time: ${this.randomStartTime}`);
+            
+            // If we have a preloaded video, update its cue point
+            if (this.youtubePlayer && this.preloadedVideoId) {
+                this.youtubePlayer.cueVideoById({
+                    videoId: this.preloadedVideoId,
+                    startSeconds: this.randomStartTime
+                });
+            }
+            
             this.playCurrentSong();
         }
     }
     
-    // Rest of your existing methods (setupEventListeners, processTextGuess, etc.)
-    // ... (keep all your other methods exactly as they were)
-    
     setupEventListeners() {
         console.log("Setting up event listeners...");
         
-        // Store reference to this instance
         const self = this;
 
-        // Start game button
         const startBtn = document.getElementById('start-game');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
@@ -447,7 +411,6 @@ class MusicQuizGame {
             });
         }
 
-        // Back button on test screen
         const backBtn = document.getElementById('back-button');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
@@ -517,7 +480,6 @@ class MusicQuizGame {
     processTextGuess(title, artist) {
         if(!this.currentSong) return;
 
-        // Stop any playing audio
         this.stopPlayback();
 
         let points = 0;
@@ -544,10 +506,6 @@ class MusicQuizGame {
         setTimeout(() => this.nextTurn(), 3000);
     }
 
-    getRandomStartTime() {
-        return Math.floor(Math.random() * (45 - 15 + 1)) + 15;
-    }
-
     processVoiceGuess(transcript) {
         const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase());
         const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase());
@@ -559,10 +517,8 @@ class MusicQuizGame {
     }
 
     nextTurn() {
-        // Move to next player
         this.currentPlayerIndex++;
         
-        // Check if round is complete
         if (this.currentPlayerIndex >= this.players.length) {
             this.currentPlayerIndex = 0;
             this.currentRound++;
@@ -573,18 +529,14 @@ class MusicQuizGame {
             }
         }
         
-        // Start next turn (this will preload the next song)
         this.startNewRound();
     }   
 
     endGame() {
-        // Stop any playing audio
         this.stopPlayback();
         
-        // Sort players by score
         const sorted = [...this.players].sort((a, b) => b.score - a.score);
         
-        // Display final scores
         const scoresHtml = sorted.map((p, i) => `
             <div class="score-row">
                 <span>${i+1}. ${p.name}</span>
@@ -594,7 +546,6 @@ class MusicQuizGame {
         
         document.getElementById('final-scores').innerHTML = scoresHtml;
         
-        // Announce winner
         document.getElementById('winner-announcement').innerHTML = 
             `Winner: ${sorted[0].name} with ${sorted[0].score} points!`;
         
@@ -622,7 +573,6 @@ class MusicQuizGame {
             this.recognition.interimResults = false;
             this.recognition.lang = 'en-US';
             
-            // Store reference to this instance for callbacks
             const self = this;
             
             this.recognition.onresult = (event) => {
