@@ -167,12 +167,8 @@ class MusicQuizGame {
         const startBtn = document.getElementById('start-game');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
-                if (!this.token) {
-                    alert('Please connect to Spotify first!');
-                    return;
-                }
-                console.log("Starting game with token:", this.token.substring(0, 10) + "...");
-                alert("Game would start here! Token exists.");
+                console.log('Starting game...');
+                this.showScreen('player-screen');
             });
         }
 
