@@ -244,8 +244,8 @@ class MusicQuizGame {
     const artistMatch = transcript.toLowerCase().includes(self.currentSong.artist.toLowerCase());
 
     this.processTextGuess(
-      titleMatch ? self.currentSong.title : '';
-      artistMatch ? self.currentSong.artist : '';
+      titleMatch ? self.currentSong.title : '',
+      artistMatch ? self.currentSong.artist : ''
     );
   }
 
