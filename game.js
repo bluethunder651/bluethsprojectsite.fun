@@ -148,8 +148,7 @@ class MusicQuizGame {
     loginToSpotify() {
         console.log("Starting Spotify login...");
         
-        // IMPORTANT: Replace with your actual Client ID
-        const clientId = 'YOUR_CLIENT_ID_HERE'; 
+        const clientId = '73cebf4091ea4699bb90518b005d610b'; 
         const redirectUri = 'https://bluethsprojectsite.fun/callback.html';
         
         // Only request streaming scope
