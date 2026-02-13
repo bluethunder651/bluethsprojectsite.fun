@@ -23,6 +23,7 @@ class MusicQuizGame {
         this.isLoading = false;
         this.randomStartTime = 15;
         this.snippetDuration = 10; // Play 10 seconds of the song
+        this.hasSeekedThisPlay = false;
         
         // IMPORTANT: Add your YouTube API key here
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; // Replace with your actual key
@@ -179,17 +180,19 @@ class MusicQuizGame {
                 },
                 'onStateChange': (event) => {
                     if(event.data === YT.PlayerState.PLAYING) {
-                        this.youtubePlayer.seekTo(this.randomStartTime, true);
-
-                        console.log(`Seeking to ${this.randomStartTime}`);
-
-                        setTimeout(() => {
-                            if(this.youtubePlayer && this.youtubePlayer.pauseVideo) {
-                                this.youtubePlayer.pauseVideo();
-                                console.log(`Playback stopped after ${this.snippetDuration} seconds`);
-                                document.getElementById('result-message').innerHTML = 'Playback finished';
-                            }
-                        }, this.snippetDuration * 1000);
+                        if(!this.hasSeekedThisPlay) {
+                            this.hasSeekedThisPlay = true;
+                            this.youtubePlayer.seekTo(this.randomStartTime, true);
+                            console.log(`Seeking to ${this.randomStartTime}`);
+                            
+                            setTimeout(() => {
+                                if(this.youtubePlayer && this.youtubePlayer.pauseVideo) {
+                                    this.youtubePlayer.pauseVideo();
+                                    console.log(`Playback stopped after ${this.snippetDuration} seconds`);
+                                    document.getElementById('result-message').innerHTML = 'Playback finished';
+                                }
+                            }, this.snippetDuration * 1000);
+                        }
                     }
                 },
                 'onError': (event) => {
@@ -203,6 +206,7 @@ class MusicQuizGame {
     }
     
     playPreloadedVideo() {
+        this.hasSeekedThisPlay = false;
         if (!this.youtubePlayer || !this.preloadedVideoId) {
             console.log('No preloaded video, loading now...');
             this.playCurrentSong();
