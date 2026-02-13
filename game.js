@@ -34,6 +34,8 @@ class MusicQuizGame {
         
         // Setup event listeners
         this.setupEventListeners();
+
+        this.useYouTubeFallback = true;
         
         // If Spotify SDK already loaded, initialize player
         if (window.spotifySDKReady) {
@@ -42,6 +44,44 @@ class MusicQuizGame {
         }
     }
 
+    async playYouTubeFallback(song) {
+        if(!song || !song.title) return false;
+
+        try {
+            document.getElementById('result-message').innerHTML = 'Loading from YouTube...';
+
+            const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+
+            const response = await fetch(proxyUrl + encodeURIComponent(youtubeSearchUrl));
+            const html = await response.text();
+
+            const videoIdMatch = html.match(/watch\?v=([a-zA-Z0-9_-]{11})/);
+            if (!videoIdMatch) return false;
+
+            const videoId = videoIdMatch[1];
+
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${song.startTime || 30}&end=${(song.startTime || 30) + 10}&controls=0`;
+
+            const playerDiv = document.createElement('div');
+            playerDiv.innerHTML = `
+                <iframe width="0" height="0"
+                    src="${embedUrl}"
+                    frameborder="0"
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            `;
+            document.body.appendChild(playerDiv);
+
+            setTimeout(() => {
+                playerDiv.remove();
+            }, 15000);
+
+            return true;
+        }
+    }
+    
     checkForToken() {
         console.log("Checking for token...");
         console.log("Current URL:", window.location.href);
@@ -260,6 +300,44 @@ class MusicQuizGame {
             
         } catch (error) {
             console.error("Error creating Spotify player:", error);
+        }
+    }
+
+    async playCurrentSong() {
+        if(!this.currentSong) return;
+
+        if(this.deviceId && this.token) {
+            try {
+                await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        uris: [this.currentSong.uri],
+                        position_ms: this.currentSong.startTime * 1000
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + this.token
+                    }
+                });
+
+                setTimeout(() => {
+                    fetch('https://api.spotify.com/v1/me/player/pause', {
+                        method: 'PUT',
+                        headers: { 'Authorization': 'Bearer ' + this.token }
+                    });
+                }, 10000);
+
+                return;
+            } catch (e) {
+                console.log('Spotify playback failed, trying YouTube...');
+            }
+        }
+
+        if (this.useYouTubeFallback) {
+            const success = await this.playYoutubeFallback(this.currentSong);
+            if(!success) { 
+                document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
+            }
         }
     }
 
