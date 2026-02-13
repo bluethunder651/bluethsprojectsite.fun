@@ -265,17 +265,17 @@ class MusicQuizGame {
     }
     
     startNewRound() {
-        self.replaysLeft = 1;
+        this.replaysLeft = 1;
 
         document.getElementById('replay-snippet').disabled = false;
         document.getElementById('title-guess').value = '';
         document.getElementById('artist-guess').value = '';
         document.getElementById('result-message').innerHTML = '';
 
-        document.getElementById('round-number').textContent = self.currentRound;
+        document.getElementById('round-number').textContent = this.currentRound;
 
         let difficulty;
-        switch(self.currentRound) {
+        switch(this.currentRound) {
             case 1: difficulty = 'easy'; break;
             case 2: difficulty = 'medium'; break;
             case 3: difficulty = 'hard'; break;
@@ -287,7 +287,7 @@ class MusicQuizGame {
         const songs = songDatabase[difficulty];
         self.currentSong = songs[Math.floor(Math.random() * songs.length)];
 
-        document.getElementById('current-player').innerHTML = `${self.players[self.currentPlayerIndex].name}'s Turn`;
+        document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
     }
 
     processTextGuess(title, artist) {
