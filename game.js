@@ -22,83 +22,33 @@ class MusicQuizGame {
     }
     
     async playYouTube(song) {
-        console.log("Playing song:", song);
+        console.log("Running YouTube");
         if(!song || !song.title) return false;
     
         try {
-            document.getElementById('result-message').innerHTML = 'Loading song...';
+            document.getElementById('result-message').innerHTML = 'Searching for song...';
     
-            // Create search query
-            const searchQuery = `${song.title} ${song.artist} audio`;
+            const API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
+            const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
             
-            // Call your backend
-            const response = await fetch(`https://your-backend-domain.com/api/youtube-audio?query=${encodeURIComponent(searchQuery)}`);
+            const response = await fetch(
+                `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&type=video&key=${API_KEY}&maxResults=1`
+            );
             
-            if (!response.ok) {
-                throw new Error('Backend request failed');
-            }
-    
             const data = await response.json();
             
-            if (!data.success) {
-                throw new Error('No video found');
+            if (data.items && data.items.length > 0) {
+                const videoId = data.items[0].id.videoId;
+                this.playVideoWithIframe(videoId, song);
+                return true;
             }
-    
-            // Play the audio
-            await this.playAudioSnippet(data.videoId, song.startTime || 30);
             
-            return true;
-    
+            return false;
+            
         } catch (e) {
-            console.error('Playback failed:', e);
+            console.error('YouTube API failed:', e);
             document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
             return false;
-        }
-    }
-    
-    async playAudioSnippet(videoId, startTime = 30) {
-        return new Promise((resolve, reject) => {
-            try {
-                // Create audio element
-                const audio = new Audio();
-                
-                // Set up audio source (you can also use the snippet endpoint)
-                audio.src = `https://your-backend-domain.com/api/stream-audio?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
-                
-                // Set playback start time
-                audio.currentTime = startTime;
-                
-                // Play audio
-                audio.play().catch(e => reject(e));
-                
-                // Stop after 15 seconds
-                setTimeout(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                    resolve();
-                }, 15000);
-    
-                // Handle errors
-                audio.onerror = (e) => {
-                    console.error('Audio error:', e);
-                    reject(e);
-                };
-    
-                // Store audio element to stop it later if needed
-                this.currentAudio = audio;
-    
-            } catch (e) {
-                reject(e);
-            }
-        });
-    }
-    
-    // Add method to stop current playback
-    stopPlayback() {
-        if (this.currentAudio) {
-            this.currentAudio.pause();
-            this.currentAudio.currentTime = 0;
-            this.currentAudio = null;
         }
     }
 
