@@ -168,7 +168,7 @@ class MusicQuizGame {
                     // Just cue the video, don't play
                     event.target.cueVideoById({
                         videoId: videoId,
-                        startSeconds: this.currentSong?.startTime || 30
+                        startSeconds: this.randomStartTime
                     });
                 },
                 'onStateChange': (event) => {
@@ -195,13 +195,12 @@ class MusicQuizGame {
         }
         
         try {
-            const startTime = this.currentSong?.startTime || 30;
             const duration = 15;
             
             console.log('Playing preloaded video');
             
             // Seek to start time and play
-            this.youtubePlayer.seekTo(startTime, true);
+            this.youtubePlayer.seekTo(this.randomStartTime, true);
             this.youtubePlayer.playVideo();
             
             // Set timer to stop playback after duration
@@ -213,7 +212,7 @@ class MusicQuizGame {
                     // Recue the video for next play
                     this.youtubePlayer.cueVideoById({
                         videoId: this.preloadedVideoId,
-                        startSeconds: startTime
+                        startSeconds: this.randomStartTime
                     });
                 }
             }, duration * 1000);
@@ -268,7 +267,7 @@ class MusicQuizGame {
     
     playVideoWithIframe(videoId, song) {
         // Same as before but without preloading
-        const startTime = song.startTime || 30;
+        const startTime = this.randomStartTime;
         const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${startTime + 15}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0`;
 
         const playerDiv = document.createElement('div');
@@ -321,6 +320,8 @@ class MusicQuizGame {
         // Get random song
         const songs = songDatabase[difficulty];
         this.currentSong = songs[Math.floor(Math.random() * songs.length)];
+
+        this.randomStartTime = this.getRandomStartTime();
         console.log('Selected song:', this.currentSong);
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
@@ -480,6 +481,10 @@ class MusicQuizGame {
         document.getElementById('result-message').innerHTML = message;
 
         setTimeout(() => this.nextTurn(), 3000);
+    }
+
+    getRandomStartTime() {
+        return Math.floor(Math.random() * (45 - 15 + 1)) + 15;
     }
 
     processVoiceGuess(transcript) {
