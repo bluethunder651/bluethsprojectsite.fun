@@ -237,7 +237,7 @@ class MusicQuizGame {
 
         document.getElementById('play-snippet').addEventListener('click', () => {
             this.playCurrentSong();
-        }
+        });
 
         document.getElementById('replay-snippet').addEventListener('click', () => {
             if(self.replaysLeft > 0) {
