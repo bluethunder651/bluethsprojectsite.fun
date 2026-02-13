@@ -12,33 +12,68 @@
             height: 100vh;
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 0;
         }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { margin-bottom: 20px; }
+        .status { margin: 20px 0; }
+        .error { color: #ff9999; }
     </style>
 </head>
 <body>
-    <div>
+    <div class="container">
         <h1>🎵 Music Quiz</h1>
-        <p>Connecting to Spotify...</p>
-        <p id="status">Please wait...</p>
+        <div id="status" class="status">Connecting to Spotify...</div>
     </div>
 
     <script>
-        console.log("Callback page loaded");
-        console.log("Current hash:", window.location.hash);
+        console.log("=== CALLBACK PAGE LOADED ===");
+        console.log("Full URL:", window.location.href);
+        console.log("Hash:", window.location.hash);
+        console.log("Search:", window.location.search);
         
-        // Get the token from URL
-        const hash = window.location.hash.substring(1);
+        const statusDiv = document.getElementById('status');
         
-        if (hash) {
-            console.log("Token found, redirecting...");
-            // Redirect back to main page with token
-            window.location.href = 'https://bluethsprojectsite.fun/?' + hash;
-        } else {
-            console.error("No token in URL");
-            document.getElementById('status').innerHTML = 'Login failed. Please try again.';
+        // Try to get token from hash first (OAuth 2.0 implicit flow)
+        if (window.location.hash) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const token = hashParams.get('access_token');
+            const state = hashParams.get('state');
+            const error = hashParams.get('error');
+            
+            if (error) {
+                console.error("Spotify returned error:", error);
+                statusDiv.innerHTML = '❌ Login failed: ' + error;
+                setTimeout(() => {
+                    window.location.href = 'https://bluethsprojectsite.fun/';
+                }, 3000);
+            }
+            else if (token) {
+                console.log("✅ Token found in hash!");
+                console.log("Token preview:", token.substring(0, 20) + "...");
+                statusDiv.innerHTML = '✅ Connected! Redirecting...';
+                
+                // Redirect back with token in URL parameters
+                window.location.href = 'https://bluethsprojectsite.fun/?access_token=' + token;
+            } else {
+                console.log("No token in hash");
+                statusDiv.innerHTML = '❌ No token found. Redirecting...';
+                setTimeout(() => {
+                    window.location.href = 'https://bluethsprojectsite.fun/';
+                }, 2000);
+            }
+        }
+        else {
+            console.log("No hash in URL");
+            statusDiv.innerHTML = '❌ Invalid login response. Redirecting...';
             setTimeout(() => {
                 window.location.href = 'https://bluethsprojectsite.fun/';
-            }, 3000);
+            }, 2000);
         }
     </script>
 </body>
