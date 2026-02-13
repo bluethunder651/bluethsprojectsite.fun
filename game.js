@@ -336,10 +336,49 @@ class MusicQuizGame {
 
         document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
-        const songs = songDatabase[difficulty];
-        this.currentSong = songs[Math.floor(Math.random() * songs.length)];
+        let availableSongs = songDatabase[difficulty];
 
-        console.log('Selected song:', this.currentSong);
+        if (this.selectedPlaylist !== 'family') {
+            switch(this.selectedPlaylist) {
+                case 'pop':
+                    availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'pop');
+                    break;
+                case 'rock':
+                    availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'rock');
+                    break;
+                case '90s':
+                    availableSongs = availableSongs.filter(song => {
+                        const year = parseInt(song.year);
+                        return year >= 1990 && year < 2000;
+                    });
+                    break;
+                case '00s':
+                    availableSongs = availableSongs.filter(song => {
+                        const year = parseInt(song.year);
+                        return year >= 2000 && year < 2010;
+                    });
+                    break;
+                case '10s':
+                    availableSongs = availableSongs.filter(song => {
+                        const year = parseInt(song.year);
+                        return year >= 2010 && year < 2020;
+                    });
+                    break;
+                case '80s':
+                    availableSongs = availableSongs.filter(song => {
+                        const year = parseInt(song.year);
+                        return year >= 1980 && year < 1990;
+                    });
+                    break;
+            }
+        }
+
+        if availableSongs.length === 0){ 
+            console.warn(`No songs found for ${this.selectedPlaylist} playlist in ${difficulty} difficulty`);
+            document.getElementById('result-message').innerHTML = 'No songs available for this selection. Using all songs.';
+            availableSongs = songDatabase[difficulty]
+        }
+        this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
         
@@ -445,8 +484,11 @@ class MusicQuizGame {
             card.addEventListener('click', (e) => {
                 document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
                 e.currentTarget.classList.add('selected');
-                self.selectedPlaylist = e.currentTarget.dataset.playlist;
+                this.selectedPlaylist = e.currentTarget.dataset.playlist;
                 document.getElementById('start-round').disabled = false;
+                
+                // Optional: Show what's selected
+                console.log('Selected playlist:', this.selectedPlaylist);
             });
         });
 
