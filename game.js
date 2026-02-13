@@ -145,29 +145,55 @@ class MusicQuizGame {
         }
     }
 
-    loginToSpotify() {
-        console.log("Starting Spotify login...");
+    async loginToSpotify() {
+        console.log("Starting Spotify login with PKCE...");
         
-        const clientId = '73cebf4091ea4699bb90518b005d610b'; 
+        const clientId = 'YOUR_CLIENT_ID_HERE';
         const redirectUri = 'https://bluethsprojectsite.fun/callback.html';
         
-        // Only request streaming scope
-        const scope = 'streaming';
+        // Generate code verifier and challenge
+        const generateRandomString = (length) => {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            let text = '';
+            for (let i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return text;
+        };
         
-        // Generate random state for security
-        const state = Math.random().toString(36).substring(7);
+        const sha256 = async (plain) => {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plain);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/=/g, '')
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_');
+        };
+        
+        // Generate and store code verifier
+        const codeVerifier = generateRandomString(64);
+        localStorage.setItem('code_verifier', codeVerifier);
+        
+        // Generate code challenge
+        const codeChallenge = await sha256(codeVerifier);
+        
+        // Generate state for security
+        const state = generateRandomString(16);
         localStorage.setItem('spotify_state', state);
         
-        const authUrl = 'https://accounts.spotify.com/authorize?' +
-            'client_id=' + clientId +
-            '&response_type=token' +
-            '&redirect_uri=' + encodeURIComponent(redirectUri) +
-            '&scope=' + encodeURIComponent(scope) +
-            '&state=' + state +
-            '&show_dialog=true';
+        // Build authorization URL
+        const authUrl = new URL('https://accounts.spotify.com/authorize');
+        authUrl.searchParams.append('client_id', clientId);
+        authUrl.searchParams.append('response_type', 'code');  // NOT token
+        authUrl.searchParams.append('redirect_uri', redirectUri);
+        authUrl.searchParams.append('code_challenge_method', 'S256');
+        authUrl.searchParams.append('code_challenge', codeChallenge);
+        authUrl.searchParams.append('state', state);
+        authUrl.searchParams.append('scope', 'streaming');
         
         console.log("Redirecting to Spotify...");
-        window.location.href = authUrl;
+        window.location.href = authUrl.toString();
     }
 
     initSpotifyPlayer() {
