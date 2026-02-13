@@ -168,29 +168,26 @@ class MusicQuizGame {
                 fs: 0,
                 modestbranding: 1,
                 rel: 0,
-                showinfo: 0,
-                start: this.randomStartTime // This cues the video at the right time
+                showinfo: 0
             },
             events: {
                 'onReady': (event) => {
                     console.log('Player ready');
                     // Just cue the video at the random start time
-                    event.target.cueVideoById({
-                        videoId: videoId,
-                        startSeconds: this.randomStartTime
-                    });
+                    event.target.cueVideoById(videoId);
                     resolve(true);
                 },
                 'onStateChange': (event) => {
-                    if (event.data === YT.PlayerState.PLAYING) {
-                        console.log(`Video playing at position: ${this.randomStartTime} seconds`);
-                        
-                        // Set a timer to stop playback after snippetDuration seconds
+                    if(event.data === YT.PlayerState.PLAYING) {
+                        this.youtubePlayer.seekTo(this.randomStartTime, true);
+
+                        console.log(`Seeking to ${this.randomStartTime}`);
+
                         setTimeout(() => {
-                            if (this.youtubePlayer && this.youtubePlayer.pauseVideo) {
+                            if(this.youtubePlayer && this.youtubePlayer.pauseVideo) {
                                 this.youtubePlayer.pauseVideo();
                                 console.log(`Playback stopped after ${this.snippetDuration} seconds`);
-                                document.getElementById('result-message').innerHTML = '⏸️ Playback finished';
+                                document.getElementById('result-message').innerHTML = 'Playback finished';
                             }
                         }, this.snippetDuration * 1000);
                     }
