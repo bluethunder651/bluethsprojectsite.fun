@@ -303,6 +303,10 @@ class MusicQuizGame {
   }
 }
 
-window.addEventListener('load', () => {
+document.addEventListener('DOMContentLoaded', () => {
   window.game = new MusicQuizGame();
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+  document.getElementById('landing-screen').classList.add('active');
 });
