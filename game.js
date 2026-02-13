@@ -243,7 +243,6 @@ class MusicQuizGame {
             if(self.replaysLeft > 0) {
                 this.playCurrentSong();
                 self.replaysLeft--;
-                document.getElementById('replay-count').textContent = self.replaysLeft + ' replay(s) remaining';
                 if (self.replaysLeft === 0) {
                     document.getElementById('replay-snippet').disabled = true;
                 }
@@ -269,8 +268,6 @@ class MusicQuizGame {
         self.replaysLeft = 1;
 
         document.getElementById('replay-snippet').disabled = false;
-        document.getElementById('replay-count').textContent = '1 replay remaining';
-
         document.getElementById('title-guess').value = '';
         document.getElementById('artist-guess').value = '';
         document.getElementById('result-message').innerHTML = '';
