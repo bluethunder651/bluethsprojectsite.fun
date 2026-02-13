@@ -373,7 +373,7 @@ class MusicQuizGame {
             }
         }
 
-        if availableSongs.length === 0){ 
+        if (availableSongs.length === 0){ 
             console.warn(`No songs found for ${this.selectedPlaylist} playlist in ${difficulty} difficulty`);
             document.getElementById('result-message').innerHTML = 'No songs available for this selection. Using all songs.';
             availableSongs = songDatabase[difficulty]
