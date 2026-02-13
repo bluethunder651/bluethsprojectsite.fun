@@ -550,6 +550,7 @@ class MusicQuizGame {
     }
 
     processVoiceGuess(transcript) {
+        console.log("Transcript: ", transcript)
         const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase());
         const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase());
         
