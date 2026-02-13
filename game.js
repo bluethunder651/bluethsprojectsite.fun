@@ -118,7 +118,7 @@ class MusicQuizGame {
         });
 
         document.getElementById('play-snippet').addEventListener('click', () => {
-            const success = await this.playYoutube(this.currentSong);
+            const success = this.playYoutube(this.currentSong);
             if(!success) { 
                 document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
             }
