@@ -148,7 +148,7 @@ class MusicQuizGame {
     async loginToSpotify() {
         console.log("Starting Spotify login with PKCE...");
         
-        const clientId = 'YOUR_CLIENT_ID_HERE';
+        const clientId = '73cebf4091ea4699bb90518b005d610b';
         const redirectUri = 'https://bluethsprojectsite.fun/callback.html';
         
         // Generate code verifier and challenge
