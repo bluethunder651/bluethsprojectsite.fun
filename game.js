@@ -29,11 +29,28 @@ class MusicQuizGame {
         this.deviceId = null;
         this.token = null;
         
-        // CRITICAL: Check for token in URL and localStorage
-        this.checkForToken();
+        this.init();
+    }
+
+    init() {
+        // Check for Spotify token in URL
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        self.token = params.get('access_token');
         
+        if (self.token) {
+            this.initSpotifyPlayer();
+            document.getElementById('connection-status').innerHTML = '✅ Connected to Spotify';
+            document.getElementById('connection-status').classList.add('connected');
+        }
+
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Initialize voice recognition
+        this.initVoiceRecognition();
+
+        this.checkForToken();
 
         this.useYouTubeFallback = true;
         
@@ -43,7 +60,7 @@ class MusicQuizGame {
             this.initSpotifyPlayer();
         }
     }
-
+    
     async playYouTubeFallback(song) {
         if(!song || !song.title) return false;
 
@@ -182,8 +199,215 @@ class MusicQuizGame {
                 this.showScreen('landing-screen');
             });
         }
+
+        document.querySelectorAll('.player-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                const numPlayers = parseInt(e.target.dataset.players);
+                this.createPlayerInputs(numPlayers);
+                document.getElementById('confirm-players').disabled = false;
+            });
+        });
+
+        document.getElementById('confirm-players').addEventListener('click', () => {
+            this.players = [];
+            for (let i = 1; i <= document.querySelectorAll('.player-name-input').length; i++) {
+                const nameInput = document.getElementById('player' + i);
+                this.players.push({
+                    name: nameInput.value || 'Player ' + i,
+                    score: 0
+                });
+            }
+            this.showScreen('playlist-screen');
+        });
+        
+        document.querySelectorAll('.playlist-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
+                e.currentTarget.classList = e.currentTarget.dataset.playlist;
+                document.getElementById('start-round').disabled = false;
+            });
+        });
+
+        document.getElementById('start-round').addEventListener('click', () => {
+            this.startNewRound();
+            this.showScreen('game-screen');
+        });
+
+        document.getElementById('play-snippet').addEventListener('click', () => {
+            this.playCurrentSong();
+        }
+
+        document.getElementById('replay-snippet').addEventListener('click', () => {
+            if(self.replaysLeft > 0) {
+                this.playCurrentSong();
+                self.replaysLeft--;
+                document.getElementById('replay-count').textContent = self.replaysLeft + ' replay(s) remaining';
+                if (self.replaysLeft === 0) {
+                    document.getElementById('replay-snippet').disabled = true;
+                }
+            }
+        });
+
+        document.getElementById('voice-input').addEventListener('click', () => {
+            if(self.recognition) {
+                self.recognition.start();
+            } else{
+                alert('Voice recognition not supported in this browser.');
+            }
+        });
+
+        document.getElementById('submit-guess').addEventListener('click', () => {
+            const titleGuess = document.getElementById('title-guess').value;
+            const artistsGuess = document.getElementById('artist-guess').value;
+            this.processTextGuess(titleGuess, artistGuess);
+        });
+    }
+    
+    startNewRound() {
+        self.replaysLeft = 1;
+
+        document.getElementById('replay-snippet').disabled = false;
+        document.getElementById('replay-count').textContent = '1 replay remaining';
+
+        document.getElementById('title-guess').value = '';
+        document.getElementById('artist-guess').value = '';
+        document.getElementById('result-message').innerHTML = '';
+
+        document.getElementById('round-number').textContent = self.currentRound;
+
+        let difficulty;
+        switch(self.currentRound) {
+            case 1: difficulty = 'easy'; break;
+            case 2: difficulty = 'medium'; break;
+            case 3: difficulty = 'hard'; break;
+            case 4: difficulty = 'expert'; break;
+        }
+
+        document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
+        const songs = songDatabase[difficulty];
+        self.currentSong = songs[Math.floor(Math.random() * songs.length)];
+
+        document.getElementById('current-player').innerHTML = `${self.players[self.currentPlayerIndex].name}'s Turn`;
     }
 
+    processTextGuess(title, artist) {
+        if(!self.currentSong) return;
+
+        let points = 0;
+        let message = '';
+
+        const titleCorrect = title.toLowerCase().includes(self.currentSong.title.toLowerCase()) || self.currentSong.title.toLowerCase().includes(title.toLowerCase());
+        const artistCorrect = artist.toLowerCase().includes(self.currentSong.artist.toLowerCase()) || self.currentSong.artist.toLowerCase().includes(artist.toLowerCase());
+
+        if (titleCorrect && artistCorrect) {
+            points = 20;
+            message = 'Perfect! +20 Points';
+        } else if (titleCorrect || artistCorrect) {
+            points = 10;
+            message = `Good! +10 Points (${self.currentSong.title} by ${self.currentSong.artist}`;
+        } else {
+            points = 0;
+            message = `Not this time. It was ${self.currentSong.title} by ${self.currentSong.artist}`;
+        }
+
+        this.players[self.currentPlayerIndex].score += points;
+
+        document.getElementById('result-message').innerHTML = message;
+
+        setTimeout(() => this.nextTurn(), 3000);
+    }
+
+    processVoiceGuess(transcript) {
+        const titleMatch = transcript.toLowerCase().includes(self.currentSong.title.toLowerCase());
+        const artistMatch = transcript.toLowerCase().includes(self.currentSong.artist.toLowerCase());
+        
+        this.processTextGuess(
+            titleMatch ? self.currentSong.title : '',
+            artistMatch ? self.currentSong.artist : ''
+        );
+    }
+
+     nextTurn() {
+        // Move to next player
+        self.currentPlayerIndex++;
+        
+        // Check if round is complete
+        if (self.currentPlayerIndex >= this.players.length) {
+            self.currentPlayerIndex = 0;
+            self.currentRound++;
+            
+            if (self.currentRound > this.maxRounds) {
+                this.endGame();
+                return;
+            }
+        }
+        
+        // Start next turn
+        this.startNewRound();
+    }   
+
+    endGame() {
+        // Sort players by score
+        const sorted = [...this.players].sort((a, b) => b.score - a.score);
+        
+        // Display final scores
+        const scoresHtml = sorted.map((p, i) => `
+            <div class="score-row">
+                <span>${i+1}. ${p.name}</span>
+                <span>${p.score} points</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('final-scores').innerHTML = scoresHtml;
+        
+        // Announce winner
+        document.getElementById('winner-announcement').innerHTML = 
+            `Winner: ${sorted[0].name} with ${sorted[0].score} points!`;
+        
+        this.showScreen('scoreboard-screen');
+    }
+
+    createPlayerInputs(numPlayers) {
+        const container = document.getElementById('player-names');
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= numPlayers; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'player' + i;
+            input.className = 'player-name-input';
+            input.placeholder = 'Player ' + i + ' name';
+            container.appendChild(input);
+        }
+    }
+
+    initVoiceRecognition() {
+        if ('webkitSpeechRecognition' in window) {
+            self.recognition = new webkitSpeechRecognition();
+            self.recognition.continuous = false;
+            self.recognition.interimResults = false;
+            self.recognition.lang = 'en-US';
+            
+            self.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('voice-status').textContent = '🎤 Heard: "' + transcript + '"';
+                this.processVoiceGuess(transcript);
+            };
+            
+            self.recognition.onstart = () => {
+                document.getElementById('voice-status').classList.add('listening');
+                document.getElementById('voice-status').textContent = '🎤 Listening...';
+            };
+            
+            self.recognition.onend = () => {
+                document.getElementById('voice-status').classList.remove('listening');
+            };
+        }
+    }
+    
     async loginToSpotify() {
         console.log("Starting Spotify login with PKCE...");
         
