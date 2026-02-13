@@ -14,10 +14,11 @@ class MusicQuizGame {
         this.replaysLeft = 1;
         this.deviceId = null;
         this.token = null;
+        this.useYouTubeFallback = true;
+        this.recognition = null; // Add this line
         
         this.setupEventListeners();
         this.initVoiceRecognition();
-        this.useYouTubeFallback = true;    
     }
     
     async playYouTube(song) {
@@ -64,13 +65,16 @@ class MusicQuizGame {
 
     setupEventListeners() {
         console.log("Setting up event listeners...");
+        
+        // Store reference to this instance
+        const self = this;
 
         // Start game button
         const startBtn = document.getElementById('start-game');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
                 console.log('Starting game...');
-                this.showScreen('player-screen');
+                self.showScreen('player-screen');
             });
         }
 
@@ -78,7 +82,7 @@ class MusicQuizGame {
         const backBtn = document.getElementById('back-button');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                this.showScreen('landing-screen');
+                self.showScreen('landing-screen');
             });
         }
 
@@ -87,21 +91,21 @@ class MusicQuizGame {
                 document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
                 const numPlayers = parseInt(e.target.dataset.players);
-                this.createPlayerInputs(numPlayers);
+                self.createPlayerInputs(numPlayers);
                 document.getElementById('confirm-players').disabled = false;
             });
         });
 
         document.getElementById('confirm-players').addEventListener('click', () => {
-            this.players = [];
+            self.players = [];
             for (let i = 1; i <= document.querySelectorAll('.player-name-input').length; i++) {
                 const nameInput = document.getElementById('player' + i);
-                this.players.push({
+                self.players.push({
                     name: nameInput.value || 'Player ' + i,
                     score: 0
                 });
             }
-            this.showScreen('playlist-screen');
+            self.showScreen('playlist-screen');
         });
         
         document.querySelectorAll('.playlist-card').forEach(card => {
@@ -113,12 +117,12 @@ class MusicQuizGame {
         });
 
         document.getElementById('start-round').addEventListener('click', () => {
-            this.startNewRound();
-            this.showScreen('game-screen');
+            self.startNewRound();
+            self.showScreen('game-screen');
         });
 
         document.getElementById('play-snippet').addEventListener('click', () => {
-            const success = this.playYoutube(this.currentSong);
+            const success = self.playYouTube(self.currentSong);
             if(!success) { 
                 document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
             }
@@ -126,7 +130,7 @@ class MusicQuizGame {
 
         document.getElementById('replay-snippet').addEventListener('click', () => {
             if(self.replaysLeft > 0) {
-                this.playCurrentSong();
+                self.playCurrentSong();
                 self.replaysLeft--;
                 if (self.replaysLeft === 0) {
                     document.getElementById('replay-snippet').disabled = true;
@@ -144,8 +148,8 @@ class MusicQuizGame {
 
         document.getElementById('submit-guess').addEventListener('click', () => {
             const titleGuess = document.getElementById('title-guess').value;
-            const artistsGuess = document.getElementById('artist-guess').value;
-            this.processTextGuess(titleGuess, artistGuess);
+            const artistGuess = document.getElementById('artist-guess').value;
+            self.processTextGuess(titleGuess, artistGuess);
         });
     }
     
@@ -169,34 +173,35 @@ class MusicQuizGame {
 
         document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
+        // Make sure songDatabase is available globally
         const songs = songDatabase[difficulty];
-        self.currentSong = songs[Math.floor(Math.random() * songs.length)];
-        console.log(self.currentSong);
+        this.currentSong = songs[Math.floor(Math.random() * songs.length)];
+        console.log(this.currentSong);
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
     }
 
     processTextGuess(title, artist) {
-        if(!self.currentSong) return;
+        if(!this.currentSong) return;
 
         let points = 0;
         let message = '';
 
-        const titleCorrect = title.toLowerCase().includes(self.currentSong.title.toLowerCase()) || self.currentSong.title.toLowerCase().includes(title.toLowerCase());
-        const artistCorrect = artist.toLowerCase().includes(self.currentSong.artist.toLowerCase()) || self.currentSong.artist.toLowerCase().includes(artist.toLowerCase());
+        const titleCorrect = title.toLowerCase().includes(this.currentSong.title.toLowerCase()) || this.currentSong.title.toLowerCase().includes(title.toLowerCase());
+        const artistCorrect = artist.toLowerCase().includes(this.currentSong.artist.toLowerCase()) || this.currentSong.artist.toLowerCase().includes(artist.toLowerCase());
 
         if (titleCorrect && artistCorrect) {
             points = 20;
             message = 'Perfect! +20 Points';
         } else if (titleCorrect || artistCorrect) {
             points = 10;
-            message = `Good! +10 Points (${self.currentSong.title} by ${self.currentSong.artist}`;
+            message = `Good! +10 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
         } else {
             points = 0;
-            message = `Not this time. It was ${self.currentSong.title} by ${self.currentSong.artist}`;
+            message = `Not this time. It was ${this.currentSong.title} by ${this.currentSong.artist}`;
         }
 
-        this.players[self.currentPlayerIndex].score += points;
+        this.players[this.currentPlayerIndex].score += points;
 
         document.getElementById('result-message').innerHTML = message;
 
@@ -204,25 +209,25 @@ class MusicQuizGame {
     }
 
     processVoiceGuess(transcript) {
-        const titleMatch = transcript.toLowerCase().includes(self.currentSong.title.toLowerCase());
-        const artistMatch = transcript.toLowerCase().includes(self.currentSong.artist.toLowerCase());
+        const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase());
+        const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase());
         
         this.processTextGuess(
-            titleMatch ? self.currentSong.title : '',
-            artistMatch ? self.currentSong.artist : ''
+            titleMatch ? this.currentSong.title : '',
+            artistMatch ? this.currentSong.artist : ''
         );
     }
 
-     nextTurn() {
+    nextTurn() {
         // Move to next player
-        self.currentPlayerIndex++;
+        this.currentPlayerIndex++;
         
         // Check if round is complete
-        if (self.currentPlayerIndex >= this.players.length) {
-            self.currentPlayerIndex = 0;
-            self.currentRound++;
+        if (this.currentPlayerIndex >= this.players.length) {
+            this.currentPlayerIndex = 0;
+            this.currentRound++;
             
-            if (self.currentRound > this.maxRounds) {
+            if (this.currentRound > this.maxRounds) {
                 this.endGame();
                 return;
             }
@@ -269,23 +274,26 @@ class MusicQuizGame {
 
     initVoiceRecognition() {
         if ('webkitSpeechRecognition' in window) {
-            self.recognition = new webkitSpeechRecognition();
-            self.recognition.continuous = false;
-            self.recognition.interimResults = false;
-            self.recognition.lang = 'en-US';
+            this.recognition = new webkitSpeechRecognition();
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+            this.recognition.lang = 'en-US';
             
-            self.recognition.onresult = (event) => {
+            // Store reference to this instance for callbacks
+            const self = this;
+            
+            this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 document.getElementById('voice-status').textContent = '🎤 Heard: "' + transcript + '"';
-                this.processVoiceGuess(transcript);
+                self.processVoiceGuess(transcript);
             };
             
-            self.recognition.onstart = () => {
+            this.recognition.onstart = () => {
                 document.getElementById('voice-status').classList.add('listening');
                 document.getElementById('voice-status').textContent = '🎤 Listening...';
             };
             
-            self.recognition.onend = () => {
+            this.recognition.onend = () => {
                 document.getElementById('voice-status').classList.remove('listening');
             };
         }
@@ -295,7 +303,7 @@ class MusicQuizGame {
         if(!this.currentSong) return;
 
         if (this.useYouTubeFallback) {
-            const success = await this.playYoutube(this.currentSong);
+            const success = await this.playYouTube(this.currentSong);
             if(!success) { 
                 document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
             }
