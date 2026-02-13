@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Logging in to Spotify...</title>
+    <title>Connecting to Spotify...</title>
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -10,27 +10,36 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: -apple-system, sans-serif;
-        }
-        .message {
+            font-family: Arial, sans-serif;
             text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="message">
+    <div>
         <h1>🎵 Music Quiz</h1>
         <p>Connecting to Spotify...</p>
+        <p id="status">Please wait...</p>
     </div>
 
     <script>
+        console.log("Callback page loaded");
+        console.log("Current hash:", window.location.hash);
+        
         // Get the token from URL
         const hash = window.location.hash.substring(1);
         
-        // Redirect back to game with token
-        setTimeout(() => {
+        if (hash) {
+            console.log("Token found, redirecting...");
+            // Redirect back to main page with token
             window.location.href = 'https://bluethsprojectsite.fun/?' + hash;
-        }, 1000);
+        } else {
+            console.error("No token in URL");
+            document.getElementById('status').innerHTML = 'Login failed. Please try again.';
+            setTimeout(() => {
+                window.location.href = 'https://bluethsprojectsite.fun/';
+            }, 3000);
+        }
     </script>
 </body>
 </html>
