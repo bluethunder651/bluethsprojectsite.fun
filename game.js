@@ -62,6 +62,7 @@ class MusicQuizGame {
     }
     
     async playYouTubeFallback(song) {
+        console.log("Running YouTube Fallback");
         if(!song || !song.title) return false;
 
         try {
