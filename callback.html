@@ -12,68 +12,83 @@
             height: 100vh;
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
         }
-        .container {
-            background: rgba(255,255,255,0.1);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-        h1 { margin-bottom: 20px; }
-        .status { margin: 20px 0; }
-        .error { color: #ff9999; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div>
         <h1>🎵 Music Quiz</h1>
-        <div id="status" class="status">Connecting to Spotify...</div>
+        <p id="status">Completing login...</p>
     </div>
 
     <script>
-        console.log("=== CALLBACK PAGE LOADED ===");
-        console.log("Full URL:", window.location.href);
-        console.log("Hash:", window.location.hash);
-        console.log("Search:", window.location.search);
+        console.log("Callback page loaded");
         
-        const statusDiv = document.getElementById('status');
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const state = urlParams.get('state');
+        const storedState = localStorage.getItem('spotify_state');
         
-        // Try to get token from hash first (OAuth 2.0 implicit flow)
-        if (window.location.hash) {
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const token = hashParams.get('access_token');
-            const state = hashParams.get('state');
-            const error = hashParams.get('error');
-            
-            if (error) {
-                console.error("Spotify returned error:", error);
-                statusDiv.innerHTML = '❌ Login failed: ' + error;
-                setTimeout(() => {
-                    window.location.href = 'https://bluethsprojectsite.fun/';
-                }, 3000);
-            }
-            else if (token) {
-                console.log("✅ Token found in hash!");
-                console.log("Token preview:", token.substring(0, 20) + "...");
-                statusDiv.innerHTML = '✅ Connected! Redirecting...';
-                
-                // Redirect back with token in URL parameters
-                window.location.href = 'https://bluethsprojectsite.fun/?access_token=' + token;
-            } else {
-                console.log("No token in hash");
-                statusDiv.innerHTML = '❌ No token found. Redirecting...';
-                setTimeout(() => {
-                    window.location.href = 'https://bluethsprojectsite.fun/';
-                }, 2000);
-            }
+        if (error) {
+            console.error("Spotify error:", error);
+            document.getElementById('status').innerText = 'Login failed: ' + error;
+            setTimeout(() => window.location.href = '/', 3000);
+        } 
+        else if (!code) {
+            console.error("No code in response");
+            document.getElementById('status').innerText = 'Invalid response';
+            setTimeout(() => window.location.href = '/', 3000);
+        }
+        else if (state !== storedState) {
+            console.error("State mismatch");
+            document.getElementById('status').innerText = 'Security error';
+            setTimeout(() => window.location.href = '/', 3000);
         }
         else {
-            console.log("No hash in URL");
-            statusDiv.innerHTML = '❌ Invalid login response. Redirecting...';
-            setTimeout(() => {
-                window.location.href = 'https://bluethsprojectsite.fun/';
-            }, 2000);
+            console.log("Authorization code received:", code.substring(0, 10) + "...");
+            
+            // Exchange code for token
+            const codeVerifier = localStorage.getItem('code_verifier');
+            const clientId = 'YOUR_CLIENT_ID_HERE';
+            const redirectUri = 'https://bluethsprojectsite.fun/callback.html';
+            
+            fetch('https://accounts.spotify.com/api/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    client_id: clientId,
+                    grant_type: 'authorization_code',
+                    code: code,
+                    redirect_uri: redirectUri,
+                    code_verifier: codeVerifier,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Token response received");
+                if (data.access_token) {
+                    console.log("Access token obtained");
+                    // Store token
+                    localStorage.setItem('spotify_token', data.access_token);
+                    localStorage.setItem('spotify_refresh_token', data.refresh_token);
+                    localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
+                    
+                    // Redirect back to main page
+                    window.location.href = 'https://bluethsprojectsite.fun/?login=success';
+                } else {
+                    console.error("No token in response:", data);
+                    document.getElementById('status').innerText = 'Token exchange failed';
+                    setTimeout(() => window.location.href = '/', 3000);
+                }
+            })
+            .catch(error => {
+                console.error("Token exchange error:", error);
+                document.getElementById('status').innerText = 'Connection error';
+                setTimeout(() => window.location.href = '/', 3000);
+            });
         }
     </script>
 </body>
