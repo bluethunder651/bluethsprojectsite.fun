@@ -1,4 +1,4 @@
-// game.js - Complete working version with YouTube API
+// game.js - With preloading functionality
 
 class MusicQuizGame {
     constructor() {
@@ -17,6 +17,9 @@ class MusicQuizGame {
         this.recognition = null;
         this.youtubePlayer = null;
         this.playerReady = false;
+        this.preloadedVideoId = null;
+        this.preloadedSong = null;
+        this.isPreloaded = false;
         
         // IMPORTANT: Add your YouTube API key here
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; // Replace with your actual key
@@ -52,57 +55,59 @@ class MusicQuizGame {
         console.log('YouTube player ready');
     }
     
-    async playYouTube(song) {
-        console.log("Playing song with YouTube API:", song);
-        if(!song || !song.title) return false;
-
+    // New method: Preload the video when round starts
+    async preloadVideoForCurrentSong() {
+        if (!this.currentSong) return false;
+        
+        // Don't preload if we already have this song preloaded
+        if (this.isPreloaded && this.preloadedSong === this.currentSong) {
+            console.log('Song already preloaded');
+            return true;
+        }
+        
         try {
-            document.getElementById('result-message').innerHTML = '🔍 Searching for song...';
-
+            document.getElementById('result-message').innerHTML = '🔍 Loading song...';
+            
             // Search for the song on YouTube
-            const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
+            const searchQuery = encodeURIComponent(`${this.currentSong.title} ${this.currentSong.artist} audio`);
             const response = await fetch(
                 `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&type=video&key=${this.YOUTUBE_API_KEY}&maxResults=1`
             );
             
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('YouTube API error:', errorData);
-                throw new Error(`YouTube API error: ${errorData.error?.message || 'Unknown error'}`);
+                throw new Error('YouTube API error');
             }
             
             const data = await response.json();
             
             if (!data.items || data.items.length === 0) {
-                document.getElementById('result-message').innerHTML = '❌ No videos found';
+                document.getElementById('result-message').innerHTML = '❌ No videos found for this song';
                 return false;
             }
 
-            const videoId = data.items[0].id.videoId;
-            const videoTitle = data.items[0].snippet.title;
+            // Store the video ID
+            this.preloadedVideoId = data.items[0].id.videoId;
+            this.preloadedSong = this.currentSong;
+            this.isPreloaded = true;
             
-            console.log(`Found video: ${videoTitle} (${videoId})`);
-            document.getElementById('result-message').innerHTML = `✅ Found: ${videoTitle.substring(0, 30)}...`;
+            console.log(`Preloaded: ${this.currentSong.title} - Video ID: ${this.preloadedVideoId}`);
             
-            // Play the video
-            this.playVideoWithIframe(videoId, song);
+            // Create hidden player container but don't play yet
+            this.createHiddenPlayer(this.preloadedVideoId);
             
+            document.getElementById('result-message').innerHTML = '✅ Song loaded! Press Play to listen';
             return true;
             
         } catch (e) {
-            console.error('YouTube API failed:', e);
-            document.getElementById('result-message').innerHTML = '⚠️ Could not play this song. Try another!';
+            console.error('Preload failed:', e);
+            document.getElementById('result-message').innerHTML = '⚠️ Could not load song';
             return false;
         }
     }
     
-    playVideoWithIframe(videoId, song) {
-        // Calculate start and end times
-        const startTime = song.startTime || 30;
-        const duration = 15; // Play 15 seconds
-        const endTime = startTime + duration;
-        
-        // Create or update player container
+    // New method: Create hidden player for preloading
+    createHiddenPlayer(videoId) {
+        // Create or get player container
         let playerContainer = document.getElementById('youtube-player-container');
         if (!playerContainer) {
             playerContainer = document.createElement('div');
@@ -122,35 +127,34 @@ class MusicQuizGame {
         playerDiv.id = 'youtube-player';
         playerContainer.appendChild(playerDiv);
         
-        // Create YouTube player with start and end times
+        // Create YouTube player (but don't autoplay)
         if (window.YT && window.YT.Player) {
-            this.createYouTubePlayer(playerDiv, videoId, startTime, endTime);
+            this.createPlayerInstance(playerDiv, videoId);
         } else {
             // Wait for API to load
             const checkAPI = setInterval(() => {
                 if (window.YT && window.YT.Player) {
                     clearInterval(checkAPI);
-                    this.createYouTubePlayer(playerDiv, videoId, startTime, endTime);
+                    this.createPlayerInstance(playerDiv, videoId);
                 }
             }, 100);
         }
     }
     
-    createYouTubePlayer(playerDiv, videoId, startTime, endTime) {
+    // New method: Create player instance without playing
+    createPlayerInstance(playerDiv, videoId) {
         // Destroy existing player if it exists
         if (this.youtubePlayer && this.youtubePlayer.destroy) {
             this.youtubePlayer.destroy();
         }
         
-        // Create new player
+        // Create new player (cued but not playing)
         this.youtubePlayer = new YT.Player(playerDiv.id, {
             height: '0',
             width: '0',
             videoId: videoId,
             playerVars: {
-                autoplay: 1,
-                start: startTime,
-                end: endTime,
+                autoplay: 0,  // Don't autoplay
                 controls: 0,
                 disablekb: 1,
                 fs: 0,
@@ -160,21 +164,17 @@ class MusicQuizGame {
             },
             events: {
                 'onReady': (event) => {
-                    console.log('Player ready, playing video');
-                    event.target.playVideo();
-                    
-                    // Set timer to stop playback after duration
-                    setTimeout(() => {
-                        if (this.youtubePlayer && this.youtubePlayer.stopVideo) {
-                            this.youtubePlayer.stopVideo();
-                            console.log('Playback finished');
-                        }
-                    }, (endTime - startTime) * 1000);
+                    console.log('Player ready, video cued');
+                    // Just cue the video, don't play
+                    event.target.cueVideoById({
+                        videoId: videoId,
+                        startSeconds: this.currentSong?.startTime || 30
+                    });
                 },
                 'onStateChange': (event) => {
-                    // When video ends (state = 0), show message
-                    if (event.data === 0) {
-                        console.log('Video ended');
+                    // Optional: Handle state changes
+                    if (event.data === YT.PlayerState.CUED) {
+                        console.log('Video cued and ready to play');
                     }
                 },
                 'onError': (event) => {
@@ -185,8 +185,89 @@ class MusicQuizGame {
         });
     }
     
-    // Alternative method using iframe (fallback)
-    playVideoWithBasicIframe(videoId, song) {
+    // Updated: Play the preloaded video
+    playPreloadedVideo() {
+        if (!this.youtubePlayer || !this.preloadedVideoId) {
+            console.log('No preloaded video, loading now...');
+            // Fallback: load and play immediately
+            this.playYouTube(this.currentSong);
+            return;
+        }
+        
+        try {
+            const startTime = this.currentSong?.startTime || 30;
+            const duration = 15;
+            
+            console.log('Playing preloaded video');
+            
+            // Seek to start time and play
+            this.youtubePlayer.seekTo(startTime, true);
+            this.youtubePlayer.playVideo();
+            
+            // Set timer to stop playback after duration
+            setTimeout(() => {
+                if (this.youtubePlayer && this.youtubePlayer.stopVideo) {
+                    this.youtubePlayer.stopVideo();
+                    console.log('Playback finished');
+                    
+                    // Recue the video for next play
+                    this.youtubePlayer.cueVideoById({
+                        videoId: this.preloadedVideoId,
+                        startSeconds: startTime
+                    });
+                }
+            }, duration * 1000);
+            
+            document.getElementById('result-message').innerHTML = '🔊 Playing...';
+            
+        } catch (e) {
+            console.error('Playback failed:', e);
+            document.getElementById('result-message').innerHTML = '⚠️ Playback failed';
+            
+            // Fallback to regular method
+            this.playYouTube(this.currentSong);
+        }
+    }
+    
+    // Modified: Original playYouTube method (keep as fallback)
+    async playYouTube(song) {
+        console.log("Fallback: Playing song with YouTube API:", song);
+        if(!song || !song.title) return false;
+
+        try {
+            document.getElementById('result-message').innerHTML = '🔍 Searching for song...';
+
+            const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
+            const response = await fetch(
+                `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&type=video&key=${this.YOUTUBE_API_KEY}&maxResults=1`
+            );
+            
+            if (!response.ok) {
+                throw new Error('YouTube API error');
+            }
+            
+            const data = await response.json();
+            
+            if (!data.items || data.items.length === 0) {
+                document.getElementById('result-message').innerHTML = '❌ No videos found';
+                return false;
+            }
+
+            const videoId = data.items[0].id.videoId;
+            
+            // Play immediately
+            this.playVideoWithIframe(videoId, song);
+            return true;
+            
+        } catch (e) {
+            console.error('YouTube API failed:', e);
+            document.getElementById('result-message').innerHTML = '⚠️ Could not play this song. Try another!';
+            return false;
+        }
+    }
+    
+    playVideoWithIframe(videoId, song) {
+        // Same as before but without preloading
         const startTime = song.startTime || 30;
         const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${startTime + 15}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0`;
 
@@ -203,7 +284,6 @@ class MusicQuizGame {
         `;
         document.body.appendChild(playerDiv);
 
-        // Remove after 20 seconds
         setTimeout(() => {
             playerDiv.remove();
         }, 20000);
@@ -215,6 +295,81 @@ class MusicQuizGame {
             this.youtubePlayer.stopVideo();
         }
     }
+    
+    // Modified: Start new round with preloading
+    startNewRound() {
+        this.replaysLeft = 1;
+        this.isPreloaded = false; // Reset preload status for new round
+
+        document.getElementById('replay-snippet').disabled = false;
+        document.getElementById('title-guess').value = '';
+        document.getElementById('artist-guess').value = '';
+        document.getElementById('result-message').innerHTML = 'Loading song...';
+
+        document.getElementById('round-number').textContent = this.currentRound;
+
+        let difficulty;
+        switch(this.currentRound) {
+            case 1: difficulty = 'easy'; break;
+            case 2: difficulty = 'medium'; break;
+            case 3: difficulty = 'hard'; break;
+            case 4: difficulty = 'expert'; break;
+        }
+
+        document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
+        // Get random song
+        const songs = songDatabase[difficulty];
+        this.currentSong = songs[Math.floor(Math.random() * songs.length)];
+        console.log('Selected song:', this.currentSong);
+
+        document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
+        
+        // Preload the video immediately
+        this.preloadVideoForCurrentSong();
+    }
+    
+    // Modified: Play current song using preloaded video
+    async playCurrentSong() {
+        if(!this.currentSong) return;
+
+        // Stop any currently playing audio
+        this.stopPlayback();
+
+        if (this.isPreloaded && this.preloadedVideoId) {
+            // Play the preloaded video
+            this.playPreloadedVideo();
+        } else {
+            // Fallback: load and play immediately
+            document.getElementById('result-message').innerHTML = 'Loading song...';
+            const success = await this.playYouTube(this.currentSong);
+            if(!success) { 
+                document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
+            }
+        }
+        
+        // Decrement replays if this was a replay
+        if (this.replaysLeft < 1) {
+            this.replaysLeft--;
+            if (this.replaysLeft === 0) {
+                document.getElementById('replay-snippet').disabled = true;
+            }
+        }
+    }
+    
+    // Update replay method to work with preloading
+    handleReplay() {
+        if (this.replaysLeft > 0) {
+            this.playCurrentSong();
+            this.replaysLeft--;
+            if (this.replaysLeft === 0) {
+                document.getElementById('replay-snippet').disabled = true;
+            }
+        }
+    }
+    
+    // Rest of your existing methods (setupEventListeners, processTextGuess, etc.)
+    // ... (keep all your other methods exactly as they were)
     
     setupEventListeners() {
         console.log("Setting up event listeners...");
@@ -279,13 +434,7 @@ class MusicQuizGame {
         });
 
         document.getElementById('replay-snippet').addEventListener('click', () => {
-            if(self.replaysLeft > 0) {
-                self.playCurrentSong();
-                self.replaysLeft--;
-                if (self.replaysLeft === 0) {
-                    document.getElementById('replay-snippet').disabled = true;
-                }
-            }
+            self.handleReplay();
         });
 
         document.getElementById('voice-input').addEventListener('click', () => {
@@ -303,34 +452,6 @@ class MusicQuizGame {
         });
     }
     
-    startNewRound() {
-        this.replaysLeft = 1;
-
-        document.getElementById('replay-snippet').disabled = false;
-        document.getElementById('title-guess').value = '';
-        document.getElementById('artist-guess').value = '';
-        document.getElementById('result-message').innerHTML = '';
-
-        document.getElementById('round-number').textContent = this.currentRound;
-
-        let difficulty;
-        switch(this.currentRound) {
-            case 1: difficulty = 'easy'; break;
-            case 2: difficulty = 'medium'; break;
-            case 3: difficulty = 'hard'; break;
-            case 4: difficulty = 'expert'; break;
-        }
-
-        document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-
-        // Make sure songDatabase is available globally
-        const songs = songDatabase[difficulty];
-        this.currentSong = songs[Math.floor(Math.random() * songs.length)];
-        console.log(this.currentSong);
-
-        document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
-    }
-
     processTextGuess(title, artist) {
         if(!this.currentSong) return;
 
@@ -386,7 +507,7 @@ class MusicQuizGame {
             }
         }
         
-        // Start next turn
+        // Start next turn (this will preload the next song)
         this.startNewRound();
     }   
 
@@ -452,17 +573,6 @@ class MusicQuizGame {
             this.recognition.onend = () => {
                 document.getElementById('voice-status').classList.remove('listening');
             };
-        }
-    }
-
-    async playCurrentSong() {
-        if(!this.currentSong) return;
-
-        if (this.useYouTubeFallback) {
-            const success = await this.playYouTube(this.currentSong);
-            if(!success) { 
-                document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
-            }
         }
     }
 
