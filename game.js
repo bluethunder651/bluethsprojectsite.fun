@@ -79,6 +79,9 @@ class MusicQuizGame {
             }, 15000);
 
             return true;
+        } catch (e) {
+            console.error('YouTube fallback failed:', e);
+            return false;
         }
     }
     
