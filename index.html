@@ -1,1 +1,89 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Music Quiz</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+  <body>
+    <div id="app">
+      <div id="landing-screen" class="screen active">'
+        <h1 class="game-title">Music Quiz</h1>
+        <p class="tagline">Family Edition</p>
+        <button id="start-game" class="btn btn-primary">Start Game</button>
+        <button id="login-spotify" class="btn btn-spotify">Connect Spotify</button>
+        <div id="connection-status" class="status"></div>
+      </div>
+      <div id="player-screen" class="screen">
+        <h2>How Many Players?</h2>
+        <div class="player-selector">
+          <button class="btn player-btn" data-players="1">1 Player</button>
+          <button class="btn player-btn" data-players="2">2 Players</button>
+          <button class="btn player-btn" data-players="3">3 Players</button>
+          <button class="btn player-btn" data-players="4">4 Players</button>
+          <button class="btn player-btn" data-players="5">5 Players</button>
+          <button class="btn player-btn" data-players="6">6 Players</button>
+          <button class="btn player-btn" data-players="7">7 Players</button>
+          <button class="btn player-btn" data-players="8">8 Players</button>
+      </div>
+        <div class="player-names" id="player-names"></div>
+        <button id="confirm-players" class="btn btn-primary" disabled>Continue</button>
+    </div>
+      <div id="playlist-screen" class="screen">
+        <h2>Choose Your Music</h2>
+        <div class="playlist-grid">
+          <div class="playlist-card" data-playlist="family">
+            <h3>Family Favorites</h3>
+          </div>
+          <div class="playlist-card" data-playlist="80s">
+            <h3>80s</h3>
+          </div>
+          <div class="playlist-card" data-playlist="90s">
+            <h3>90s</h3>
+          </div>
+          <div class="playlist-card" data-playlist="rock">
+            <h3>Rock</h3>
+          </div>
+          <div class="playlist-card" data-playlist="pop">
+            <h3>Pop</h3>
+          </div>
+        </div>
+        <button id="start-round" class="btn btn-primary" disabled>Start Game!</button>
+      </div>
+      <div id="game-screen" class="screen">
+        <div class="game-header">
+          <div id="round-info">Round <span id="round-number">1</span>/4 - <span id="difficulty">Easy</span></div>
+          <div id="scores"></div>
+          <div id="current-player">Player 1's Turn</div>
+        </div>
+        <div class="game-area">
+          <div id="album-art" class="album-placeholder">🎵</div>
+          <div id="playback-controls">
+            <button id="play-snippet" class="btn btn-play">Play Snippet</button>
+            <button id="replay-snippet" class="btn btn-replay" disabled>Replay (1 left)</button>
+          </div>
+          <div id="guess-area">
+            <div id="voice-status" class="voice-indicator">Click mic to speak</div>
+            <button id="voice-input" class="btn btn-mic">Guess by Voice</button>
+            <div class="or-divider">- or -</div>
+            <input type="text" id="title-guess" placeholder="Song Title">
+            <input type="text" id="artist-guess" placeholder="Artist">
+            <button id="submit-guess" class="btn btn-primary">Submit Guess</button>
+          </div>
+          <div id="result-message"></div>
+        </div>
+      </div>
+      <div id="scoreboard-screen" class="screen">
+        <h2>Final Scores</h2>
+        <div id="final-scores"></div>
+        <div id="winner-announcement"></div>
+        <button id="play-again" class="btn btn-primary">Play Again</button>
+        <button id="new-game" class="btn">New Game</button>
+      </div>
+    </div>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script src="songs.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
