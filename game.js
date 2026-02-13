@@ -286,6 +286,7 @@ class MusicQuizGame {
 
         const songs = songDatabase[difficulty];
         self.currentSong = songs[Math.floor(Math.random() * songs.length)];
+        console.log(self.currentSong);
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
     }
@@ -525,33 +526,6 @@ class MusicQuizGame {
 
     async playCurrentSong() {
         if(!this.currentSong) return;
-
-        if(this.deviceId && this.token) {
-            try {
-                await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        uris: [this.currentSong.uri],
-                        position_ms: this.currentSong.startTime * 1000
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + this.token
-                    }
-                });
-
-                setTimeout(() => {
-                    fetch('https://api.spotify.com/v1/me/player/pause', {
-                        method: 'PUT',
-                        headers: { 'Authorization': 'Bearer ' + this.token }
-                    });
-                }, 10000);
-
-                return;
-            } catch (e) {
-                console.log('Spotify playback failed, trying YouTube...');
-            }
-        }
 
         if (this.useYouTubeFallback) {
             const success = await this.playYoutubeFallback(this.currentSong);
