@@ -343,11 +343,11 @@ class MusicQuizGame {
     showScreen(screenId) {
         console.log("Showing screen:", screenId);
         document.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
+            screen.classList.remove('-active');
         });
         const targetScreen = document.getElementById(screenId);
         if (targetScreen) {
-            targetScreen.classList.add('active');
+            targetScreen.classList.add('-active');
         } else {
             console.error("Screen not found:", screenId);
         }
