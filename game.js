@@ -48,7 +48,7 @@ class MusicQuizGame {
 
       self.recognition.onstart = () => {
         document.getElementById('voice-status').classList.add('listening');
-        document.getElementById('voice-status').textContent = 'Listening...";
+        document.getElementById('voice-status').textContent = 'Listening...';
       };
 
       self.recognition.onend = () => {
