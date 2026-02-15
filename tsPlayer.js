@@ -3,7 +3,6 @@ class tsPlayer{
         this.serverUrl = 'https://julia-server.duckdns.org:5000';
         this.token = null;
         this.tokenExpiry = null;
-        this.enabled = false;
         this.statusCallbacks = [];
         this.healthCallbacks = [];
         this.monitoring = false;
@@ -144,16 +143,6 @@ class tsPlayer{
                 error: 'Socket disconnected'
             }));
         });
-    }
-
-    async enable() {
-        this.enabled = true;
-        return await this.refreshToken();
-    }
-
-    disable(){
-        this.enabled = false;
-        this.token = null;
     }
 
     async refreshToken(){
@@ -427,8 +416,7 @@ class tsPlayer{
     }
 
     async getVideos() {
-        console.log("Getting videos...", this.enabled)
-        if(!this.enabled || !this.token) return [];
+        if(!this.token) return [];
 
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -458,7 +446,7 @@ class tsPlayer{
     }
 
     async playVideo(videoPath){
-        if(!this.enabled || !this.token) return;
+        if(!this.token) return;
 
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -491,7 +479,7 @@ class tsPlayer{
     }
 
     async searchVideos(query){
-        if(!this.enabled || !this.token || query.length < 3) return [];
+        if(!this.token || query.length < 3) return [];
 
         try{
             const response = await fetch(`${this.serverUrl}/api/local/search?q=${encodeURIComponent(query)}`, {
@@ -516,20 +504,3 @@ class tsPlayer{
 }
 
 const player = new tsPlayer();
-
-function enableLocalAccess() {
-    player.enable().then(success => {
-        if (success){
-            console.log('Local video access enabled');
-            player.getVideos().then(videos => {
-                console.log(`Found ${videos.length} videos`);
-            });
-        }
-    });
-}
-
-function disableLocalAccess(){
-    player.disable();
-    console.log('Local video access disabled')
-}
-
