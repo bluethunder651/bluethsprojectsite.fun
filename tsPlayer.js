@@ -186,7 +186,7 @@ class tsPlayer{
             let allVideos = [];
 
 
-            this.startMonitoring(function(status) {
+            startMonitoring(function(status) {
                 const indicator = document.getElementById('server-status-indicator');
                 const text = document.getElementById('server-status-text');
                 const latencyRow = document.getElementById('latency-row');
@@ -228,7 +228,7 @@ class tsPlayer{
                 btn.disabled = true;
                 btn.textContent = 'Refreshing...'
 
-                this.ping().then(result => {
+                ping().then(result => {
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = "↻ Status";
@@ -248,7 +248,7 @@ class tsPlayer{
                 errorMessage.style.display = 'none';
                 
                 try {
-                const results = await this.searchVideos(query);
+                const results = await searchVideos(query);
                 displayVideos(results, `Found ${results.length} videos for "${query}"`);
                 } catch (error) {
                 showError('Search failed: ' + error.message);
@@ -264,14 +264,14 @@ class tsPlayer{
             
             // Load videos
             async function loadVideos() {
-                await this.refreshToken();
+                await refreshToken();
                 console.log("Loading videos...")
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 videoGrid.innerHTML = '';
                 
                 try {
-                allVideos = await this.getVideos();
+                allVideos = await getVideos();
                 displayVideos(allVideos);
                 } catch (error) {
                 showError('Failed to load videos: ' + error.message);
