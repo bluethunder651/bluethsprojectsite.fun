@@ -428,6 +428,7 @@ class tsPlayer{
 
                 try{
                     const videoUrl = `#${player.serverUrl}/api/local/videos/${encodeURIComponent(video.filename)}`;
+                    console.log("Video URL: " + videoUrl)
                     const response = await fetch(videoUrl, {
                         headers: {
                             'X-Auth-Token': player.token,
