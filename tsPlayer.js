@@ -192,6 +192,7 @@ class tsPlayer{
 
             if (response.ok) {
                 const data = await response.json();
+                console.log("Data: ", data.videos)
                 return data.videos;
             }
         } catch (error){
