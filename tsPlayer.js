@@ -184,7 +184,6 @@ class tsPlayer{
             const durationSpan = document.getElementById('duration');
 
             let allVideos = [];
-            refreshToken();
 
 
             player.startMonitoring(function(status) {
@@ -503,4 +502,5 @@ class tsPlayer{
 
 }
 
+await this.refreshToken();
 const player = new tsPlayer();
