@@ -27,8 +27,6 @@ class MusicQuizGame {
         this.snippetDuration = 10; // Play 10 seconds of the song
         this.hasSeekedThisPlay = false;
         
-        const Fuse = require('fuse.js')
-
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
 
         this.setupEventListeners();
@@ -333,6 +331,7 @@ class MusicQuizGame {
         document.getElementById('title-guess').value = '';
         document.getElementById('artist-guess').value = '';
         document.getElementById('dev-message').innerHTML = 'Loading song...';
+        documetn.getElementById('voice-status').textContent = '🎤';
 
         document.getElementById('round-number').textContent = this.currentRound;
 
