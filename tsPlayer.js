@@ -295,12 +295,10 @@ class tsPlayer{
                 card.className = 'video-card';
                 card.innerHTML = `
                     <h3>${escapeHtml(video.filename)}</h3>
-                    <p>${formatFileSize(video.size)}</p>
-                    <p>${escapeHtml(video.path)}</p>
                 `;
                 
                 card.addEventListener('click', () => {
-                    playVideo(video.path, video.filename);
+                    playVideo(video.filename);
                 });
                 
                 videoGrid.appendChild(card);
@@ -314,7 +312,7 @@ class tsPlayer{
             }
             
             // Play video
-            async function playVideo(videoPath, filename) {
+            async function playVideo(filename) {
                 if (!player.token) {
                 showError('Please enable server first');
                 return;
@@ -325,7 +323,7 @@ class tsPlayer{
                 currentVideoTitle.textContent = filename;
                 
                 try {
-                const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`;
+                const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(filename)}`;
                 
                 // Fetch with authentication
                 const response = await fetch(videoUrl, {
