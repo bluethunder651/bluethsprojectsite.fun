@@ -283,6 +283,7 @@ class tsPlayer{
             
             // Load videos
             async function loadVideos() {
+                console.log("Loading videos...")
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 videoGrid.innerHTML = '';
