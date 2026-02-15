@@ -169,6 +169,9 @@ class tsPlayer{
 
         let selectedTags = new Set();
         let allTags = [];
+        let playlist = [];
+        let currentPlaylistIndex = 0;
+        let isPlayingPlaylist = false;
 
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -228,6 +231,8 @@ class tsPlayer{
                 playerScreen.style.display = 'none';
                 videoBrowser.style.display = 'block';
                 videoPlayer.pause();
+                isPlayingPlaylist = false;
+                playlist = [];
             });
             
             // Refresh status
@@ -374,14 +379,16 @@ class tsPlayer{
                     
                     if (videos && videos.length > 0) {
                         // Shuffle the array
-                        const shuffled = [...videos];
-                        for (let i = shuffled.length - 1; i > 0; i--) {
-                            const j = Math.floor(Math.random() * (i + 1));
-                            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                        }
+                        playlist = [...videos];
+                        shuffleArray(playlist);
+                        currentPlaylistIndex = 0;
+                        isPlayingPlaylist = true;
+
+                        videoBrowser.style.display = 'none';
+                        playerScreen.style.display = 'block';
+
+                        playPlaylistVideo(currentPlaylistIndex);
                         
-                        // Display shuffled videos
-                        displayVideos(shuffled, `Shuffled ${shuffled.length} videos`);
                     } else {
                         showError('No videos to shuffle');
                     }
@@ -391,7 +398,123 @@ class tsPlayer{
                     loadingIndicator.style.display = 'none';
                 }
             });
+
+            function shuffleArray(array){
+                for (let i = array.length - 1; i> 0; i--){
+                    const j = Math.floor(Math.random()* (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
             
+            async function playPlaylistVideo(index){
+                if(!playlist || index >= playlist.length){
+                    console.log("Playlist ended");
+                    isPlayingPlaylist = false;
+
+                    if(confirm('Playlist ended! Shuffle again?')) { 
+                        document.getElementById('shuffle').click();
+                    }else{
+                        playerScreen.style.display = 'none';
+                        videoBrowser.style.display = 'block';
+                    }
+                    return;
+                }
+                
+                const video = playlist[index];
+                currentPlaylistIndex = index;
+
+                const progressText = `(${index + 1}/${playlist.length}) `;
+                currentVideoTitle.textContent = progressText + (video.opening_name)
+
+                try{
+                    const videoUrl = `#${player.serverUrl}/api/local/videos/${encodeURIComponent(video.filename)}`;
+                    const response = await fetch(videoUrl, {
+                        headers: {
+                            'X-Auth-Token': player.token,
+                            'Referer': window.location.origin
+                        }
+                    });
+
+                    if (response.ok){
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+
+                        videoPlayer.removeEventListener('ended', handleVideoEnded);
+
+                        videoPlayer.src = url;
+                        videoPlayer.load();
+
+                        videoPlayer.addEventListener('ended', handleVideoEnded)
+
+                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+                    } else{
+                        showError('Failed to load video: '+ response.status);
+                        setTimeout(() => handleVideoEnded(), 1000)
+                    } 
+                } catch (error) {
+                    showError('Failed to load video: ' + error.message);
+                    setTimeout(() => handleVideoEnded(), 1000);
+                }
+            }
+
+            function handleVideoEnded(){
+                if (isPlayingPlaylist){
+                    playPlaylistVideo(currentPlaylistIndex+1);
+                }
+            }
+
+            function addPlaylistControls(){
+                const videoContainer = document.querySelector('.video-container');
+
+                const navDiv = document.createElement('div');
+                navDiv.className = 'playlist-nav';
+                navDiv.style.cssText = `
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                    margin-top: 10px;
+                `;
+
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'nav-btn';
+                prevBtn.textContent = '⏮ Previous';
+                prevBtn.onclick = () => {
+                    if (isPlayingPlaylist && currentPlaylistIndex > 0) {
+                        playPlaylistVideo(currentPlaylistIndex - 1);
+                    }
+                };
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'nav-btn';
+                nextBtn.textContent = 'Next ⏭';
+                nextBtn.onclick = () => {
+                    if (isPlayingPlaylist) {
+                        playPlaylistVideo(currentPlaylistIndex + 1);
+                    }
+                };
+                
+                const shuffleAgainBtn = document.createElement('button');
+                shuffleAgainBtn.className = 'nav-btn';
+                shuffleAgainBtn.textContent = '🔄 Reshuffle';
+                shuffleAgainBtn.onclick = () => {
+                    if (playlist.length > 0) {
+                        shuffleArray(playlist);
+                        currentPlaylistIndex = 0;
+                        playPlaylistVideo(0);
+                    }
+                };
+                
+                navDiv.appendChild(prevBtn);
+                navDiv.appendChild(nextBtn);
+                navDiv.appendChild(shuffleAgainBtn);
+                
+                // Insert after video container
+                videoContainer.parentNode.insertBefore(navDiv, videoContainer.nextSibling);
+            }
+
+            // Call this when setting up
+            addPlaylistControls();
+
             searchBtn.addEventListener('click', performSearch);
             searchInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') performSearch();
