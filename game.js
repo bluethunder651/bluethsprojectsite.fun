@@ -320,6 +320,7 @@ class MusicQuizGame {
         this.isPreloaded = false;
 
         document.getElementById('replay-snippet').disabled = false;
+        document.getElementById('play-snippet').disabled = false;
         document.getElementById('title-guess').value = '';
         document.getElementById('artist-guess').value = '';
         document.getElementById('result-message').innerHTML = 'Loading song...';
@@ -327,13 +328,16 @@ class MusicQuizGame {
         document.getElementById('round-number').textContent = this.currentRound;
 
         let difficulty;
-        switch(this.currentRound) {
-            case 1: difficulty = 'easy'; break;
-            case 2: difficulty = 'medium'; break;
-            case 3: difficulty = 'hard'; break;
-            case 4: difficulty = 'expert'; break;
+        if (this.difficulty === "progressive"){
+            switch(this.currentRound) {
+                case 1: difficulty = 'easy'; break;
+                case 2: difficulty = 'medium'; break;
+                case 3: difficulty = 'hard'; break;
+                case 4: difficulty = 'expert'; break;
+            }
+        } else {
+            difficulty = this.difficulty
         }
-
         document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
         let availableSongs = songDatabase[difficulty];
@@ -476,6 +480,15 @@ class MusicQuizGame {
             });
         });
 
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                const difficulty = e.target.dataset.difficulty
+                document.getElementById('confirm-difficulty').disabled = false;
+            });
+        });
+
         document.getElementById('confirm-players').addEventListener('click', () => {
             self.players = [];
             for (let i = 1; i <= document.querySelectorAll('.player-name-input').length; i++) {
@@ -507,6 +520,7 @@ class MusicQuizGame {
 
         document.getElementById('play-snippet').addEventListener('click', () => {
             self.playCurrentSong();
+            document.getElementById('play-snippet').disabled = true;
         });
 
         document.getElementById('replay-snippet').addEventListener('click', () => {
@@ -529,6 +543,7 @@ class MusicQuizGame {
 
         document.getElementById('play-again').addEventListener('click', () => {
             this.currentRound = 1;
+
             self.startNewRound();
             self.showScreen('game-screen');
         });
