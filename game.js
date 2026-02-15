@@ -571,6 +571,8 @@ class MusicQuizGame {
         console.log("Transcript: ", transcript)
         const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase());
         const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase());
+
+        console.log('Title Match: ', titleMatch, ', Artist Match: ', artistMatch);
         
         this.processTextGuess(
             titleMatch ? this.currentSong.title : '',
