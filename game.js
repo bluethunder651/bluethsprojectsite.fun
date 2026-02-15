@@ -575,8 +575,8 @@ class MusicQuizGame {
 
     processVoiceGuess(transcript) {
         console.log("Transcript: ", transcript)
-        const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase());
-        const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase());
+        const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase()) || this.currentSong.title.toLowerCase().includes(transcript.toLowerCase());
+        const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase()) || this.currentSong.artist.toLowerCase().includes(transcript.toLowerCase());
         
         console.log('Title Match: ', titleMatch, ', Artist Match: ', artistMatch);
 
