@@ -81,7 +81,7 @@ class MusicQuizGame {
             this.randomStartTime = this.getRandomStartTime();
             console.log(`Random start time: ${this.randomStartTime} seconds (playing until ${this.randomStartTime + this.snippetDuration})`);
             
-            document.getElementById('result-message').innerHTML = '🔍 Loading song...';
+            document.getElementById('dev-message').innerHTML = '🔍 Loading song...';
             
             const searchQuery = encodeURIComponent(`${this.currentSong.title} ${this.currentSong.artist} audio`);
             const response = await fetch(
@@ -95,7 +95,7 @@ class MusicQuizGame {
             const data = await response.json();
             
             if (!data.items || data.items.length === 0) {
-                document.getElementById('result-message').innerHTML = '❌ No videos found for this song';
+                document.getElementById('dev-message').innerHTML = '❌ No videos found for this song';
                 this.isLoading = false;
                 return false;
             }
@@ -108,13 +108,13 @@ class MusicQuizGame {
             await this.createHiddenPlayer(this.preloadedVideoId);
             
             this.isPreloaded = true;
-            document.getElementById('result-message').innerHTML = '✅ Song loaded! Press Play to listen';
+            document.getElementById('dev-message').innerHTML = '✅ Song loaded! Press Play to listen';
             this.isLoading = false;
             return true;
             
         } catch (e) {
             console.error('Preload failed:', e);
-            document.getElementById('result-message').innerHTML = '⚠️ Could not load song';
+            document.getElementById('dev-message').innerHTML = '⚠️ Could not load song';
             this.isLoading = false;
             return false;
         }
@@ -189,7 +189,8 @@ class MusicQuizGame {
                                 if(this.youtubePlayer && this.youtubePlayer.pauseVideo) {
                                     this.youtubePlayer.pauseVideo();
                                     console.log(`Playback stopped after ${this.snippetDuration} seconds`);
-                                    document.getElementById('result-message').innerHTML = 'Playback finished';
+                                    document.getElementById('dev-message').innerHTML = 'Playback finished';
+                                    console.log(this.replaysLeft)
                                     if (this.replaysLeft === 0) {
                                         document.getElementById('replay-snippet').disabled = true;
                                     } else {
@@ -202,7 +203,7 @@ class MusicQuizGame {
                 },
                 'onError': (event) => {
                     console.error('Player error:', event.data);
-                    document.getElementById('result-message').innerHTML = '⚠️ Playback error occurred';
+                    document.getElementById('dev-message').innerHTML = '⚠️ Playback error occurred';
                     this.isPreloaded = false;
                     resolve(false);
                 }
@@ -227,12 +228,12 @@ class MusicQuizGame {
             // Small delay to ensure seek completes
             setTimeout(() => {
                 this.youtubePlayer.playVideo();
-                document.getElementById('result-message').innerHTML = '🔊 Playing...';
+                document.getElementById('dev-message').innerHTML = '🔊 Playing...';
             }, 100);
             
         } catch (e) {
             console.error('Playback failed:', e);
-            document.getElementById('result-message').innerHTML = '⚠️ Playback failed, retrying...';
+            document.getElementById('dev-message').innerHTML = '⚠️ Playback failed, retrying...';
             
             this.isPreloaded = false;
             this.preloadVideoForCurrentSong().then(() => {
@@ -251,7 +252,7 @@ class MusicQuizGame {
                 this.randomStartTime = this.getRandomStartTime();
             }
             
-            document.getElementById('result-message').innerHTML = '🔍 Searching for song...';
+            document.getElementById('dev-message').innerHTML = '🔍 Searching for song...';
 
             const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
             const response = await fetch(
@@ -265,7 +266,7 @@ class MusicQuizGame {
             const data = await response.json();
             
             if (!data.items || data.items.length === 0) {
-                document.getElementById('result-message').innerHTML = '❌ No videos found';
+                document.getElementById('dev-message').innerHTML = '❌ No videos found';
                 return false;
             }
 
@@ -277,7 +278,7 @@ class MusicQuizGame {
             
         } catch (e) {
             console.error('YouTube API failed:', e);
-            document.getElementById('result-message').innerHTML = '⚠️ Could not play this song. Try another!';
+            document.getElementById('dev-message').innerHTML = '⚠️ Could not play this song. Try another!';
             return false;
         }
     }
@@ -328,7 +329,7 @@ class MusicQuizGame {
         document.getElementById('play-snippet').disabled = false;
         document.getElementById('title-guess').value = '';
         document.getElementById('artist-guess').value = '';
-        document.getElementById('result-message').innerHTML = 'Loading song...';
+        document.getElementById('dev-message').innerHTML = 'Loading song...';
 
         document.getElementById('round-number').textContent = this.currentRound;
 
@@ -392,7 +393,7 @@ class MusicQuizGame {
 
         if (availableSongs.length === 0){ 
             console.warn(`No songs found for ${this.selectedPlaylist} playlist in ${difficulty} difficulty`);
-            document.getElementById('result-message').innerHTML = 'No songs available for this selection. Using all songs.';
+            document.getElementById('dev-message').innerHTML = 'No songs available for this selection. Using all songs.';
             availableSongs = songDatabase[difficulty]
         }
         this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
@@ -408,7 +409,7 @@ class MusicQuizGame {
         this.stopPlayback();
 
         if (this.isLoading) {
-            document.getElementById('result-message').innerHTML = '⏳ Still loading, please wait...';
+            document.getElementById('dev-message').innerHTML = '⏳ Still loading, please wait...';
             
             const checkLoading = setInterval(() => {
                 if (!this.isLoading) {
@@ -422,10 +423,10 @@ class MusicQuizGame {
         if (this.isPreloaded && this.preloadedVideoId && this.youtubePlayer) {
             this.playPreloadedVideo();
         } else {
-            document.getElementById('result-message').innerHTML = 'Loading song...';
+            document.getElementById('dev-message').innerHTML = 'Loading song...';
             const success = await this.playYouTube(this.currentSong);
             if(!success) { 
-                document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
+                document.getElementById('dev-message').innerHTML = 'Could not play this song. Try another!';
             }
         }
 
