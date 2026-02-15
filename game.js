@@ -27,8 +27,10 @@ class MusicQuizGame {
         this.snippetDuration = 10; // Play 10 seconds of the song
         this.hasSeekedThisPlay = false;
         
+        const Fuse = require('fuse.js')
+
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
-        
+
         this.setupEventListeners();
         this.initVoiceRecognition();
         this.loadYouTubeAPI();
@@ -560,19 +562,114 @@ class MusicQuizGame {
         let points = 0;
         let message = '';
 
-        let titleCorrect = title.toLowerCase().includes(this.currentSong.title.toLowerCase()) || this.currentSong.title.toLowerCase().includes(title.toLowerCase());
-        let artistCorrect = artist.toLowerCase().includes(this.currentSong.artist.toLowerCase()) || this.currentSong.artist.toLowerCase().includes(artist.toLowerCase());
+        const fuseOptions = {
+            includeScore: true,
+            threshold: 0.4,
+            ignoreLocation: true,
+            ignoreFieldNorm: true,
+            shouldSort: true,
+            minMatchCharLength: 2
+        }
+
+        const titleFuse = new Fuse([this.currentSong.title], fuseOptions);
+        const artistFuse = new Fuse([this.currentSong.artist], fuseOptions);
+
+        const cleanTitleGuess = title.trim().toLowerCase();
+        const cleanArtistGuess = title.trim().toLowerCase();
+
+        let titleMatch = false;
+        let titleScore = 1;
+
+        if (cleanTitleGuess) {
+            const titleResults = titleFuse.search(cleanTitleGuess);
+            if (titleResults.length > 0){
+                titleMatch = true;
+                titleScore = titleResults[0].score;
+                console.log(`Title fuzzy match score: ${titleScore}`);
+            }
+
+            if (!titleMatch){
+                const titleWords = this.currentSong.ttile.toLowerCase().split(/[,\s]+/);
+                const guessWords = cleanTitleGuess.split(/[,\s]+/);
+
+                let matchCount = 0;
+                let significantWords = 0;
+
+                titleWords.forEach(titleWord => {
+                    if (titleWord.length > 2){
+                        significantWords++;
+                        guessWords.forEach(guessWord => {
+                           if(guessWord.length >2 && (guessWord.includes(titleWord) || titleWord.includes(guessWord))){
+                            matchCount++;
+                           } 
+                        });
+                    }
+                });
+
+                if(siginifacntWords > 0 && matchCount >= Math.ceil(significantWords / 2)) {
+                    titleMatch = true;
+                }
+            }
+
+            if(!titleMatch) {
+                const normalizedGuess = this.normalizeText(cleanTitleGuess);
+                const normalizedTitle = this.normalizeText(this.currentSong.title.toLowerCase());
+
+                if(normalizedGuess.includes(normalizedTitle) || normalizedTitle.includes(normalizedGuess)){
+                    titleMatch = true;
+                }
+            }
+        }
+
+        let artistMatch = false;
+        let artistScore = 1;
+
+        if (cleanArtistGuess) {
+            const artistResults = artistFuse.search(cleanArtistGuess);
+            if (artistResults.length > 0){
+                artistMatch = true;
+                artistScore = artistResults[0].score;
+            }
+            if(!artistMatch){
+                const artistParts = this.currentSong.artsit.toLowerCase().split(/[&\s]+/);
+                const guessParts = cleanArtistGuess.split(/[&\s]+/);
+
+                let matchFound = false;
+                artistParts.forEach(artistPart => {
+                    if(artistPart.length > 2) {
+                        guessParts.forEach(guessPart => {
+                            if(guessPart.length > 2 && (guessPart.includes(artistPart) || artistPart.includes(guessPart))){
+                                matchFound = true;
+                            }
+                        });
+                    }
+                });
+
+                if (matchFound){
+                    artistMatch = true;
+                }
+            }
+
+            if(!artistMatch){
+                const normalizedGuess = this.normalizeText(cleanArtistGuess);
+                const normalizeArtist = this.normalizeText(this.currentSong.artist.toLowerCase());
+
+                if(normalizedGuess.includes(normalizeArtist) || normalizeArtist.includes(normalizedGuess)){
+                    artistMatch = true;
+                }
+            }
+        }
 
         if (title === ''){
-            titleCorrect = false;
+            titleMatch = false;
         }
         if (artist === ''){
-            artistCorrect = false;
+            artistMatch = false;
         }
-        if (titleCorrect && artistCorrect) {
+        if (titleMatch && artistMatch) {
             points = 20;
             message = `Perfect! +20 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
-        } else if (titleCorrect || artistCorrect) {
+        } else if (titleMatch || artistMatch) {
             points = 10;
             message = `Good! +10 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
         } else {
@@ -587,17 +684,76 @@ class MusicQuizGame {
         setTimeout(() => this.nextTurn(), 3000);
     }
 
-    processVoiceGuess(transcript) {
-        console.log("Transcript: ", transcript)
-        const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase()) || this.currentSong.title.toLowerCase().includes(transcript.toLowerCase());
-        const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase()) || this.currentSong.artist.toLowerCase().includes(transcript.toLowerCase());
-        
-        console.log('Title Match: ', titleMatch, ', Artist Match: ', artistMatch);
+    normalizeText(text){
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .replace(/\s+/g, ' ')
+            .replace(/^(the|an|a)\s+/, '')
+            .replace(/\s+(the|a|an)$/, '')
+            .replace(/&/g, 'and')
+            .replace(/[\.\-]/g, '')
+            .trim();
+    }
 
-        this.processTextGuess(
-            titleMatch ? this.currentSong.title : '',
-            artistMatch ? this.currentSong.artist : ''
-        );
+    processVoiceGuess(transcript) {
+        console.log("Transcript: ", transcript);
+        
+        const cleanTranscript = transcript.toLowerCase().trim();
+        
+        const guessIndicators = [
+            'this is', 'it\'s', 'its', 'that is', 'thats', 'i think it\'s',
+            'i think its', 'maybe', 'perhaps', 'is it', 'could be'
+        ];
+        
+        let processedTranscript = cleanTranscript;
+        guessIndicators.forEach(indicator => {
+            processedTranscript = processedTranscript.replace(indicator, '');
+        });
+        
+        const separators = [' by ', ' from ', ' - ', ' – ', ' — '];
+        let titleGuess = processedTranscript;
+        let artistGuess = '';
+        
+        for (const separator of separators) {
+            if (processedTranscript.includes(separator)) {
+                const parts = processedTranscript.split(separator);
+                titleGuess = parts[0].trim();
+                artistGuess = parts[1] ? parts[1].trim() : '';
+                break;
+            }
+        }
+        
+        if (!artistGuess) {
+            const possibleArtistMatch = this.findPossibleArtistInTranscript(processedTranscript);
+            if (possibleArtistMatch) {
+                titleGuess = possibleArtistMatch.title;
+                artistGuess = possibleArtistMatch.artist;
+            }
+        }
+        
+        console.log('Parsed - Title:', titleGuess, 'Artist:', artistGuess);
+        
+        this.processTextGuess(titleGuess, artistGuess);
+    }
+
+    findPossibleArtistInTranscript(transcript) {
+        if (!this.currentSong) return null;
+        
+        const currentArtist = this.currentSong.artist.toLowerCase();
+        const artistWords = currentArtist.split(/[&\s]+/);
+        
+        for (const word of artistWords) {
+            if (word.length > 2 && transcript.includes(word)) {
+                const wordIndex = transcript.indexOf(word);
+                const titleGuess = transcript.substring(0, wordIndex).trim();
+                const artistGuess = transcript.substring(wordIndex).trim();
+                
+                return { title: titleGuess, artist: artistGuess };
+            }
+        }
+        
+        return null;
     }
 
     nextTurn() {
