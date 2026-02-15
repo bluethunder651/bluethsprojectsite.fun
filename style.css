@@ -31,6 +31,70 @@ body {
   display: block;
 }
 
+.status-row {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.status-label {
+  width: 80px;
+  color: #666;
+}
+
+.status-badge {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.status-online {
+  color: #4CAF50;
+}
+
+.status-offline {
+  color: #f44336;
+}
+
+.status-warning {
+  color: #ff9800;
+}
+
+.btn-refresh {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-refresh:hover {
+  background: #1976D2;
+}
+
+.btn-refresh:disabled{
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.status-details {
+  margin-top: 15px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-item {
+  margin: 5px 0;
+}
+
+.status-ok { color: #4CAF50;}
+.status-warning {color: #ff9800;}
+.status-critical {color: #f44336;}
+.status-unknown {color: #999;}
+
 .game-title {
   font-size: 48px;
   text-align: center;

@@ -274,3 +274,41 @@ function disableLocalAccess(){
     player.disable();
     console.log('Local video access disabled')
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    player.startMonitoring(function(status) {
+        const indicator = document.getElementById('server-status-indicator');
+        const text = document.getElementById('server-status-text');
+        const latencyRow = document.getElementById('latency-row');
+        const latencyValue = document.getElementById('latency-value');
+
+        if(status.online){
+            indicator.className = 'status-badge status-online';
+            indicator.textContent = '●';
+            text.textContent = 'Online';
+
+            if (status.latency){
+                latencyRow.style.display = 'flex';
+                latencyValue.textContent = `${Math.abs(status.latency)}ms`;
+            }
+        } else {
+            indicator.className = 'status-badge status-offline';
+            indicator.textContent = '●';
+            text.textContent = 'Offline';
+            latencyRow.style.display = 'none';
+        }
+    });
+
+    document.getElementById('refresh-status').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Refreshing...'
+
+        player.ping().then(result => {
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "↻ Status";
+            }, 1000);
+        });
+    });
+});
