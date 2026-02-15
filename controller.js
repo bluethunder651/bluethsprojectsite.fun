@@ -11,7 +11,12 @@ class Controller {
         if(startSongQuiz){
             startSongQuiz.addEventListener('click', () => {
                 window.location.href= `${self.website}/musicGame.html`
+                console.log('Clicked the start song quiz button.')
             })
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    new Controller();
+});
