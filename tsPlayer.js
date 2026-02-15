@@ -427,12 +427,15 @@ class tsPlayer{
     }
 
     async getVideos() {
+        console.log("Getting videos...")
         if(!this.enabled || !this.token) return [];
 
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
         }
+
+        console.log("Token valid...")
 
         try{
             const response = await fetch(`${this.serverUrl}/api/local/videos`, {
