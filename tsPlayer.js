@@ -184,7 +184,7 @@ class tsPlayer{
             const durationSpan = document.getElementById('duration');
 
             let allVideos = [];
-            let currentVideoPath = '';
+            refreshToken();
 
 
             player.startMonitoring(function(status) {
