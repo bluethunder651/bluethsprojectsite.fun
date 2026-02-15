@@ -110,6 +110,8 @@ class MusicQuizGame {
             
             this.isPreloaded = true;
             document.getElementById('dev-message').innerHTML = '✅ Song loaded! Press Play to listen';
+            document.getElementById('play-snippet').disabled = false;
+            document.getElementById('replay-snippet').disabled = false;
             this.isLoading = false;
             return true;
             
@@ -332,6 +334,8 @@ class MusicQuizGame {
         document.getElementById('artist-guess').value = '';
         document.getElementById('dev-message').innerHTML = 'Loading song...';
         document.getElementById('voice-status').textContent = '🎤';
+        document.getElementById('play-snippet').disabled = true;
+        document.getElementById('replay-snippet').disabled = true;
 
         document.getElementById('round-number').textContent = this.currentRound;
 
