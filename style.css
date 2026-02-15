@@ -81,25 +81,43 @@ body {
 }
 
 .player-btn {
-  background: #f0f0f0;
-  color: #333;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
   min-width: 120px;
+}
+
+.player-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 .player-btn.selected {
-  background: #667eea;
-  color: white;
+  border: 3px solid #667eea;
+  background: #e6e9ff;
 }
 
 .difficulty-btn {
-  background: #f0f0f0;
-  color: #333;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
   min-width: 120px;
 }
 
+.difficulty-btn:hover{
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
 .difficulty-btn.selected {
-  background: #667eea;
-  color: white;
+  border: 3px solid #667eea;
+  background: #e6e9ff;
 }
 
 .playlist-grid {
