@@ -156,7 +156,7 @@ class tsPlayer{
 
     async refreshToken(){
         try{
-            const response = await fetch(`${this.serverUrl}/api/token`, {
+            const response = await fetch(`${this.serverUrl}/api/local/token`, {
                 headers: {
                     'Referer': window.location.origin
                 }
