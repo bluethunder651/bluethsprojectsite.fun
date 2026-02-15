@@ -1,8 +1,6 @@
-import CONFIG from './config.js'
-
 class tsPlayer{
     constructor(){
-        this.serverUrl = CONFIG.SERVER_URL;
+        this.serverUrl = 'http://julia-server.duckdns.org:5000';
         this.token = null;
         this.tokenExpiry = null;
         this.enabled = false;
