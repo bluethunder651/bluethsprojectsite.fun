@@ -214,6 +214,11 @@ class tsPlayer{
                 videoBrowser.style.display = 'block';
                 loadVideos();
             });
+
+            document.getElementById('random-video').addEventListener('click', () => {
+                videoBrowser.style.display = 'block';
+                loadRandomVideo();
+            })
             
             // Back to browser
             document.getElementById('back-to-browser').addEventListener('click', () => {
@@ -279,6 +284,30 @@ class tsPlayer{
                 loadingIndicator.style.display = 'none';
                 }
             }
+
+            async function loadRandomVideo() {
+                await player.refreshToken();
+                loadingIndicator.style.display = 'block';
+                errorMessage.style.display = 'none';
+                try{
+                    const response = await fetch(`${this.serverUrl}/api/local/videos/random`, {
+                        headers: {
+                            'X-Auth-Token': this.token,
+                            'Referer': window.location.origin
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log("Data: ", data.videos)
+                        return data.videos;
+                    }
+                } catch (error){
+                    showError('Failed to load random video: ' +error.message);
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                }
+            }
             
             // Display videos in grid
             function displayVideos(videos, statsMessage = null) {
@@ -313,6 +342,7 @@ class tsPlayer{
             
             // Play video
             async function playVideo(filename) {
+
                 if (!player.token) {
                 showError('Please enable server first');
                 return;
@@ -406,12 +436,11 @@ class tsPlayer{
     }
 
     async getVideos() {
-        if(!this.token) return [];
-
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
         }
+        if(!this.token) return [];
 
         console.log("Token valid...")
 
@@ -436,11 +465,12 @@ class tsPlayer{
     }
 
     async playVideo(videoPath){
-        if(!this.token) return;
-
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
         }
+
+        if(!this.token) return;
+
 
         const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`
 
