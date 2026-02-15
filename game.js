@@ -518,6 +518,16 @@ class MusicQuizGame {
             const artistGuess = document.getElementById('artist-guess').value;
             self.processTextGuess(titleGuess, artistGuess);
         });
+
+        document.getElementById('play-again').addEventListener('click', () => {
+            this.currentRound = 1;
+            self.startNewRound();
+            self.showScreen('game-screen');
+        });
+
+        document.getElementById('new-game').addEventListener('click', () => {
+            window.location.reload();
+        });
     }
     
     processTextGuess(title, artist) {
