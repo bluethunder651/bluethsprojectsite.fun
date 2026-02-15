@@ -323,7 +323,6 @@ class tsPlayer{
                 videoBrowser.style.display = 'none';
                 playerScreen.style.display = 'block';
                 currentVideoTitle.textContent = filename;
-                currentVideoPath = videoPath;
                 
                 try {
                 const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`;
