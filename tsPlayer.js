@@ -186,7 +186,7 @@ class tsPlayer{
             let allVideos = [];
 
 
-            startMonitoring(function(status) {
+            player.startMonitoring(function(status) {
                 const indicator = document.getElementById('server-status-indicator');
                 const text = document.getElementById('server-status-text');
                 const latencyRow = document.getElementById('latency-row');
@@ -228,7 +228,7 @@ class tsPlayer{
                 btn.disabled = true;
                 btn.textContent = 'Refreshing...'
 
-                ping().then(result => {
+                player.ping().then(result => {
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = "↻ Status";
@@ -248,7 +248,7 @@ class tsPlayer{
                 errorMessage.style.display = 'none';
                 
                 try {
-                const results = await searchVideos(query);
+                const results = await player.searchVideos(query);
                 displayVideos(results, `Found ${results.length} videos for "${query}"`);
                 } catch (error) {
                 showError('Search failed: ' + error.message);
@@ -264,14 +264,14 @@ class tsPlayer{
             
             // Load videos
             async function loadVideos() {
-                await refreshToken();
+                await player.refreshToken();
                 console.log("Loading videos...")
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 videoGrid.innerHTML = '';
                 
                 try {
-                allVideos = await getVideos();
+                allVideos = await player.getVideos();
                 displayVideos(allVideos);
                 } catch (error) {
                 showError('Failed to load videos: ' + error.message);
@@ -315,7 +315,7 @@ class tsPlayer{
             
             // Play video
             async function playVideo(videoPath, filename) {
-                if (!this.token) {
+                if (!player.token) {
                 showError('Please enable server first');
                 return;
                 }
@@ -326,12 +326,12 @@ class tsPlayer{
                 currentVideoPath = videoPath;
                 
                 try {
-                const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`;
+                const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`;
                 
                 // Fetch with authentication
                 const response = await fetch(videoUrl, {
                     headers: {
-                    'X-Auth-Token': this.token,
+                    'X-Auth-Token': player.token,
                     'Referer': window.location.origin
                     }
                 });
