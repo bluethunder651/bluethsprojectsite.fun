@@ -489,6 +489,10 @@ class MusicQuizGame {
             });
         });
 
+        document.getElementById('confirm-difficulty').addEventListener('click', () => {
+            self.showScreen('playlist-screen')
+        });
+
         document.getElementById('confirm-players').addEventListener('click', () => {
             self.players = [];
             for (let i = 1; i <= document.querySelectorAll('.player-name-input').length; i++) {
@@ -498,7 +502,7 @@ class MusicQuizGame {
                     score: 0
                 });
             }
-            self.showScreen('playlist-screen');
+            self.showScreen('difficulty-screen');
         });
         
         document.querySelectorAll('.playlist-card').forEach(card => {
