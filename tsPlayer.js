@@ -561,6 +561,7 @@ class tsPlayer{
                         if (data.videos && data.videos.length > 0) {
                             const randomVideo = data.videos[0];
                             // Play the video using filename
+                            console.log("random video filename: "+randomVideo.filename);
                             playVideo(randomVideo.filename);
                         } else {
                             showError('No videos available');
@@ -738,7 +739,7 @@ class tsPlayer{
 
         const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`
 
-        const vide = document.createElement('video');
+        const video = document.createElement('video');
         videoPath.controls = true;
         videoPath.style.width = '100%'
 
