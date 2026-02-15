@@ -549,9 +549,15 @@ class MusicQuizGame {
         const titleCorrect = title.toLowerCase().includes(this.currentSong.title.toLowerCase()) || this.currentSong.title.toLowerCase().includes(title.toLowerCase());
         const artistCorrect = artist.toLowerCase().includes(this.currentSong.artist.toLowerCase()) || this.currentSong.artist.toLowerCase().includes(artist.toLowerCase());
 
+        if (title === ''){
+            titleCorrect = false;
+        }
+        if (artist === ''){
+            artistCorrect = false;
+        }
         if (titleCorrect && artistCorrect) {
             points = 20;
-            message = 'Perfect! +20 Points';
+            message = `Perfect! +20 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
         } else if (titleCorrect || artistCorrect) {
             points = 10;
             message = `Good! +10 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
@@ -571,9 +577,9 @@ class MusicQuizGame {
         console.log("Transcript: ", transcript)
         const titleMatch = transcript.toLowerCase().includes(this.currentSong.title.toLowerCase());
         const artistMatch = transcript.toLowerCase().includes(this.currentSong.artist.toLowerCase());
-
-        console.log('Title Match: ', titleMatch, ', Artist Match: ', artistMatch);
         
+        console.log('Title Match: ', titleMatch, ', Artist Match: ', artistMatch);
+
         this.processTextGuess(
             titleMatch ? this.currentSong.title : '',
             artistMatch ? this.currentSong.artist : ''
