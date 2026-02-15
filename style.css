@@ -91,6 +91,17 @@ body {
   color: white;
 }
 
+.difficulty-btn {
+  background: #f0f0f0;
+  color: #333;
+  min-width: 120px;
+}
+
+.difficulty-btn.selected {
+  background: #667eea;
+  color: white;
+}
+
 .playlist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
