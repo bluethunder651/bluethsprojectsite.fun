@@ -33,6 +33,14 @@
                 <input type="text" id="search-input" class="search-input" placeholder="Search videos..." autocomplete="off">
                 <button id="search-btn" class="nav-btn">Search</button>
             </div>
+            <div id="tag-selector" style="display:none; margin: 20px 0;">
+                <h3>Filter by Tags</h3>
+                <div id="tag-list" class="tag-list"></div>
+                <div style="margin-top: 10px;">
+                    <button id="apply-tags" class="nav-btn">Apply Filters</button>
+                    <button id="clear-tags" class="nav-btn">Clear</button>
+                </div>
+            </div>
             <div id="video-stats" class="stats"></div>
             <div id="loading-indicator" class="loading" style="display: none;">Loading videos...</div>
             <div id="error-message" class="error-message" style="display: none;"></div>

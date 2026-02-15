@@ -263,3 +263,33 @@ video {
 .nav-btn.active {
     background: #4CAF50;
 }
+
+.tag-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #764ba2;
+    border-radius: 4px;
+}
+
+.tag-item {
+    background: #764ba2;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.tag-item.selected {
+    background: #4CAF50;
+}
+
+.tag-item:hover{
+    transform: translateY(-2px);
+}

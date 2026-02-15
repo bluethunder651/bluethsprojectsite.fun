@@ -167,6 +167,9 @@ class tsPlayer{
 
     setupEventListeners(){
 
+        let selectedTags = new Set();
+        let allTags = [];
+
         document.addEventListener('DOMContentLoaded', function() {
 
             const videoBrowser = document.getElementById('video-browser');
@@ -241,6 +244,105 @@ class tsPlayer{
                 });
             });
             
+        document.getElementById('tag-select').addEventListener('click', async () => {
+            const tagSelector = document.getElementById('tag-selector');
+            const videoBrowser = document.getElementById('video-browser');
+            
+            if (tagSelector.style.display === 'none' || !tagSelector.style.display) {
+                // Show tag selector and load tags
+                tagSelector.style.display = 'block';
+                videoBrowser.style.display = 'block';
+                await loadTags();
+            } else {
+                // Hide tag selector
+                tagSelector.style.display = 'none';
+            }
+        });
+
+        async function loadTags() {
+            await player.refreshToken();
+            
+            try {
+                const response = await fetch(`${player.serverUrl}/api/local/tags`, {
+                    headers: {
+                        'X-Auth-Token': player.token,
+                        'Referer': window.location.origin
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allTags = data.tags;
+                    displayTags();
+                }
+            } catch (error) {
+                console.error('Failed to load tags:', error);
+            }
+        }
+
+        function displayTags() {
+            const tagList = document.getElementById('tag-list');
+            tagList.innerHTML = '';
+            
+            allTags.forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag-item' + (selectedTags.has(tag) ? ' selected' : '');
+                tagEl.textContent = tag;
+                
+                tagEl.addEventListener('click', () => {
+                    if (selectedTags.has(tag)) {
+                        selectedTags.delete(tag);
+                        tagEl.classList.remove('selected');
+                    } else {
+                        selectedTags.add(tag);
+                        tagEl.classList.add('selected');
+                    }
+                });
+                
+                tagList.appendChild(tagEl);
+            });
+        }
+
+        // Apply tags filter
+        document.getElementById('apply-tags').addEventListener('click', async () => {
+            if (selectedTags.size === 0) {
+                loadVideos(); // Just load all videos if no tags selected
+                return;
+            }
+            
+            loadingIndicator.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${player.serverUrl}/api/local/videos/filter`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Auth-Token': player.token,
+                        'Referer': window.location.origin,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tag: Array.from(selectedTags) // Send selected tags
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayVideos(data.videos, `Found ${data.total} videos with selected tags`);
+                }
+            } catch (error) {
+                showError('Failed to filter videos: ' + error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        // Clear tags
+        document.getElementById('clear-tags').addEventListener('click', () => {
+            selectedTags.clear();
+            displayTags(); // Refresh tag display to remove selected state
+            loadVideos(); // Reload all videos
+        });
+
             // Search functionality
             async function performSearch() {
                 const query = searchInput.value.trim();
@@ -261,6 +363,34 @@ class tsPlayer{
                 loadingIndicator.style.display = 'none';
                 }
             }
+
+            document.getElementById('shuffle').addEventListener('click', async () => {
+                await player.refreshToken();
+                loadingIndicator.style.display = 'block';
+                
+                try {
+                    // Get all videos first
+                    const videos = await player.getVideos();
+                    
+                    if (videos && videos.length > 0) {
+                        // Shuffle the array
+                        const shuffled = [...videos];
+                        for (let i = shuffled.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                        }
+                        
+                        // Display shuffled videos
+                        displayVideos(shuffled, `Shuffled ${shuffled.length} videos`);
+                    } else {
+                        showError('No videos to shuffle');
+                    }
+                } catch (error) {
+                    showError('Failed to shuffle videos: ' + error.message);
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                }
+            });
             
             searchBtn.addEventListener('click', performSearch);
             searchInput.addEventListener('keyup', (e) => {
@@ -290,22 +420,32 @@ class tsPlayer{
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 try{
-                    const response = await fetch(`${player.serverUrl}/api/local/videos/random`, {
+                    // Changed to POST and added count parameter in body
+                    const response = await fetch(`${player.serverUrl}/api/local/videos/random?count=1`, {
+                        method: 'POST',  // Specify POST method
                         headers: {
                             'X-Auth-Token': player.token,
-                            'Referer': window.location.origin
+                            'Referer': window.location.origin,
+                            'Content-Type': 'application/json'
                         }
                     });
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log("Data: ", data.videos)
-                        return data.videos;
+                        console.log("Random video data: ", data.videos);
+                        
+                        if (data.videos && data.videos.length > 0) {
+                            const randomVideo = data.videos[0];
+                            // Play the video using filename
+                            playVideo(randomVideo.filename);
+                        } else {
+                            showError('No videos available');
+                        }
+                    } else {
+                        showError('Failed to load random video: ' + response.status);
                     }
-
-                    playVideo(data.videos[0].filename)
                 } catch (error){
-                    showError('Failed to load random video: ' +error.message);
+                    showError('Failed to load random video: ' + error.message);
                 } finally {
                     loadingIndicator.style.display = 'none';
                 }
@@ -342,26 +482,24 @@ class tsPlayer{
                 }
             }
             
-            // Play video
-            async function playVideo(filename) {
-
-                if (!player.token) {
-                showError('Please enable server first');
+        async function playVideo(filename) {
+            if (!player.token) {
+                showError('Not authenticated. Please refresh the page.');
                 return;
-                }
-                
-                videoBrowser.style.display = 'none';
-                playerScreen.style.display = 'block';
-                currentVideoTitle.textContent = filename;
-                
-                try {
+            }
+            
+            videoBrowser.style.display = 'none';
+            playerScreen.style.display = 'block';
+            currentVideoTitle.textContent = filename;
+            
+            try {
                 const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(filename)}`;
+                console.log('Loading video from:', videoUrl);
                 
-                // Fetch with authentication
                 const response = await fetch(videoUrl, {
                     headers: {
-                    'X-Auth-Token': player.token,
-                    'Referer': window.location.origin
+                        'X-Auth-Token': player.token,
+                        'Referer': window.location.origin
                     }
                 });
                 
@@ -370,14 +508,14 @@ class tsPlayer{
                     const url = URL.createObjectURL(blob);
                     videoPlayer.src = url;
                     videoPlayer.load();
-                    videoPlayer.play();
+                    videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
                 } else {
                     showError('Failed to load video: ' + response.status);
                 }
-                } catch (error) {
+            } catch (error) {
                 showError('Failed to load video: ' + error.message);
-                }
             }
+        }
             
             // Video player event listeners
             videoPlayer.addEventListener('timeupdate', updateProgress);
