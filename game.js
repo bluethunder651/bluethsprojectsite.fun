@@ -560,7 +560,8 @@ class MusicQuizGame {
 
         let points = 0;
         let message = '';
-
+        
+        // Configure Fuse options for fuzzy matching
         const fuseOptions = {
             includeScore: true,
             threshold: 0.4,
@@ -568,119 +569,166 @@ class MusicQuizGame {
             ignoreFieldNorm: true,
             shouldSort: true,
             minMatchCharLength: 2
-        }
-
-        const titleFuse = new Fuse([this.currentSong.title], fuseOptions);
-        const artistFuse = new Fuse([this.currentSong.artist], fuseOptions);
-
+        };
+        
+        // Handle multiple artists - split by common separators
+        const currentArtists = this.currentSong.artist.split(/[&,]+|\sand\s|\sfeat\.?\s|\sft\.?\s/i).map(a => a.trim());
+        console.log('Current artists:', currentArtists);
+        
+        // Clean up the guesses
         const cleanTitleGuess = title.trim().toLowerCase();
-        const cleanArtistGuess = title.trim().toLowerCase();
-
+        const cleanArtistGuess = artist.trim().toLowerCase();
+        
+        // Check title match
         let titleMatch = false;
         let titleScore = 1;
-
+        
         if (cleanTitleGuess) {
+            // Try direct fuzzy match first
+            const titleFuse = new Fuse([this.currentSong.title], fuseOptions);
             const titleResults = titleFuse.search(cleanTitleGuess);
-            if (titleResults.length > 0){
+            if (titleResults.length > 0) {
                 titleMatch = true;
                 titleScore = titleResults[0].score;
                 console.log(`Title fuzzy match score: ${titleScore}`);
             }
-
-            if (!titleMatch){
-                const titleWords = this.currentSong.ttile.toLowerCase().split(/[,\s]+/);
-                const guessWords = cleanTitleGuess.split(/[,\s]+/);
-
-                let matchCount = 0;
-                let significantWords = 0;
-
-                titleWords.forEach(titleWord => {
-                    if (titleWord.length > 2){
-                        significantWords++;
-                        guessWords.forEach(guessWord => {
-                           if(guessWord.length >2 && (guessWord.includes(titleWord) || titleWord.includes(guessWord))){
-                            matchCount++;
-                           } 
-                        });
-                    }
-                });
-
-                if(siginifacntWords > 0 && matchCount >= Math.ceil(significantWords / 2)) {
-                    titleMatch = true;
-                }
+            
+            // Also check if the guess contains significant parts of the title
+            if (!titleMatch) {
+                titleMatch = this.checkPartialMatch(cleanTitleGuess, this.currentSong.title);
             }
-
-            if(!titleMatch) {
-                const normalizedGuess = this.normalizeText(cleanTitleGuess);
-                const normalizedTitle = this.normalizeText(this.currentSong.title.toLowerCase());
-
-                if(normalizedGuess.includes(normalizedTitle) || normalizedTitle.includes(normalizedGuess)){
-                    titleMatch = true;
-                }
+            
+            // Check for normalized match
+            if (!titleMatch) {
+                titleMatch = this.checkNormalizedMatch(cleanTitleGuess, this.currentSong.title);
             }
         }
-
+        
+        // Check artist match - now handles multiple artists
         let artistMatch = false;
         let artistScore = 1;
-
+        let matchedArtist = '';
+        
         if (cleanArtistGuess) {
-            const artistResults = artistFuse.search(cleanArtistGuess);
-            if (artistResults.length > 0){
-                artistMatch = true;
-                artistScore = artistResults[0].score;
-            }
-            if(!artistMatch){
-                const artistParts = this.currentSong.artsit.toLowerCase().split(/[&\s]+/);
-                const guessParts = cleanArtistGuess.split(/[&\s]+/);
-
-                let matchFound = false;
-                artistParts.forEach(artistPart => {
-                    if(artistPart.length > 2) {
-                        guessParts.forEach(guessPart => {
-                            if(guessPart.length > 2 && (guessPart.includes(artistPart) || artistPart.includes(guessPart))){
-                                matchFound = true;
-                            }
-                        });
+            // Check each artist in the list
+            for (const currentArtist of currentArtists) {
+                // Try direct fuzzy match
+                const artistFuse = new Fuse([currentArtist], fuseOptions);
+                const artistResults = artistFuse.search(cleanArtistGuess);
+                
+                if (artistResults.length > 0) {
+                    artistMatch = true;
+                    artistScore = artistResults[0].score;
+                    matchedArtist = currentArtist;
+                    console.log(`Artist fuzzy match for "${currentArtist}" with score: ${artistScore}`);
+                    break;
+                }
+                
+                // Check partial match
+                if (!artistMatch) {
+                    if (this.checkPartialMatch(cleanArtistGuess, currentArtist)) {
+                        artistMatch = true;
+                        matchedArtist = currentArtist;
+                        console.log(`Artist partial match for "${currentArtist}"`);
+                        break;
                     }
-                });
-
-                if (matchFound){
-                    artistMatch = true;
+                }
+                
+                // Check normalized match
+                if (!artistMatch) {
+                    if (this.checkNormalizedMatch(cleanArtistGuess, currentArtist)) {
+                        artistMatch = true;
+                        matchedArtist = currentArtist;
+                        console.log(`Artist normalized match for "${currentArtist}"`);
+                        break;
+                    }
                 }
             }
-
-            if(!artistMatch){
-                const normalizedGuess = this.normalizeText(cleanArtistGuess);
-                const normalizeArtist = this.normalizeText(this.currentSong.artist.toLowerCase());
-
-                if(normalizedGuess.includes(normalizeArtist) || normalizeArtist.includes(normalizedGuess)){
-                    artistMatch = true;
+            
+            // Also check if the guess contains ANY of the artist names
+            if (!artistMatch) {
+                for (const currentArtist of currentArtists) {
+                    const normalizedArtist = this.normalizeText(currentArtist);
+                    const normalizedGuess = this.normalizeText(cleanArtistGuess);
+                    
+                    // Check if the guess contains this artist name
+                    if (normalizedGuess.includes(normalizedArtist)) {
+                        artistMatch = true;
+                        matchedArtist = currentArtist;
+                        console.log(`Artist contained in guess for "${currentArtist}"`);
+                        break;
+                    }
+                    
+                    // Or if this artist name is a single word and appears in the guess
+                    const artistWords = currentArtist.toLowerCase().split(/\s+/);
+                    for (const word of artistWords) {
+                        if (word.length > 3 && cleanArtistGuess.includes(word)) {
+                            artistMatch = true;
+                            matchedArtist = currentArtist;
+                            console.log(`Artist word "${word}" found in guess`);
+                            break;
+                        }
+                    }
+                    if (artistMatch) break;
                 }
             }
         }
-
-        if (title === ''){
-            titleMatch = false;
-        }
-        if (artist === ''){
-            artistMatch = false;
-        }
+        
+        // Calculate points based on match quality
         if (titleMatch && artistMatch) {
             points = 20;
             message = `Perfect! +20 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
+            if (currentArtists.length > 1 && matchedArtist) {
+                message = `Perfect! +20 Points (${this.currentSong.title} by ${this.currentSong.artist} - you got "${matchedArtist}" right!)`;
+            }
         } else if (titleMatch || artistMatch) {
             points = 10;
             message = `Good! +10 Points (${this.currentSong.title} by ${this.currentSong.artist})`;
+            if (artistMatch && !titleMatch) {
+                message = `Good! +10 Points (You got the artist${matchedArtist ? ' "' + matchedArtist + '"' : ''} right! It was ${this.currentSong.title} by ${this.currentSong.artist})`;
+            } else if (titleMatch && !artistMatch) {
+                message = `Good! +10 Points (You got the title right! It was ${this.currentSong.title} by ${this.currentSong.artist})`;
+            }
         } else {
             points = 0;
             message = `Not this time. It was ${this.currentSong.title} by ${this.currentSong.artist}`;
         }
-
+        
         this.players[this.currentPlayerIndex].score += points;
-
         document.getElementById('result-message').innerHTML = message;
-
+        
         setTimeout(() => this.nextTurn(), 3000);
+    }
+
+    // Helper method for partial matching
+    checkPartialMatch(guess, target) {
+        const targetWords = target.toLowerCase().split(/[,\s]+/);
+        const guessWords = guess.split(/[,\s]+/);
+        
+        let matchCount = 0;
+        let significantWords = 0;
+        
+        targetWords.forEach(targetWord => {
+            if (targetWord.length > 2) {
+                significantWords++;
+                guessWords.forEach(guessWord => {
+                    if (guessWord.length > 2 && 
+                        (guessWord.includes(targetWord) || targetWord.includes(guessWord))) {
+                        matchCount++;
+                    }
+                });
+            }
+        });
+        
+        return significantWords > 0 && matchCount >= Math.ceil(significantWords / 2);
+    }
+
+    // Helper method for normalized matching
+    checkNormalizedMatch(guess, target) {
+        const normalizedGuess = this.normalizeText(guess);
+        const normalizedTarget = this.normalizeText(target.toLowerCase());
+        
+        return normalizedGuess.includes(normalizedTarget) || normalizedTarget.includes(normalizedGuess);
     }
 
     normalizeText(text){
@@ -698,22 +746,30 @@ class MusicQuizGame {
     processVoiceGuess(transcript) {
         console.log("Transcript: ", transcript);
         
+        // Clean up the transcript
         const cleanTranscript = transcript.toLowerCase().trim();
         
+        // Common phrases that indicate a guess
         const guessIndicators = [
             'this is', 'it\'s', 'its', 'that is', 'thats', 'i think it\'s',
             'i think its', 'maybe', 'perhaps', 'is it', 'could be'
         ];
         
+        // Remove guess indicators from the transcript
         let processedTranscript = cleanTranscript;
         guessIndicators.forEach(indicator => {
             processedTranscript = processedTranscript.replace(indicator, '');
         });
         
-        const separators = [' by ', ' from ', ' - ', ' – ', ' — '];
+        // Handle multiple artists in the current song
+        const currentArtists = this.currentSong.artist.split(/[&,]+|\sand\s|\sfeat\.?\s|\sft\.?\s/i).map(a => a.trim().toLowerCase());
+        
+        // Try to find artist mentions in the transcript
         let titleGuess = processedTranscript;
         let artistGuess = '';
         
+        // First, try to split by common separators
+        const separators = [' by ', ' from ', ' - ', ' – ', ' — ', ' with ', ' and ', ' & '];
         for (const separator of separators) {
             if (processedTranscript.includes(separator)) {
                 const parts = processedTranscript.split(separator);
@@ -723,15 +779,49 @@ class MusicQuizGame {
             }
         }
         
+        // If no separator found, try to find any artist name in the transcript
         if (!artistGuess) {
-            const possibleArtistMatch = this.findPossibleArtistInTranscript(processedTranscript);
-            if (possibleArtistMatch) {
-                titleGuess = possibleArtistMatch.title;
-                artistGuess = possibleArtistMatch.artist;
+            // Check each artist from the current song
+            for (const artist of currentArtists) {
+                const artistWords = artist.split(/\s+/);
+                
+                // Check if the full artist name appears
+                if (processedTranscript.includes(artist)) {
+                    const artistIndex = processedTranscript.indexOf(artist);
+                    titleGuess = processedTranscript.substring(0, artistIndex).trim();
+                    artistGuess = artist;
+                    break;
+                }
+                
+                // Check if any significant word from the artist name appears
+                for (const word of artistWords) {
+                    if (word.length > 3 && processedTranscript.includes(word)) {
+                        const wordIndex = processedTranscript.indexOf(word);
+                        titleGuess = processedTranscript.substring(0, wordIndex).trim();
+                        artistGuess = processedTranscript.substring(wordIndex).trim();
+                        break;
+                    }
+                }
+                if (artistGuess) break;
+            }
+        }
+        
+        // If we still don't have an artist guess, but the transcript contains
+        // any artist name from the song, consider that as the artist guess
+        if (!artistGuess) {
+            for (const artist of currentArtists) {
+                if (this.checkPartialMatch(processedTranscript, artist) || 
+                    this.checkNormalizedMatch(processedTranscript, artist)) {
+                    // Assume everything is the artist guess
+                    artistGuess = processedTranscript;
+                    titleGuess = '';
+                    break;
+                }
             }
         }
         
         console.log('Parsed - Title:', titleGuess, 'Artist:', artistGuess);
+        console.log('Current song artists:', currentArtists);
         
         this.processTextGuess(titleGuess, artistGuess);
     }
