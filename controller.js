@@ -11,9 +11,22 @@ class Controller {
         if(startSongQuiz){
             startSongQuiz.addEventListener('click', () => {
                 window.location.href= `${self.website}/musicGame.html`
-                console.log('Clicked the start song quiz button.')
-            })
+            });
         }
+
+        const goHome = document.getElementById('go-home');
+        if(goHome){
+            goHome.addEventListener('click', () => {
+                window.location.href = `${self.website}`
+            });
+        }
+
+        const tsViewer = document.getElementById('start-ts-viewer');
+        if(tsViewer){
+            tsViewer.addEventListener('click', () => {
+                window.location.href = `${self.website}/tsviewer.html`
+            });
+        } 
     }
 }
 
