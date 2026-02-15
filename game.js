@@ -190,6 +190,11 @@ class MusicQuizGame {
                                     this.youtubePlayer.pauseVideo();
                                     console.log(`Playback stopped after ${this.snippetDuration} seconds`);
                                     document.getElementById('result-message').innerHTML = 'Playback finished';
+                                    if (this.replaysLeft === 0) {
+                                        document.getElementById('replay-snippet').disabled = true;
+                                    } else {
+                                        document.getElementById('replay-snippet').disabled = false;
+                                    }
                                 }
                             }, this.snippetDuration * 1000);
                         }
@@ -423,13 +428,9 @@ class MusicQuizGame {
                 document.getElementById('result-message').innerHTML = 'Could not play this song. Try another!';
             }
         }
+
+        document.getElementById('replay-snippet').disabled = true;
         
-        if (this.replaysLeft > 0) {
-            this.replaysLeft--;
-            if (this.replaysLeft === 0) {
-                document.getElementById('replay-snippet').disabled = true;
-            }
-        }
     }
     
     handleReplay() {
@@ -446,6 +447,13 @@ class MusicQuizGame {
                 });
             }
             
+        if (this.replaysLeft > 0) {
+            this.replaysLeft--;
+            if (this.replaysLeft === 0) {
+                document.getElementById('replay-snippet').disabled = true;
+            }
+        }
+
             this.playCurrentSong();
         }
     }
