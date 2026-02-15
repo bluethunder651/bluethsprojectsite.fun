@@ -484,7 +484,7 @@ class MusicQuizGame {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
-                const difficulty = e.target.dataset.difficulty
+                this.difficulty = e.target.dataset.difficulty
                 document.getElementById('confirm-difficulty').disabled = false;
             });
         });
