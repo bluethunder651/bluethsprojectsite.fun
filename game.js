@@ -1,5 +1,7 @@
 // game.js - With preloading functionality
 
+
+
 class MusicQuizGame {
     constructor() {
         console.log("Game constructor starting...");
@@ -25,8 +27,7 @@ class MusicQuizGame {
         this.snippetDuration = 10; // Play 10 seconds of the song
         this.hasSeekedThisPlay = false;
         
-        // IMPORTANT: Add your YouTube API key here
-        this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; // Replace with your actual key
+        this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
         
         this.setupEventListeners();
         this.initVoiceRecognition();
@@ -436,26 +437,11 @@ class MusicQuizGame {
     
     handleReplay() {
         if (this.replaysLeft > 0) {
-            // Generate a NEW random start time for the replay
-            this.randomStartTime = this.getRandomStartTime();
-            console.log(`Replay with new random time: ${this.randomStartTime}`);
-            
-            // If we have a preloaded video, update its cue point
-            if (this.youtubePlayer && this.preloadedVideoId) {
-                this.youtubePlayer.cueVideoById({
-                    videoId: this.preloadedVideoId,
-                    startSeconds: this.randomStartTime
-                });
-            }
-            
-        if (this.replaysLeft > 0) {
             this.replaysLeft--;
             if (this.replaysLeft === 0) {
                 document.getElementById('replay-snippet').disabled = true;
             }
-        }
-
-            this.playCurrentSong();
+            this.playCurrentSong(); 
         }
     }
     
