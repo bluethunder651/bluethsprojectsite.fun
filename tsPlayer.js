@@ -427,7 +427,7 @@ class tsPlayer{
     }
 
     async getVideos() {
-        console.log("Getting videos...")
+        console.log("Getting videos...", this.enabled)
         if(!this.enabled || !this.token) return [];
 
         if(Date.now() > this.tokenExpiry){
