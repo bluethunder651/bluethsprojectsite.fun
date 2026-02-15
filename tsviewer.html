@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Theme Song Viewer</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tsViewerStyle.css">
 </head>
   <body>
     <div id="app">
@@ -19,9 +19,38 @@
             <span class="status-label">Latency:</span>
             <span id="latency-value">-</span>
         </div>
-        <button id="refresh-status" class="btn btn-refresh">↻ Status</button>
-        <button id="start-game" class="btn btn-primary">Start Game</button>
-        <button id="go-home" class="btn btn-primary">Home</button>
+        <div class="nav-bar">
+        <button id="refresh-status" class="nav-btn">↻ Status</button>
+        <button id="disable-server" class="nav-btn">Disable Server</button>
+        <button id="go-home" class="nav-btn">Home</button>
+        <button id="browse-videos" class="nav-btn">Browse Videos</button>
+        </div>
+        <div id="video-browser" style="display: none;">
+            <h2>Video Library</h2>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search videos..." autocomplete="off">
+                <button id="search-btn" class="nav-btn">Search</button>
+            </div>
+            <div id="video-stats" class="stats"></div>
+            <div id="loading-indicator" class="loading" style="display: none;">Loading videos...</div>
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="video-grid" class="video-grid"></div>
+        </div>
+        <div id="player-screen" style="display: none;">
+            <button id="back-to-browser" class="nav-btn">Back to Library</button>
+            <div class="video-container">
+                <video id="video-player" controls></video>
+                <div class="video-controls">
+                    <div id="current-video-title" class="video-title"></div>
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
       </div>
     </div>
     <script src="controller.js"></script>
