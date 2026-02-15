@@ -1,6 +1,6 @@
 class tsPlayer{
     constructor(){
-        this.serverUrl = 'http://julia-server.duckdns.org:5000';
+        this.serverUrl = 'https://julia-server.duckdns.org:5000';
         this.token = null;
         this.tokenExpiry = null;
         this.statusCallbacks = [];
