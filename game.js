@@ -334,8 +334,6 @@ class MusicQuizGame {
         document.getElementById('artist-guess').value = '';
         document.getElementById('dev-message').innerHTML = 'Loading song...';
         document.getElementById('voice-status').textContent = '🎤';
-        document.getElementById('play-snippet').disabled = true;
-        document.getElementById('replay-snippet').disabled = true;
 
         document.getElementById('round-number').textContent = this.currentRound;
 
@@ -346,6 +344,13 @@ class MusicQuizGame {
                 case 2: difficulty = 'medium'; break;
                 case 3: difficulty = 'hard'; break;
                 case 4: difficulty = 'expert'; break;
+            }
+        } else if(this.difficulty === "progressive-e"){
+            switch(this.currentRound){
+                case 1: difficulty = 'easy'; break;
+                case 2: difficulty = 'easy'; break;
+                case 3: difficulty = 'medium'; break;
+                case 4: difficulty = 'medium'; break;
             }
         } else {
             difficulty = this.difficulty

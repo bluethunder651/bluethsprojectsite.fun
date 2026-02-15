@@ -38,6 +38,13 @@ body {
   margin-bottom: 10px;
 }
 
+.main-title {
+  font-size: 48px;
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+}
+
 .tagline {
   text-align: center;
   color: #666;
