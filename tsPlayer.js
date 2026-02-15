@@ -186,7 +186,7 @@ class tsPlayer{
             let allVideos = [];
 
 
-            player.startMonitoring(function(status) {
+            this.startMonitoring(function(status) {
                 const indicator = document.getElementById('server-status-indicator');
                 const text = document.getElementById('server-status-text');
                 const latencyRow = document.getElementById('latency-row');
@@ -209,13 +209,6 @@ class tsPlayer{
                 }
             });
             
-            // Disable server
-            document.getElementById('disable-server').addEventListener('click', () => {
-                player.disable();
-                console.log('Server disabled');
-                videoBrowser.style.display = 'none';
-            });
-            
             // Browse videos
             document.getElementById('browse-videos').addEventListener('click', () => {
                 videoBrowser.style.display = 'block';
@@ -235,7 +228,7 @@ class tsPlayer{
                 btn.disabled = true;
                 btn.textContent = 'Refreshing...'
 
-                player.ping().then(result => {
+                this.ping().then(result => {
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = "↻ Status";
@@ -255,7 +248,7 @@ class tsPlayer{
                 errorMessage.style.display = 'none';
                 
                 try {
-                const results = await player.searchVideos(query);
+                const results = await this.searchVideos(query);
                 displayVideos(results, `Found ${results.length} videos for "${query}"`);
                 } catch (error) {
                 showError('Search failed: ' + error.message);
@@ -271,13 +264,14 @@ class tsPlayer{
             
             // Load videos
             async function loadVideos() {
+                await this.refreshToken();
                 console.log("Loading videos...")
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 videoGrid.innerHTML = '';
                 
                 try {
-                allVideos = await player.getVideos();
+                allVideos = await this.getVideos();
                 displayVideos(allVideos);
                 } catch (error) {
                 showError('Failed to load videos: ' + error.message);
@@ -321,7 +315,7 @@ class tsPlayer{
             
             // Play video
             async function playVideo(videoPath, filename) {
-                if (!player.enabled || !player.token) {
+                if (!this.token) {
                 showError('Please enable server first');
                 return;
                 }
@@ -332,12 +326,12 @@ class tsPlayer{
                 currentVideoPath = videoPath;
                 
                 try {
-                const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`;
+                const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`;
                 
                 // Fetch with authentication
                 const response = await fetch(videoUrl, {
                     headers: {
-                    'X-Auth-Token': player.token,
+                    'X-Auth-Token': this.token,
                     'Referer': window.location.origin
                     }
                 });
@@ -502,5 +496,4 @@ class tsPlayer{
 
 }
 
-await this.refreshToken();
 const player = new tsPlayer();
