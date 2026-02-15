@@ -331,7 +331,7 @@ class MusicQuizGame {
         document.getElementById('title-guess').value = '';
         document.getElementById('artist-guess').value = '';
         document.getElementById('dev-message').innerHTML = 'Loading song...';
-        documetn.getElementById('voice-status').textContent = '🎤';
+        document.getElementById('voice-status').textContent = '🎤';
 
         document.getElementById('round-number').textContent = this.currentRound;
 
