@@ -317,14 +317,6 @@ document.addEventListener('DOMContentLoaded', function() {
             latencyRow.style.display = 'none';
         }
     });
-
-      document.getElementById('enable-server').addEventListener('click', async () => {
-        const success = await player.enable();
-        if (success) {
-          console.log('Server enabled');
-          loadVideos();
-        }
-      });
       
       // Disable server
       document.getElementById('disable-server').addEventListener('click', () => {
