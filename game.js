@@ -346,6 +346,14 @@ class MusicQuizGame {
                 case 'rock':
                     availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'rock');
                     break;
+                case 'classical':
+                    availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'classical');
+                case '80s':
+                    availableSongs = availableSongs.filter(song => {
+                        const year = parseInt(song.year);
+                        return year >= 1980 && year < 1990;
+                    });
+                    break;
                 case '90s':
                     availableSongs = availableSongs.filter(song => {
                         const year = parseInt(song.year);
@@ -364,10 +372,10 @@ class MusicQuizGame {
                         return year >= 2010 && year < 2020;
                     });
                     break;
-                case '80s':
+                case '20s':
                     availableSongs = availableSongs.filter(song => {
                         const year = parseInt(song.year);
-                        return year >= 1980 && year < 1990;
+                        return year >= 2020 && year < 2030;
                     });
                     break;
             }
