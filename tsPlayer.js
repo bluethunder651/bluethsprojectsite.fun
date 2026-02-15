@@ -290,9 +290,9 @@ class tsPlayer{
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 try{
-                    const response = await fetch(`${this.serverUrl}/api/local/videos/random`, {
+                    const response = await fetch(`${player.serverUrl}/api/local/videos/random`, {
                         headers: {
-                            'X-Auth-Token': this.token,
+                            'X-Auth-Token': player.token,
                             'Referer': window.location.origin
                         }
                     });
@@ -302,6 +302,8 @@ class tsPlayer{
                         console.log("Data: ", data.videos)
                         return data.videos;
                     }
+
+                    playVideo(data.videos[0].filename)
                 } catch (error){
                     showError('Failed to load random video: ' +error.message);
                 } finally {
