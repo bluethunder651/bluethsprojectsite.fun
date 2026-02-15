@@ -1,9 +1,149 @@
+import CONFIG from './config.js'
+
 class tsPlayer{
     constructor(){
-        this.serverUrl = '';
+        this.serverUrl = CONFIG.SERVER_URL;
         this.token = null;
         this.tokenExpiry = null;
         this.enabled = false;
+        this.statusCallbacks = [];
+        this.healthCallbacks = [];
+        this.monitoring = false;
+        this.lastStatus = null;
+        this.pingInterval = null;
+        this.socket = null;
+    }
+
+    async ping(){
+        try{
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            const response = await fetch(`${this.serverUrl}/api/local/ping`, {
+                signal: controller.signal,
+                mode: 'cors',
+                cache: 'no-cache'
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    online: true,
+                    latency: Date.now() - (data.timestamp * 1000),
+                    data: data
+                };
+            }
+
+            return { online: false, error: 'Bad response'}
+        } catch (error) {
+            return {
+                online: false,
+                error: error.name === 'AbortError' ? 'Timeout' : 'Connection Failed'
+            }
+        }
+    }
+
+    async checkStatus(token){
+        try{
+            const response = await fetch(`${this.serverUrl}/api/local/status/simple`, {
+                headers: token ? {'X-Auth-Token': token} : {},
+                cache: 'no-cache'
+            });
+
+            if (response.ok){
+                const data = await response.json();
+                this.lastStatus = {
+                    online: true,
+                    authenticated: data.auth_status === 'authenticated',
+                    timestamp: data.timestamp,
+                    data: data
+                };
+            } else {
+                this.lastStatus = {
+                    online: true,
+                    authenticated: false,
+                    error: `HTTP ${response.status}`
+                };
+            }
+        } catch (error) {
+            this.lastStatus = {
+                online: false,
+                error: error.message
+            };
+        }
+
+        this.statusCallbacks.forEach(cb => cb(this.lastStatus));
+        return this.lastStatus;
+    }
+
+    async healthCheck(token){
+        try{
+            const response = await fetch(`${this.serverUrl}/api/local/health`, {
+                headers: token ? {'X-Auth-Token': token} : {},
+                cache: 'no-cache'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.healthCallbacks.forEach(cb => cb(data));
+                return data;
+            }
+        } catch (error) {
+            console.error('Health check failed: ', error)
+        }
+        return null;
+    }
+
+    startMonitoring(callback, interval = 10000){
+        this.statusCallbacks.push(callback);
+
+        if(!this.monitoring){
+            this.monitoring = true;
+            this.pingInterval = setInterval(async () => {
+                const pingResult = await this.ping();
+                callback({
+                    type: 'ping',
+                    ...pingResult
+                });
+            }, interval);
+        }
+    }
+
+    stopMonitoring() {
+        if(this.pingInterval){
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
+        }
+        this.monitoring = false;
+        this.statusCallbacks = [];
+    }
+
+    connectSocketIO(socket){
+        this.socket = socket;
+
+        socket.on('connect', () => {
+            console.log('Socket connected, requetsing status');
+            socket.emit('request_server_status');
+        });
+
+        socket.on('server_status_update', (status) => {
+            console.log('Server status update: ', status);
+            this.statusCallbacks.forEach(cb => cb({
+                type: 'socket',
+                ...status
+            }));
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Socket disconnected');
+            this.statusCallbacks.forEach(cb => cb({
+                type: 'socket',
+                online: false,
+                error: 'Socket disconnected'
+            }));
+        });
     }
 
     async enable() {
@@ -20,7 +160,7 @@ class tsPlayer{
         try{
             const response = await fetch(`${this.serverUrl}/api/token`, {
                 headers: {
-                    'Referer': 'https://bluethsprojectsite.fun'
+                    'Referer': window.location.origin
                 }
             });
 
@@ -48,7 +188,7 @@ class tsPlayer{
             const response = await fetch(`${this.serverUrl}/api/local/videos`, {
                 headers: {
                     'X-Auth-Token': this.token,
-                    'Referer': 'https://bluethsprojectsite.fun'
+                    'Referer': window.location.origin
                 }
             });
 
@@ -80,7 +220,7 @@ class tsPlayer{
             const response = await fetch(videoUrl, {
                 headers: {
                     'X-Auth-Token': this.token,
-                    'Referer': 'https://bluethsprojectsite.fun'
+                    'Referer': window.location.origin
                 }
             });
 
@@ -103,7 +243,7 @@ class tsPlayer{
             const response = await fetch(`${this.serverUrl}/api/local/search?q=${encodeURIComponent(query)}`, {
                 headers: {
                     'X-Auth-Token': this.token,
-                    'Referer': 'https://bluethsprojectsite.fun'
+                    'Referer': window.location.origin
                 }
             });
 
