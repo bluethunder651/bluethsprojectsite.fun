@@ -13,6 +13,24 @@ body {
   align-items: center;
 }
 
+#app {
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+}
+
+.screen {
+  display: none;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.screen.active {
+  display: block;
+}
+
 .status-row {
   margin: 10px 0;
   display: flex;
@@ -230,7 +248,7 @@ video {
 }
 
 .nav-btn {
-    background: #333;
+    background: #667eea;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -239,7 +257,7 @@ video {
 }
 
 .nav-btn:hover {
-    background: #444;
+    transform: translateY(-2px);
 }
 
 .nav-btn.active {

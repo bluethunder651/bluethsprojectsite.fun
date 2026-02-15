@@ -75,11 +75,6 @@ body {
   color: white;
 }
 
-.btn-spotify {
-  background: #1DB954;
-  color: white;
-}
-
 .player-selector {
   display: flex;
   justify-content: center;
