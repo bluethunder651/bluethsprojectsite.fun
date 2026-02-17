@@ -26,6 +26,8 @@ class MusicQuizGame {
         this.randomStartTime = 15;
         this.snippetDuration = 10; // Play 10 seconds of the song
         this.hasSeekedThisPlay = false;
+        this.customPlaylist = null;
+        this.isCustomPlaylist = false;
         
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
 
@@ -357,50 +359,59 @@ class MusicQuizGame {
         }
         document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
-        let availableSongs = songDatabase[difficulty];
+        let availableSongs;
 
-        if (this.selectedPlaylist !== 'family') {
-            switch(this.selectedPlaylist) {
-                case 'pop':
-                    availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'pop');
-                    break;
-                case 'rock':
-                    availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'rock');
-                    break;
-                case 'classical':
-                    availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'classical');
-                case '80s':
-                    availableSongs = availableSongs.filter(song => {
-                        const year = parseInt(song.year);
-                        return year >= 1980 && year < 1990;
-                    });
-                    break;
-                case '90s':
-                    availableSongs = availableSongs.filter(song => {
-                        const year = parseInt(song.year);
-                        return year >= 1990 && year < 2000;
-                    });
-                    break;
-                case '00s':
-                    availableSongs = availableSongs.filter(song => {
-                        const year = parseInt(song.year);
-                        return year >= 2000 && year < 2010;
-                    });
-                    break;
-                case '10s':
-                    availableSongs = availableSongs.filter(song => {
-                        const year = parseInt(song.year);
-                        return year >= 2010 && year < 2020;
-                    });
-                    break;
-                case '20s':
-                    availableSongs = availableSongs.filter(song => {
-                        const year = parseInt(song.year);
-                        return year >= 2020 && year < 2030;
-                    });
-                    break;
+        if(this.isCustomPlaylist && this.customPlaylist){
+            availableSongs = this.customPlaylist;
+            document.getElementById('difficulty').textContent = 'Custom Playlist';
+        }else{
+            availableSongs = songDatabase[difficulty];
+
+            if (this.selectedPlaylist !== 'family') {
+                switch(this.selectedPlaylist) {
+                    case 'pop':
+                        availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'pop');
+                        break;
+                    case 'rock':
+                        availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'rock');
+                        break;
+                    case 'classical':
+                        availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'classical');
+                    case '80s':
+                        availableSongs = availableSongs.filter(song => {
+                            const year = parseInt(song.year);
+                            return year >= 1980 && year < 1990;
+                        });
+                        break;
+                    case '90s':
+                        availableSongs = availableSongs.filter(song => {
+                            const year = parseInt(song.year);
+                            return year >= 1990 && year < 2000;
+                        });
+                        break;
+                    case '00s':
+                        availableSongs = availableSongs.filter(song => {
+                            const year = parseInt(song.year);
+                            return year >= 2000 && year < 2010;
+                        });
+                        break;
+                    case '10s':
+                        availableSongs = availableSongs.filter(song => {
+                            const year = parseInt(song.year);
+                            return year >= 2010 && year < 2020;
+                        });
+                        break;
+                    case '20s':
+                        availableSongs = availableSongs.filter(song => {
+                            const year = parseInt(song.year);
+                            return year >= 2020 && year < 2030;
+                        });
+                        break;
+                }
             }
         }
+
+
 
         if (availableSongs.length === 0){ 
             console.warn(`No songs found for ${this.selectedPlaylist} playlist in ${difficulty} difficulty`);
@@ -560,6 +571,16 @@ class MusicQuizGame {
         document.getElementById('new-game').addEventListener('click', () => {
             window.location.reload();
         });
+
+        const loadPlaylistBtn = document.getElementById('load-playlist');
+        if (loadPlaylistBtn){
+            loadPlaylistBtn.addEventListener('click', () => {
+                const url = document.getElementById('youtube-playlist-url').value();
+                if (url) {
+                    this.loadCustomPlaylist(url);
+                }
+            });
+        }
     }
     
     processTextGuess(title, artist) {
@@ -706,7 +727,7 @@ class MusicQuizGame {
         this.players[this.currentPlayerIndex].score += points;
         document.getElementById('result-message').innerHTML = message;
         
-        setTimeout(() => this.nextTurn(), 3000);
+        setTimeout(() => this.nextTurn(), 5000);
     }
 
     // Helper method for partial matching
@@ -869,6 +890,136 @@ class MusicQuizGame {
         
         this.startNewRound();
     }   
+
+    extractPlaylistId(url) {
+        const patterns = [
+            /[&?]list=([^&]+)/i,
+            /youtube\.com\/playlist\?list=([^&]+)/i,
+            /youtu\.be\/.*[&?]list=([^&]+)/i
+        ];
+
+        for (const pattern of patterns){
+            const match = url.match(pattern)
+            if (match){
+                return match[1];
+            }
+        }
+        return null;
+    }
+
+    async fetchPlaylistItems(playlistId){
+        const statusDiv = document.getElementById('playlist-status');
+        statusDiv.className = 'playlist-status loading';
+        statusDiv.textContent = 'Loading playlist...';
+
+        try{
+            let allVideos = [];
+            let nextPageToken = '';
+
+            do{
+                const videosResponse = await fetch(
+                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snipped&maxResults=50&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
+                );
+
+                if (!videosResponse.ok){
+                    throw new Error('Failed to fetch playlist items');
+                }
+
+                const videosData = await videosResponse.json();
+
+                const validVideos = videosData.items.filter(item => item.snippet.title && item.snippet.title !== 'Private video' && item.snippet.title !== 'Deleted video').map(item => ({
+                    title: this.cleanVideoTitle(item.snippet.title),
+                    artist: this.extractArtistFromTitle(item.snippet.title) || 'Unknown Artist',
+                    year: new Date().getFullYear().toString(),
+                    genre: 'custom',
+                    videoId: item.snippet.resourceId.videoId
+                }));
+
+                allVideos = [...allVideos, ...validVideos];
+                nextPageToken = videosData.nextPageToken;
+            } while (nextPageToken);
+            
+            if(allVideos.length === 0){
+                throw new Error('No valid videos found in playlist');
+            }
+
+            statusDiv.className = 'playlist-status success';
+            statusDiv.textContent = `Loaded ${allVideos.length} songs`;
+
+            return allVideos;
+        
+        } catch (error) {
+            console.log('Error fetching playlist: ', error);
+            statsuDiv.className = 'playlist-status error';
+            statusDiv.textContent = 'Failed to load playlist. Please check the URL.'
+            return null;
+        }
+    }
+
+    cleanVideoTitle(title){
+        return title
+            .replace(/\s*\([^)]*official[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*official[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*video[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*video[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*audio[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*audio[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
+            .replace(/\s*\|.*$/, '') // Remove everything after |
+            .replace(/\s*-\s*$/, '') // Remove trailing dash
+            .trim(); 
+    }
+
+    extractArtistFromTitle(title){
+        const patterns = [
+            /^([^-]+)-\s*(.+)$/,
+            /^(.+?)\s*[-–—]\s*(.+)$/,
+            /(.+?)\s+by\s+(.+)$/i,
+        ];
+        
+        for (const pattern of patterns) {
+            const match = title.match(pattern);
+            if (match) {
+                if (pattern === patterns[0] || pattern === patterns[1]) {
+                    return match[1].trim();
+                }
+                if (pattern === patterns[2]) {
+                    return match[2].trim();
+                }
+            }
+        }
+        
+        return null;        
+    }
+
+    async loadCustomPlaylist(url){
+        const playlistId = this.extractPlaylistId(url);
+
+        if(!playlistId){
+            document.getElementById('playlist-status').className = 'playlist-status error';
+            document.getElementById('playlist-status').textContent = 'Invalid YouTube playlist URL';
+            return;
+        }
+
+        const playlistSongs = await this.fetchPlaylistItems(playlistId);
+
+        if(playlistSongs && playlistSongs.length > 0){
+            this.customPlaylist = playlistSongs;
+            this.isCustomPlaylist = true;
+
+            document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('start-round').disabled = false;
+
+            if(!window.songDatabase.custom){
+                window.songDatabase.custom = [];
+            }
+
+            window.songDatabase.custom = playlistSongs;
+
+            this.selectedPlaylist = 'custom'
+        }
+    }
 
     endGame() {
         this.stopPlayback();

@@ -38,6 +38,12 @@
       <button class="btn difficulty-btn" data-difficulty="expert">Expert</button>
       <button class="btn difficulty-btn" data-difficulty="progressive">Progressive</button>
       <button class="btn difficulty-btn" data-difficulty="progressive-e">Progressive-E</button>
+      <div class="playlist-input-section">
+        <h3>Or Use Your Own YouTube Playlist</h3>
+        <input type="text" id="youtube-playlist-url" placeholder="Paste YouTube playlist URL here">
+        <button id="load_playlist" class="btn btn-secondary">Load Playlist</button>
+        <div id="playlist-status" class="playlist-status"></div>
+      </div>
       </div>
       <button id="confirm-difficulty" class="btn btn-primary" disabled>Continue</button>
     </div>
@@ -70,6 +76,10 @@
           </div>
           <div class="playlist-card" data-playlist="classical">
             <h3>Classical</h3>
+          </div>
+          <div class="playlist-card" data-playlist="custom">
+            <h3>Custom Playlist</h3>
+            <p style="font-size: 0.8em; color: #666;">(Use URL from previous screen)</p>
           </div>
         </div>
         <button id="start-round" class="btn btn-primary" disabled>Start Game!</button>
