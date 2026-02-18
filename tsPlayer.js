@@ -184,6 +184,7 @@ class tsPlayer{
             const errorMessage = document.getElementById('error-message');
             const videoStats = document.getElementById('video-stats');
             const videoPlayer = document.getElementById('video-player');
+            const preloader = document.getElementById('video-preload');
             const currentVideoTitle = document.getElementById('current-video-title');
             const progressFill = document.getElementById('progress-fill');
             const currentTimeSpan = document.getElementById('current-time');
@@ -426,32 +427,35 @@ class tsPlayer{
                 const progressText = `(${index + 1}/${playlist.length}) `;
                 currentVideoTitle.textContent = progressText + (video.opening_name)
 
+                if (preloader.src) {
+                    URL.revokeObjectURL(preloader.src);
+                    preloader.src = '';
+                }
+
                 try{
-                    const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(video.filename)}`;
-                    console.log("Video URL: " + videoUrl)
-                    const response = await fetch(videoUrl, {
-                        headers: {
-                            'X-Auth-Token': player.token,
-                            'Referer': window.location.origin
-                        }
-                    });
-
-                    if (response.ok){
-                        const blob = await response.blob();
-                        const url = URL.createObjectURL(blob);
-
-                        videoPlayer.removeEventListener('ended', handleVideoEnded);
-
-                        videoPlayer.src = url;
+                    const videoUrl = await player.preloadVideo(video.filename);
+                    if(videoUrl){
+                        videoPlayer.src = videoUrl;
                         videoPlayer.load();
 
-                        videoPlayer.addEventListener('ended', handleVideoEnded)
+                        if (index+1 < playlist.length){
+                            const nextVideo = playlist[index + 1];
+                            const nextVideoUrl = await player.preloadVideo(nextVideo.filename);
+                            if (nextVideoUrl) {
+                                preloader.src = nextVideoUrl;
+                                preloader.load();
+                                console.log('Preloaded next video:', nextVideo.filename);
+                            }
+                        }
 
-                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
-                    } else{
-                        showError('Failed to load video: '+ response.status);
-                        setTimeout(() => handleVideoEnded(), 1000)
-                    } 
+                        videoPlayer.removeEventListener('ended', handleVideoEnded);
+                        videoPlayer.addEventListener('ended', handleVideoEnded);
+
+                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e)); 
+                    } else {
+                        showError('Failed to load video');
+                        setTimeout(() => handleVideoEnded(), 1000);
+                    }
                 } catch (error) {
                     showError('Failed to load video: ' + error.message);
                     setTimeout(() => handleVideoEnded(), 1000);
@@ -459,8 +463,31 @@ class tsPlayer{
             }
 
             function handleVideoEnded(){
-                if (isPlayingPlaylist){
-                    playPlaylistVideo(currentPlaylistIndex+1);
+                if(isPlayingPlaylist){
+                    if(preloader.src && currentPlaylistIndex + 1 < playlist.length){
+                        const nextVideo = playlist[currentPlaylistIndex + 1];
+
+                        videoPlayer.src = preloader.src;
+                        preloader.src = '';
+
+                        if(currentPlaylistIndex + 2 < playlist.length) {
+                            const nextNextVideo = playlist[currentPlaylistIndex + 2];
+                            player.preloadVideo(nextNextVideo.filename).then(url => {
+                                if(url){
+                                    preloader.src = url;
+                                    preloader.load();
+                                }
+                            });
+                        }
+
+                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+                        currentPlaylistIndex++;
+
+                        const progressText = `(${currentPlaylistIndex + 1}/${playlist.length})`;
+                        currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+                    } else {
+                        playPlaylistVideo(currentPlaylistIndex + 1);
+                    }
                 }
             }
 
@@ -727,6 +754,29 @@ class tsPlayer{
         }
 
         return [];
+    }
+
+    async preloadVideo(filename){
+        if(!this.token) return null;
+
+        try{
+            const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(filename)}`;
+            const response = await fetch(videoUrl, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                return url;
+            }
+        } catch (error){
+            console.log('Preload failed for: ', filename);
+            return null;
+        }
     }
 
     async playVideo(videoPath){
