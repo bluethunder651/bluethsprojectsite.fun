@@ -481,13 +481,11 @@ class tsPlayer{
                 }
 
                 try {
-                    // Check if current video is compatible (only if mobile mode is on)
                     if (player.mobileMode) {
                         const isCompatible = await player.getVideoCodec(video.filename);
                         if (!isCompatible) {
                             showError(`Video not H.264 compatible (mobile mode). Skipping...`);
-                            // Skip to next video
-                            setTimeout(() => playPlaylistVideo(index + 1), 1000);
+                            setTimeout(() => playPlaylistVideo(index + 1), 500);
                             return;
                         }
                     }
@@ -921,18 +919,6 @@ class tsPlayer{
         return [];
     }
 
-    async checkH264Compatability(video){
-        const filename = video.filename || video;
-
-        const codec = await this.getVideoCodec(filename);
-
-        if (!codec) return false;
-
-        const codecLower = codec.toLowerCase();
-        return codecLower.includes('h264') || codecLower.includes('avc') || codecLower.includes('h.264');
-
-    }
-
     showInfo(message) {
         const infoEl = document.createElement('div');
         infoEl.className = 'info-message';
@@ -953,59 +939,6 @@ class tsPlayer{
                 infoEl.parentNode.removeChild(infoEl);
             }
         }, 3000);
-    }
-
-    async filterVideoForMobile(videos) {
-        if (!this.mobileMode) return videos;
-        
-        const filtered = [];
-        // Use the existing codecCache
-        for (const video of videos) {
-            const filename = video.filename || video;
-            
-            if (this.codecCache.has(filename)) {
-                if (this.codecCache.get(filename)) {
-                    filtered.push(video);
-                }
-                continue;
-            }
-            
-            // Only check if we haven't cached it yet
-            const isCompatible = await this.checkH264Compatability(video);
-            this.codecCache.set(filename, isCompatible);
-            
-            if (isCompatible) {
-                filtered.push(video);
-            }
-        }
-        
-        return filtered;
-    }
-
-    async batchCheckCodecs(videos, batchSize = 5) {
-        const results = [];
-        for (let i = 0; i < videos.length; i += batchSize) {
-            const batch = videos.slice(i, i + batchSize);
-            const batchPromises = batch.map(async (video) => {
-                const filename = video.filename || video;
-                if (!this.codecCache.has(filename)) {
-                    await this.getVideoCodec(filename);
-                }
-                return {
-                    video,
-                    isCompatible: this.codecCache.get(filename) || false
-                };
-            });
-            
-            const batchResults = await Promise.all(batchPromises);
-            results.push(...batchResults);
-            
-            // Small delay between batches
-            if (i + batchSize < videos.length) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-        }
-        return results;
     }
 
     async getVideoCodec(filename){
