@@ -10,6 +10,8 @@ class tsPlayer{
         this.pingInterval = null;
         this.socket = null;
         this.mobileMode = false;
+        this.codecCache = new Map();
+        this.pendingCodecChecks = new Map();
 
         this.setupEventListeners();
     }
@@ -461,18 +463,19 @@ class tsPlayer{
                 }
             }
             
-            async function playPlaylistVideo(index){
+            async function playPlaylistVideo(index) {
                 if(Date.now() > this.tokenExpiry){
                     await this.refreshToken();
                     if (!this.token) return [];
                 }
-                if(!playlist || index >= playlist.length){
+
+                if(!playlist || index >= playlist.length) {
                     console.log("Playlist ended");
                     isPlayingPlaylist = false;
-
+                    
                     if(confirm('Playlist ended! Shuffle again?')) { 
                         document.getElementById('shuffle').click();
-                    }else{
+                    } else {
                         playerScreen.style.display = 'none';
                         videoBrowser.style.display = 'block';
                     }
@@ -483,68 +486,164 @@ class tsPlayer{
                 currentPlaylistIndex = index;
 
                 const progressText = `(${index + 1}/${playlist.length}) `;
-                currentVideoTitle.textContent = progressText + (video.opening_name)
+                currentVideoTitle.textContent = progressText + (video.opening_name || video.filename);
 
+                // Clear previous preloaded video if it exists
                 if (preloader.src) {
                     URL.revokeObjectURL(preloader.src);
                     preloader.src = '';
                 }
 
-                try{
-                    const videoUrl = await player.preloadVideo(video.filename);
-                    if(videoUrl){
-                        videoPlayer.src = videoUrl;
-                        videoPlayer.load();
-
-                        if (index+1 < playlist.length){
-                            const nextVideo = playlist[index + 1];
-                            const nextVideoUrl = await player.preloadVideo(nextVideo.filename);
-                            if (nextVideoUrl) {
-                                preloader.src = nextVideoUrl;
-                                preloader.load();
-                                console.log('Preloaded next video:', nextVideo.filename);
-                            }
+                try {
+                    // Check if current video is compatible (only if mobile mode is on)
+                    if (player.mobileMode) {
+                        const isCompatible = await player.getVideoCodec(video.filename);
+                        if (!isCompatible) {
+                            showError(`Video not H.264 compatible (mobile mode). Skipping...`);
+                            // Skip to next video
+                            setTimeout(() => playPlaylistVideo(index + 1), 1000);
+                            return;
                         }
+                    }
+
+                    const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(video.filename)}`;
+                    console.log("Video URL: " + videoUrl);
+                    
+                    const response = await fetch(videoUrl, {
+                        headers: {
+                            'X-Auth-Token': player.token,
+                            'Referer': window.location.origin
+                        }
+                    });
+
+                    if (response.ok){
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
 
                         videoPlayer.removeEventListener('ended', handleVideoEnded);
+                        videoPlayer.src = url;
+                        videoPlayer.load();
                         videoPlayer.addEventListener('ended', handleVideoEnded);
-
-                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e)); 
-                    } else {
-                        showError('Failed to load video');
+                        
+                        // Start preloading and checking next videos
+                        preloadNextVideos(index);
+                        
+                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+                    } else{
+                        showError('Failed to load video: '+ response.status);
                         setTimeout(() => handleVideoEnded(), 1000);
-                    }
+                    } 
                 } catch (error) {
                     showError('Failed to load video: ' + error.message);
                     setTimeout(() => handleVideoEnded(), 1000);
                 }
             }
 
-            function handleVideoEnded(){
-                if(isPlayingPlaylist){
-                    if(preloader.src && currentPlaylistIndex + 1 < playlist.length){
-                        const nextVideo = playlist[currentPlaylistIndex + 1];
-
-                        videoPlayer.src = preloader.src;
-                        preloader.src = '';
-
-                        if(currentPlaylistIndex + 2 < playlist.length) {
-                            const nextNextVideo = playlist[currentPlaylistIndex + 2];
-                            player.preloadVideo(nextNextVideo.filename).then(url => {
-                                if(url){
-                                    preloader.src = url;
-                                    preloader.load();
+            async function preloadNextVideos(currentIndex) {
+                if (!player.mobileMode) {
+                    // If not in mobile mode, just preload the next video without checking
+                    if (currentIndex + 1 < playlist.length) {
+                        const nextVideo = playlist[currentIndex + 1];
+                        try {
+                            const response = await fetch(`${player.serverUrl}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`, {
+                                headers: {
+                                    'X-Auth-Token': player.token,
+                                    'Referer': window.location.origin
                                 }
                             });
+                            
+                            if (response.ok) {
+                                const blob = await response.blob();
+                                const url = URL.createObjectURL(blob);
+                                preloader.src = url;
+                                preloader.load();
+                                console.log('Preloaded next video:', nextVideo.filename);
+                            }
+                        } catch (error) {
+                            console.log('Failed to preload next video:', error);
                         }
-
-                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
-                        currentPlaylistIndex++;
-
-                        const progressText = `(${currentPlaylistIndex + 1}/${playlist.length})`;
-                        currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+                    }
+                    return;
+                }
+                
+                // Mobile mode: check and preload next compatible video
+                let nextIndex = currentIndex + 1;
+                let checkedCount = 0;
+                const maxChecks = 5; // Don't check too far ahead to avoid performance issues
+                
+                while (nextIndex < playlist.length && checkedCount < maxChecks) {
+                    const nextVideo = playlist[nextIndex];
+                    
+                    // Check if we already know this video's compatibility
+                    let isCompatible = player.codecCache.get(nextVideo.filename);
+                    
+                    if (isCompatible === undefined) {
+                        // Not in cache, need to check
+                        console.log(`Checking compatibility for next video: ${nextVideo.filename}`);
+                        isCompatible = await player.getVideoCodec(nextVideo.filename);
+                    }
+                    
+                    if (isCompatible) {
+                        // Found a compatible video, preload it
+                        console.log(`Found compatible next video at index ${nextIndex}: ${nextVideo.filename}`);
+                        try {
+                            const response = await fetch(`${player.serverUrl}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`, {
+                                headers: {
+                                    'X-Auth-Token': player.token,
+                                    'Referer': window.location.origin
+                                }
+                            });
+                            
+                            if (response.ok) {
+                                const blob = await response.blob();
+                                const url = URL.createObjectURL(blob);
+                                preloader.src = url;
+                                preloader.load();
+                                
+                                // Store which video we preloaded
+                                preloader.dataset.preloadedIndex = nextIndex;
+                                console.log(`Preloaded video ${nextIndex + 1}/${playlist.length}: ${nextVideo.filename}`);
+                            }
+                            break; // Stop after preloading one video
+                        } catch (error) {
+                            console.log('Failed to preload next video:', error);
+                        }
                     } else {
-                        playPlaylistVideo(currentPlaylistIndex + 1);
+                        console.log(`Video at index ${nextIndex} not H.264 compatible, checking next...`);
+                    }
+                    
+                    nextIndex++;
+                    checkedCount++;
+                }
+                
+                if (checkedCount >= maxChecks) {
+                    console.log('Reached maximum lookahead, no compatible video found nearby');
+                }
+            }
+
+            function handleVideoEnded() {
+                if (isPlayingPlaylist) {
+                    const nextIndex = currentPlaylistIndex + 1;
+                    
+                    // Check if we have a preloaded video and it's the correct one
+                    if (preloader.src && preloader.dataset.preloadedIndex == nextIndex) {
+                        // Use the preloaded video
+                        videoPlayer.src = preloader.src;
+                        preloader.src = '';
+                        
+                        // Update title
+                        const nextVideo = playlist[nextIndex];
+                        const progressText = `(${nextIndex + 1}/${playlist.length}) `;
+                        currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+                        
+                        // Start preloading the next one
+                        preloadNextVideos(nextIndex);
+                        
+                        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+                        currentPlaylistIndex = nextIndex;
+                    } else {
+                        // Fall back to normal playback (will check compatibility)
+                        playPlaylistVideo(nextIndex);
                     }
                 }
             }
@@ -695,32 +794,55 @@ class tsPlayer{
                 }
             }
 
-        function createVideoCard(video, isCompatible){
-            const card = document.createElement('div');
-            card.className = 'video-card';
-
-            if(!isCompatible){
-                card.classList.add('non-h264');
-            }
-
-            const filename=  video.filename || video;
-            const displayName = filename.length > 50 ? filename.substring(0, 47) + '...' : filename;
-
-            card.innerHTML = `
-                <h3 title = "${escapeHTML(filename)}">${escapeHtml(displayName)}</h3>
-                <div class="video-card-holder">
-                    ${!isCompatible ? '<span class="codec-badge incompatible">Not H.264</span>' : ''}
-            `;
-
-            card.addEventListener('click', () => {
-                if(!isCompatible){
-                    showError('This video cannot be played in mobile mode.');
-                    return;
+            function createVideoCard(video, showCompatibilityCheck = false) {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                
+                const filename = video.filename || video;
+                const displayName = filename.length > 50 ? filename.substring(0, 47) + '...' : filename;
+                
+                card.innerHTML = `
+                    <h3 title="${escapeHtml(filename)}">${escapeHtml(displayName)}</h3>
+                    <div class="video-card-footer">
+                        ${showCompatibilityCheck ? '<span class="codec-badge checking">Checking...</span>' : ''}
+                        ${video.size ? `<span class="file-size">${formatFileSize(video.size)}</span>` : ''}
+                    </div>
+                `;
+                
+                // If we need to check compatibility (mobile mode), do it asynchronously
+                if (showCompatibilityCheck && player.mobileMode) {
+                    player.getVideoCodec(filename).then(isCompatible => {
+                        const badge = card.querySelector('.codec-badge');
+                        if (badge) {
+                            if (isCompatible) {
+                                badge.className = 'codec-badge compatible';
+                                badge.textContent = '✅ H.264';
+                            } else {
+                                badge.className = 'codec-badge incompatible';
+                                badge.textContent = '❌ Not H.264';
+                                card.classList.add('non-h264');
+                            }
+                        }
+                    });
                 }
-                playVideo(filename);
-            });
-            return card
-        }
+                
+                card.addEventListener('click', () => {
+                    if (player.mobileMode) {
+                        // Check compatibility on click
+                        player.getVideoCodec(filename).then(isCompatible => {
+                            if (isCompatible) {
+                                playVideo(filename);
+                            } else {
+                                showError('This video cannot be played in mobile mode (not H.264 compatible)');
+                            }
+                        });
+                    } else {
+                        playVideo(filename);
+                    }
+                });
+                
+                return card;
+            }
 
         function updateStats(videos, statsMessage) {
             if(statsMessage){
@@ -933,6 +1055,59 @@ class tsPlayer{
         }
 
         return filtered
+    }
+
+    async getVideoCodec(filename){
+        if(this.codecCache.has(filename)){
+            return this.codecCache.get(filename);
+        }
+
+        if(this.pendingCodecChecks.has(filename)){
+            return this.pendingCodecChecks.get(filename);
+        }
+
+        if(!this.token){
+            await this.refreshToken();
+            if(!this.token) return null;
+        }
+
+        const checkPromise = (async () => {
+            try{
+                const h264Extensions = ['.mp4', '.m4v', '.mov'];
+                const hasH264Ext = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
+                
+                if (!hasH264Ext) {
+                    this.codecCache.set(filename, false);
+                }
+
+                const response = await fetch(`${this.serverUrl}/api/local/videos/codec/${encodeURIComponent(filename)}`, {
+                    headers: {
+                        'X-Auth-Token': this.token,
+                        'Referer': window.location.origin
+                    }
+                });
+
+                if(response.ok){
+                    const data = await response.json();
+                    const codec = data.codec || '';
+                    const isH264 = data.is_h264 || false;
+
+                    this.codecCache.set(filename, isH264);
+                    return isH264;
+                }
+            } catch (error){
+                console.log('Failed to get codec for: ', filename);
+            }
+
+            this.codecCache.set(filename, false);
+            return false;
+        })();
+
+        this.pendingCodecChecks.set(filename, checkPromise);
+        checkPromise.finally(() => {
+            this.pendingCodecChecks.delete(filename);
+        });
+        return checkPromise;
     }
 
     async preloadVideo(filename){
