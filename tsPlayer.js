@@ -368,7 +368,7 @@ class tsPlayer{
                 `;
 
                 // Just show a message, don't filter the display
-                showInfo('Mobile mode enabled - videos will be checked for compatibility when played');
+                this.showInfo('Mobile mode enabled - videos will be checked for compatibility when played');
                 
                 // Refresh the current view (but don't filter)
                 if (allVideos.length > 0) {
@@ -843,8 +843,6 @@ class tsPlayer{
             
             function updateProgress() {
                 if (videoPlayer.duration) {
-                const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-                progressFill.style.width = percent + '%';
                 currentTimeSpan.textContent = formatTime(videoPlayer.currentTime);
                 }
             }
