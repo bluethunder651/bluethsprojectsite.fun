@@ -462,6 +462,10 @@ class tsPlayer{
             }
             
             async function playPlaylistVideo(index){
+                if(Date.now() > this.tokenExpiry){
+                    await this.refreshToken();
+                    if (!this.token) return [];
+                }
                 if(!playlist || index >= playlist.length){
                     console.log("Playlist ended");
                     isPlayingPlaylist = false;
