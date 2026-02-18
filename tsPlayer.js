@@ -450,9 +450,9 @@ class tsPlayer{
             }
             
             async function playPlaylistVideo(index) {
-                if(Date.now() > this.tokenExpiry){
-                    await this.refreshToken();
-                    if (!this.token) return [];
+                if(Date.now() > player.tokenExpiry){
+                    await player.refreshToken();
+                    if (!player.token) return [];
                 }
 
                 if(!playlist || index >= playlist.length) {
@@ -474,7 +474,6 @@ class tsPlayer{
                 const progressText = `(${index + 1}/${playlist.length}) `;
                 currentVideoTitle.textContent = progressText + (video.opening_name || video.filename);
 
-                // Clear previous preloaded video if it exists
                 if (preloader.src) {
                     URL.revokeObjectURL(preloader.src);
                     preloader.src = '';
@@ -490,7 +489,8 @@ class tsPlayer{
                         }
                     }
 
-                    const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(video.filename)}`;
+                    const filename = encodeURIComponent(video.filename)
+                    const videoUrl = `${player.serverUrl}/api/local/videos/${filename}`;
                     console.log("Video URL: " + videoUrl);
                     
                     const response = await fetch(videoUrl, {
@@ -992,29 +992,6 @@ class tsPlayer{
             this.pendingCodecChecks.delete(filename);
         });
         return checkPromise;
-    }
-
-    async preloadVideo(filename){
-        if(!this.token) return null;
-
-        try{
-            const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(filename)}`;
-            const response = await fetch(videoUrl, {
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin
-                }
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                return url;
-            }
-        } catch (error){
-            console.log('Preload failed for: ', filename);
-            return null;
-        }
     }
 
     async playVideo(videoPath){
