@@ -75,6 +75,15 @@ body {
     cursor: pointer;
 }
 
+.mobile-mode {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
 .mobile-mode-active .video-card{
     border-left: 3px solid #4CAF50;
 }
