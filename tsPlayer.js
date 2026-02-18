@@ -778,16 +778,21 @@ class tsPlayer{
             
             card.addEventListener('click', () => {
                 if (player.mobileMode) {
-                    // Check compatibility only when clicked
-                    loadingIndicator.style.display = 'block';
-                    player.getVideoCodec(filename).then(isCompatible => {
-                        loadingIndicator.style.display = 'none';
-                        if (isCompatible) {
-                            playVideo(filename);
-                        } else {
-                            showError('This video cannot be played in mobile mode (not H.264 compatible)');
-                        }
-                    });
+                    // Check compatibility using cache (fast, no API call)
+                    const isCompatible = player.codecCache.get(filename);
+                    
+                    if (isCompatible === undefined) {
+                        // If not in cache, do quick extension check
+                        const h264Extensions = ['.mp4', '.m4v', '.mov'];
+                        const isCompatible = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
+                        player.codecCache.set(filename, isCompatible);
+                    }
+                    
+                    if (isCompatible) {
+                        playVideo(filename);
+                    } else {
+                        showError('This video cannot be played in mobile mode (not H.264 compatible)');
+                    }
                 } else {
                     playVideo(filename);
                 }
@@ -897,7 +902,7 @@ class tsPlayer{
         }
         if(!this.token) return [];
 
-        console.log("Token valid...")
+        console.log("Token valid, fetching videos...")
 
         try{
             const response = await fetch(`${this.serverUrl}/api/local/videos`, {
@@ -909,14 +914,40 @@ class tsPlayer{
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Data: ", data.videos)
-                return data.videos;
+                console.log("Videos received:", data.count || (data.videos ? data.videos.length : 0));
+                
+                let videos = [];
+                if (data.videos && Array.isArray(data.videos)) {
+                    videos = data.videos;
+                } else if (Array.isArray(data)) {
+                    videos = data;
+                }
+                
+                videos.forEach(video => {
+                    if (video.filename && video.codec) {
+                        const isH264 = this.isH264Codec(video.codec);
+                        this.codecCache.set(video.filename, isH264);
+                    }
+                });
+                
+                return videos;
+            } else {
+                console.error("Failed to fetch videos, status:", response.status);
             }
         } catch (error){
-            console.log('Failed to fetch videos');
+            console.error('Failed to fetch videos:', error);
         }
 
         return [];
+    }
+
+    isH264Codec(codec) {
+        if (!codec) return false;
+        const codecLower = codec.toLowerCase();
+        return codecLower.includes('h264') || 
+            codecLower.includes('avc') || 
+            codecLower.includes('h.264') ||
+            codecLower === 'avc1';
     }
 
     showInfo(message) {
@@ -942,56 +973,15 @@ class tsPlayer{
     }
 
     async getVideoCodec(filename){
-        if(this.codecCache.has(filename)){
+        if (this.codecCache.has(filename)) {
             return this.codecCache.get(filename);
         }
-
-        if(this.pendingCodecChecks.has(filename)){
-            return this.pendingCodecChecks.get(filename);
-        }
-
-        if(!this.token){
-            await this.refreshToken();
-            if(!this.token) return null;
-        }
-
-        const checkPromise = (async () => {
-            try{
-                const h264Extensions = ['.mp4', '.m4v', '.mov'];
-                const hasH264Ext = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
-                
-                if (!hasH264Ext) {
-                    this.codecCache.set(filename, false);
-                }
-
-                const response = await fetch(`${this.serverUrl}/api/local/videos/codec/${encodeURIComponent(filename)}`, {
-                    headers: {
-                        'X-Auth-Token': this.token,
-                        'Referer': window.location.origin
-                    }
-                });
-
-                if(response.ok){
-                    const data = await response.json();
-                    const codec = data.codec || '';
-                    const isH264 = data.is_h264 || false;
-
-                    this.codecCache.set(filename, isH264);
-                    return isH264;
-                }
-            } catch (error){
-                console.log('Failed to get codec for: ', filename);
-            }
-
-            this.codecCache.set(filename, false);
-            return false;
-        })();
-
-        this.pendingCodecChecks.set(filename, checkPromise);
-        checkPromise.finally(() => {
-            this.pendingCodecChecks.delete(filename);
-        });
-        return checkPromise;
+        
+        const h264Extensions = ['.mp4', '.m4v', '.mov'];
+        const hasH264Ext = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
+        
+        this.codecCache.set(filename, hasH264Ext);
+        return hasH264Ext;
     }
 
     async playVideo(videoPath){
