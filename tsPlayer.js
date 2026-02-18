@@ -760,76 +760,123 @@ class tsPlayer{
                 }
             }
             
-            // Display videos in grid
             function displayVideos(videos, statsMessage = null) {
                 videoGrid.innerHTML = '';
                 
                 if (!videos || videos.length === 0) {
-                videoGrid.innerHTML = '<div class="error-message">No videos found</div>';
-                videoStats.textContent = '0 videos';
-                return;
+                    videoGrid.innerHTML = '<div class="error-message">No videos found</div>';
+                    videoStats.textContent = '0 videos';
+                    return;
                 }
 
                 if(player.mobileMode){
-                    videoGrid.innerHTML = '<div class="loading">Checking video compatibility...</div>';
-
-                    Promise.all(videos.map(async (video) => {
-                        const isCompatible = await player.checkH264Compatability(video);
-                        return {video, isCompatible}
-                    })).then(results => {
-                        videoGrid.innerHTML = '';
-                        results.forEach(({video, isCompatible}) => {
-                            const card = createVideoCard(video, isCompatible);
-                            videoGrid.appendChild(card);
-                        });
-
-                        updateStats(videos, statsMessage);
-                    });
-                } else{
                     videos.forEach(video => {
                         const card = createVideoCard(video, true);
                         videoGrid.appendChild(card);
                     });
-                    updateStats(videos, statsMessage);
-                }
-            }
-
-            function createVideoCard(video, showCompatibilityCheck = false) {
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                
-                const filename = video.filename || video;
-                const displayName = filename.length > 50 ? filename.substring(0, 47) + '...' : filename;
-                
-                card.innerHTML = `
-                    <h3 title="${escapeHtml(filename)}">${escapeHtml(displayName)}</h3>
-                    <div class="video-card-footer">
-                        ${showCompatibilityCheck ? '<span class="codec-badge checking">Checking...</span>' : ''}
-                        ${video.size ? `<span class="file-size">${formatFileSize(video.size)}</span>` : ''}
-                    </div>
-                `;
-                
-                // If we need to check compatibility (mobile mode), do it asynchronously
-                if (showCompatibilityCheck && player.mobileMode) {
-                    player.getVideoCodec(filename).then(isCompatible => {
-                        const badge = card.querySelector('.codec-badge');
-                        if (badge) {
-                            if (isCompatible) {
-                                badge.className = 'codec-badge compatible';
-                                badge.textContent = '✅ H.264';
-                            } else {
-                                badge.className = 'codec-badge incompatible';
-                                badge.textContent = '❌ Not H.264';
-                                card.classList.add('non-h264');
+                    
+                    videoStats.textContent = `${videos.length} videos (checking compatibility...)`;
+                    
+                    const firstBatch = videos.slice(0, 20);
+                    firstBatch.forEach(async (video) => {
+                        const filename = video.filename || video;
+                        await player.getVideoCodec(filename); 
+                        const cards = videoGrid.children;
+                        for (let card of cards) {
+                            const titleEl = card.querySelector('h3');
+                            if (titleEl && titleEl.title === filename) {
+                                const badge = card.querySelector('.codec-badge');
+                                if (badge && player.codecCache.has(filename)) {
+                                    const isCompatible = player.codecCache.get(filename);
+                                    if (isCompatible) {
+                                        badge.className = 'codec-badge compatible';
+                                        badge.textContent = '✅ H.264';
+                                    } else {
+                                        badge.className = 'codec-badge incompatible';
+                                        badge.textContent = '❌ Not H.264';
+                                        card.classList.add('non-h264');
+                                    }
+                                }
+                                break;
                             }
                         }
                     });
+                } else {
+                    videos.forEach(video => {
+                        const card = createVideoCard(video, false);
+                        videoGrid.appendChild(card);
+                    });
                 }
+                updateStats(videos, statsMessage);
+            }
+
+        function createVideoCard(video, isMobileMode) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            const filename = video.filename || video;
+            const displayName = filename.length > 50 ? filename.substring(0, 47) + '...' : filename;
+            
+            card.innerHTML = `
+                <h3 title="${escapeHtml(filename)}">${escapeHtml(displayName)}</h3>
+                <div class="video-card-footer">
+                    ${isMobileMode ? '<span class="codec-badge">⟳ Check</span>' : ''}
+                    ${video.size ? `<span class="file-size">${formatFileSize(video.size)}</span>` : ''}
+                </div>
+            `;
+            
+            if (isMobileMode) {
+                // Check codec when user hovers over card (anticipating click)
+                card.addEventListener('mouseenter', async () => {
+                    const badge = card.querySelector('.codec-badge');
+                    if (badge && badge.textContent === '⟳ Check') {
+                        badge.textContent = 'Checking...';
+                        const isCompatible = await player.getVideoCodec(filename);
+                        if (isCompatible) {
+                            badge.className = 'codec-badge compatible';
+                            badge.textContent = '✅ H.264';
+                        } else {
+                            badge.className = 'codec-badge incompatible';
+                            badge.textContent = '❌ Not H.264';
+                            card.classList.add('non-h264');
+                        }
+                    }
+                }, { once: true }); // Only check once
                 
-                card.addEventListener('click', () => {
-                    if (player.mobileMode) {
-                        // Check compatibility on click
+                // Also check when card becomes visible (if using Intersection Observer)
+                if ('IntersectionObserver' in window) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const badge = card.querySelector('.codec-badge');
+                                if (badge && badge.textContent === '⟳ Check') {
+                                    badge.textContent = 'Checking...';
+                                    player.getVideoCodec(filename).then(isCompatible => {
+                                        if (isCompatible) {
+                                            badge.className = 'codec-badge compatible';
+                                            badge.textContent = '✅ H.264';
+                                        } else {
+                                            badge.className = 'codec-badge incompatible';
+                                            badge.textContent = '❌ Not H.264';
+                                            card.classList.add('non-h264');
+                                        }
+                                    });
+                                }
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    });
+                    observer.observe(card);
+                }
+            }
+            
+            card.addEventListener('click', () => {
+                if (player.mobileMode) {
+                    // Check compatibility on click if not already checked
+                    if (!player.codecCache.has(filename)) {
+                        loadingIndicator.style.display = 'block';
                         player.getVideoCodec(filename).then(isCompatible => {
+                            loadingIndicator.style.display = 'none';
                             if (isCompatible) {
                                 playVideo(filename);
                             } else {
@@ -837,12 +884,20 @@ class tsPlayer{
                             }
                         });
                     } else {
-                        playVideo(filename);
+                        const isCompatible = player.codecCache.get(filename);
+                        if (isCompatible) {
+                            playVideo(filename);
+                        } else {
+                            showError('This video cannot be played in mobile mode (not H.264 compatible)');
+                        }
                     }
-                });
-                
-                return card;
-            }
+                } else {
+                    playVideo(filename);
+                }
+            });
+            
+            return card;
+        }
 
         function updateStats(videos, statsMessage) {
             if(statsMessage){
@@ -1030,31 +1085,57 @@ class tsPlayer{
 
     }
 
-    async filterVideoForMobile(videos){
-        if(!this.mobileMode) return videos;
-
+    async filterVideoForMobile(videos) {
+        if (!this.mobileMode) return videos;
+        
         const filtered = [];
-        const codecCache = new Map();
-
-        for (const video of videos){
+        for (const video of videos) {
             const filename = video.filename || video;
-
-            if(codecCache.has(filename)) {
-                if(codecCache.get(filename)){
+            
+            if (this.codecCache.has(filename)) {
+                if (this.codecCache.get(filename)) {
                     filtered.push(video);
                 }
                 continue;
             }
-
-            const isCompatible = await this.checkH264Compatability(video);
-            codecCache.set(filename, isCompatible);
             
-            if (isCompatible){
+            const isCompatible = await this.checkH264Compatability(video);
+            this.codecCache.set(filename, isCompatible);
+            
+            if (isCompatible) {
                 filtered.push(video);
             }
+            
+            await new Promise(resolve => setTimeout(resolve, 50));
         }
+        
+        return filtered;
+    }
 
-        return filtered
+    async batchCheckCodecs(videos, batchSize = 5) {
+        const results = [];
+        for (let i = 0; i < videos.length; i += batchSize) {
+            const batch = videos.slice(i, i + batchSize);
+            const batchPromises = batch.map(async (video) => {
+                const filename = video.filename || video;
+                if (!this.codecCache.has(filename)) {
+                    await this.getVideoCodec(filename);
+                }
+                return {
+                    video,
+                    isCompatible: this.codecCache.get(filename) || false
+                };
+            });
+            
+            const batchResults = await Promise.all(batchPromises);
+            results.push(...batchResults);
+            
+            // Small delay between batches
+            if (i + batchSize < videos.length) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        return results;
     }
 
     async getVideoCodec(filename){
