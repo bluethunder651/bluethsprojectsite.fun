@@ -9,6 +9,7 @@ class tsPlayer{
         this.lastStatus = null;
         this.pingInterval = null;
         this.socket = null;
+        this.mobileMode = false;
 
         this.setupEventListeners();
     }
@@ -189,6 +190,12 @@ class tsPlayer{
             const progressFill = document.getElementById('progress-fill');
             const currentTimeSpan = document.getElementById('current-time');
             const durationSpan = document.getElementById('duration');
+            const mobileCheckbox = document.getElementById('mobile-mode');
+            const mobileIndicator = document.createElement('div');
+
+            mobileIndicator.id = 'mobile-indicator';
+            mobileIndicator.style.display = 'none';
+            document.querySelector('.nav-bar').appendChild(mobileIndicator);
 
             let allVideos = [];
 
@@ -342,6 +349,44 @@ class tsPlayer{
             }
         });
 
+        mobileCheckbox.addEventListener('change', async (e) => {
+            player.mobileMode = e.target.checked;
+
+            if(player.mobileMode){
+                document.body.classList.add('mobile-mode-active');
+                mobileIndicator.style.display = 'inline-block';
+                mobileIndicator.textContent = 'Mobile Mode Active';
+                mobileIndicator.style.cssText = `
+                    background: #4CAF50;
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                    font-size: 12px;    
+                `;
+
+                loadingIndicator.style.display = 'block';
+
+                if (allVideos.length > 0){
+                    const filteredVideos = await player.filterVideoForMobile(allVideos);
+                    displayVideos(filteredVideos);
+
+                    const nonH264Count = allVideos.length - filteredVideos.length;
+                    if(nonH264Count > 0){
+                        showWarning(`${nonH264Count} non-H.264 videos hidden (mobile mode)`);
+                    }
+                }
+                loadingIndicator.style.display = 'none';
+            } else {
+                document.body.classList.remove('mobile-mode-active');
+                mobileIndicator.style.display = 'none';
+
+                if(allVideos.length > 0){
+                    displayVideos(allVideos);
+                }
+            }
+        });
+
         // Clear tags
         document.getElementById('clear-tags').addEventListener('click', () => {
             selectedTags.clear();
@@ -376,7 +421,16 @@ class tsPlayer{
                 
                 try {
                     // Get all videos first
-                    const videos = await player.getVideos();
+                    let videos = await player.getVideos();
+
+                    if(player.mobileMode){
+                        videos = await player.filterVideoForMobile(videos);
+                        if(videos.length === 0){
+                            showError('No H.264 videos available for mobile.');
+                            loadingIndicator.style.display = 'none';
+                            return;
+                        }
+                    }
                     
                     if (videos && videos.length > 0) {
                         // Shuffle the array
@@ -612,27 +666,72 @@ class tsPlayer{
                 videoStats.textContent = '0 videos';
                 return;
                 }
-                
-                videos.forEach(video => {
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <h3>${escapeHtml(video.filename)}</h3>
-                `;
-                
-                card.addEventListener('click', () => {
-                    playVideo(video.filename);
-                });
-                
-                videoGrid.appendChild(card);
-                });
-                
-                if (statsMessage) {
-                videoStats.textContent = statsMessage;
-                } else {
-                videoStats.textContent = `${videos.length} videos • ${formatTotalSize(videos)}`;
+
+                if(player.mobileMode){
+                    videoGrid.innerHTML = '<div class="loading">Checking video compatibility...</div>';
+
+                    Promise.all(videos.map(async (video) => {
+                        const isCompatible = await player.checkH264Compatability(video);
+                        return {video, isCompatible}
+                    })).then(results => {
+                        videoGrid.innerHTML = '';
+                        results.forEach(({video, isCompatible}) => {
+                            const card = createVideoCard(video, isCompatible);
+                            videoGrid.appendChild(card);
+                        });
+
+                        updateStats(videos, statsMessage);
+                    });
+                } else{
+                    videos.forEach(video => {
+                        const card = createVideoCard(video, true);
+                        videoGrid.appendChild(card);
+                    });
+                    updateStats(videos, statsMessage);
                 }
             }
+
+        function createVideoCard(video, isCompatible){
+            const card = document.createElement('div');
+            card.className = 'video-card';
+
+            if(!isCompatible){
+                card.classList.add('non-h264');
+            }
+
+            const filename=  video.filename || video;
+            const displayName = filename.length > 50 ? filename.substring(0, 47) + '...' : filename;
+
+            card.innerHTML = `
+                <h3 title = "${escapeHTML(filename)}">${escapeHtml(displayName)}</h3>
+                <div class="video-card-holder">
+                    ${!isCompatible ? '<span class="codec-badge incompatible">Not H.264</span>' : ''}
+            `;
+
+            card.addEventListener('click', () => {
+                if(!isCompatible){
+                    showError('This video cannot be played in mobile mode.');
+                    return;
+                }
+                playVideo(filename);
+            });
+            return card
+        }
+
+        function updateStats(videos, statsMessage) {
+            if(statsMessage){
+                videoStats.textContent = statsMessage;
+            } else{
+                const compatibleCount = Array.from(document.querySelectorAll('.video-card:not(.non-h264)')).length;
+                const totalCount = videos.length;
+
+                if(player.mobileMode){
+                    videoStats.textContent = `${compatibleCount}/${totalCount} H.264 compatible`;
+                } else{
+                    videoStats.textContent = `${totalCount} videos`;
+                }
+            }
+        }
             
         async function playVideo(filename) {
             if (!player.token) {
@@ -640,6 +739,17 @@ class tsPlayer{
                 return;
             }
             
+            if(player.mobileMode){
+                loadingIndicator.style.display = 'block';
+                const isCompatible = await player.checkH264Compatability(filename);
+                loadRandomVideo.style.display = 'none';
+
+                if(!isCompatible){
+                    showError('This video cannot be played in mobile mode.')
+                    return;
+                }
+            }
+
             videoBrowser.style.display = 'none';
             playerScreen.style.display = 'block';
             currentVideoTitle.textContent = filename;
@@ -754,6 +864,71 @@ class tsPlayer{
         }
 
         return [];
+    }
+
+    async getVideoCodec(filename){
+        if(!this.token){
+            await this.refreshToken();
+            if (!this.token) return null;
+        }
+
+        try{
+            const response = await fetch(`${this.serverUrl}/api/local/videos/codec/${encodeURIComponent(filename)}`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+
+            if (response.ok){
+                const dat = await response.json();
+                return data.codec;
+            }
+        
+        } catch (error){
+            console.log('Failed to get codec for: ', filename);
+            return null;
+        }
+        return null;
+    }
+
+    async checkH264Compatability(video){
+        const filename = video.filename || video;
+
+        const codec = await this.getVideoCodec(filename);
+
+        if (!codec) return false;
+
+        const codecLower = codec.toLowerCase();
+        return codecLower.includes('h264') || codecLower.includes('avc') || codecLower.includes('h.264');
+
+    }
+
+    async filterVideoForMobile(videos){
+        if(!this.mobileMode) return videos;
+
+        const filtered = [];
+        const codecCache = new Map();
+
+        for (const video of videos){
+            const filename = video.filename || video;
+
+            if(codecCache.has(filename)) {
+                if(codecCache.get(filename)){
+                    filtered.push(video);
+                }
+                continue;
+            }
+
+            const isCompatible = await this.checkH264Compatability(video);
+            codecCache.set(filename, isCompatible);
+            
+            if (isCompatible){
+                filtered.push(video);
+            }
+        }
+
+        return filtered
     }
 
     async preloadVideo(filename){
