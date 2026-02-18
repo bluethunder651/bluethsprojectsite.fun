@@ -105,6 +105,15 @@ body {
     overflow: hidden;
 }
 
+#video-player {
+    width: 100%;
+    height: auto;
+}
+
+.video-meta{
+    margin-top: 12px;
+}
+
 video {
     width: 100%;
     max-height: 450px;
@@ -120,10 +129,6 @@ video {
     padding: 20px 10px 10px;
     opacity: 0;
     transition: opacity 0.3s;
-}
-
-.video-container:hover .video-controls {
-    opacity: 1;
 }
 
 .video-title {

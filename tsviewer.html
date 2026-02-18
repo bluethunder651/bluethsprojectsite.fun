@@ -49,15 +49,16 @@
         <div id="player-screen" style="display: none;">
             <button id="back-to-browser" class="nav-btn">Back to Library</button>
             <div class="video-container">
-                <video id="video-player" controls></video>
-                <div class="video-controls">
-                    <div id="current-video-title" class="video-title"></div>
-                    <div class="progress-bar" id="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                    <div class="time-display">
-                        <span id="current-time">0:00</span> / <span id="duration">0:00</span>
-                    </div>
+                <video id="video-player" controls playsinline></video>
+            </div>
+            <div class="video-meta">
+                <div id="current-video-title" class="video-title"></div>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fil"></div>
+                </div>
+                <div class="time-display">
+                    <span id="curernt-time">0:00</span>
+                    <span id="duration">0:00</span>
                 </div>
             </div>
         </div>
