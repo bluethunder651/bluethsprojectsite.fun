@@ -419,15 +419,6 @@ class tsPlayer{
                 try {
                     // Get all videos first
                     let videos = await player.getVideos();
-
-                    if(player.mobileMode){
-                        videos = await player.filterVideoForMobile(videos);
-                        if(videos.length === 0){
-                            showError('No H.264 videos available for mobile.');
-                            loadingIndicator.style.display = 'none';
-                            return;
-                        }
-                    }
                     
                     if (videos && videos.length > 0) {
                         // Shuffle the array
@@ -928,32 +919,6 @@ class tsPlayer{
         }
 
         return [];
-    }
-
-    async getVideoCodec(filename){
-        if(!this.token){
-            await this.refreshToken();
-            if (!this.token) return null;
-        }
-
-        try{
-            const response = await fetch(`${this.serverUrl}/api/local/videos/codec/${encodeURIComponent(filename)}`, {
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin
-                }
-            });
-
-            if (response.ok){
-                const dat = await response.json();
-                return data.codec;
-            }
-        
-        } catch (error){
-            console.log('Failed to get codec for: ', filename);
-            return null;
-        }
-        return null;
     }
 
     async checkH264Compatability(video){
