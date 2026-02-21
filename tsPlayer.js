@@ -189,6 +189,7 @@ class tsPlayer{
             const videoPlayer = document.getElementById('video-player');
             const preloader = document.getElementById('video-preload');
             const currentVideoTitle = document.getElementById('current-video-title');
+            const progressFill = document.getElementById('progress-fill');
             const currentTimeSpan = document.getElementById('current-time');
             const durationSpan = document.getElementById('duration');
             const mobileCheckbox = document.getElementById('mobile-mode');
@@ -197,9 +198,6 @@ class tsPlayer{
             mobileIndicator.id = 'mobile-indicator';
             mobileIndicator.style.display = 'none';
             document.querySelector('.nav-bar').appendChild(mobileIndicator);
-
-            let videoLoadTimeout = null;
-            let videoErrorOccurred = false;
 
             let allVideos = [];
 
@@ -507,17 +505,11 @@ class tsPlayer{
                         const url = URL.createObjectURL(blob);
 
                         videoPlayer.removeEventListener('ended', handleVideoEnded);
-                        videoPlayer.removeEventListener('playing', handleVideoPlaying);
-
-                        setupVideoErrorHandling(videoPlayer, video.filename, () => {
-                            playPlaylistVideo(index + 1);
-                        });
-
                         videoPlayer.src = url;
                         videoPlayer.load();
-
                         videoPlayer.addEventListener('ended', handleVideoEnded);
-
+                        
+                        // Start preloading and checking next videos
                         preloadNextVideos(index);
                         
                         videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
@@ -897,75 +889,6 @@ class tsPlayer{
                 errorMessage.textContent = message;
                 errorMessage.style.display = 'block';
             }
-
-            function setupVideoErrorHandling(videoElement, filename, skipCallback){
-                if (videoLoadTimeout){
-                    clearTimeout(videoLoadTimeout);
-                }
-
-                videoErrorOccurred = false;
-
-                videoLoadTimeout = setTimeout(() => {
-                    const currentTime = videoElement.currentTime;
-                    const readyState = videoElement.readyState;
-                    const networkState = videoElement.networkState;
-
-                    if (currentTime === 0 && readyState < 3 && !videoErrorOccurred){
-                        showError(`Video failed to load. Skipping...`);
-
-                        videoElement.pause();
-                        videoElement.removeAttribute('src');
-                        videoElement.load();
-
-                        if(skipCallback){
-                            skipCallback();
-                        }
-                    }
-
-                }, 8000);
-
-                videoElement.addEventListener('playing', () => {
-                    if (videoLoadTimeout){
-                        clearTimeout(videoLoadTimeout);
-                        videoLoadTimeout = null;
-                    }
-                }, {once: true});
-
-                videoElement.addEventListener('error', () => {
-                    videoErrorOccurred = true;
-
-                    if(videoLoadTimeout){
-                        clearTimeout(videoLoadTimeout);
-                        videoLoadTimeout = null;
-                    }
-
-                    let errorMessage = 'Unknown error';
-                    if (videoElement.error){
-                        switch(videoElement.error.code){
-                            case MediaError.MEDIA_ERR_ABORTED:
-                                errorMessage = 'Playback aborted';
-                                break;
-                            case MediaError.MEDIA_ERR_NETWORK:
-                                errorMessage = 'Network Error';
-                                break;
-                            case MediaError.MEDIA_ERR_DECODE:
-                                errorMessage = 'Video decoding error - incompatible format';
-                                break;
-                            case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                                errorMessage = 'Video format not supported';
-                                break;
-                        }
-                    }
-
-                    showError(`Video error: ${errorMessage}. Skipping...`);
-
-                    if (skipCallback){
-                        setTimeout(skipCallback, 500);
-                    }
-
-                }, {once: true});
-            }
-
         });
 
     }
