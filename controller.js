@@ -31,7 +31,7 @@ class Controller {
         const tsGame = document.getElementById('start-ts-game');
         if(tsGame){
             tsGame.addEventListener('click', () => {
-                window.location.href = `${self.website}/tsplayer.html`
+                window.location.href = `${self.website}/tsPlayer.html`
             });
         }
     }
@@ -39,4 +39,5 @@ class Controller {
 
 document.addEventListener('DOMContentLoaded', () => {
     new Controller();
+
 });
