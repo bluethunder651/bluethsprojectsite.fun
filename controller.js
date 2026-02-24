@@ -27,6 +27,13 @@ class Controller {
                 window.location.href = `${self.website}/tsviewer.html`
             });
         } 
+
+        const tsGame = document.getElementById('start-ts-game');
+        if(tsGame){
+            tsGame.addEventListener('click', () => {
+                window.location.href = `${self.website}/tsplayer.html`
+            });
+        }
     }
 }
 
