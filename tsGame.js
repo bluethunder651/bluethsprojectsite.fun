@@ -383,7 +383,7 @@ class tsGame{
         }
         if(!this.token) return [];
 
-        if(this.playerName = ''){
+        if(this.playerName == ''){
             return
         }
 
@@ -501,6 +501,7 @@ class tsGame{
         if(!this.token) return [];
 
         const response = await fetch(`${this.serverUrl}/api/local/game/submit_answer`, {
+            method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
                 'Referer': window.location.origin,
