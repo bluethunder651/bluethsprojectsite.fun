@@ -363,14 +363,14 @@ class tsGame{
         }
         if(!this.token) return [];
 
-        const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedDifficulties = Array.from(document.querySelectorAll('#difficulties-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedGenres = Array.from(document.querySelectorAll('#genres-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedProductionCompanies = Array.from(document.querySelectorAll('#production-companies-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedNetworks = Array.from(document.querySelectorAll('#networks-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
-        const selectedCountries = Array.from(document.querySelectorAll('#countries-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedDifficulties = Array.from(document.querySelectorAll('#difficulties-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedGenres = Array.from(document.querySelectorAll('#genres-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedProductionCompanies = Array.from(document.querySelectorAll('#production-companies-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedNetworks = Array.from(document.querySelectorAll('#networks-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+        const selectedCountries = Array.from(document.querySelectorAll('#countries-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const enableSpecialOpenings = document.getElementById('special-checkbox').checked;
         const enableRandomStartTime = document.getElementById('enable-random-start').checked;
         const startMin = enableRandomStartTime ? (document.getElementById('start-min').value) || 0 : 0;
