@@ -423,7 +423,14 @@ class tsGame{
         }
     }
 
-    playVideo(hidden, video_path){
+    async playVideo(hidden, video_path){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
             videoPlayer.classList.add('video-hidden');
@@ -431,9 +438,21 @@ class tsGame{
             videoPlayer.classList.remove('vide-hidden');
         }
 
-        videoPlayer.src = video_path;
-        videoStartTime = Date.now();
-        videoPlayer.play();
+        const response = await fetch(video_path, {
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin
+            }
+        })
+
+        if(response.ok){
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            videoPlayer.src = url;
+            videoStartTime = Date.now();
+            videoPlayer.play();
+        }
     }
 
     isH264Codec(codec){
