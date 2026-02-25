@@ -41,7 +41,7 @@ class tsGame{
 
             document.getElementById('filter-header').addEventListener('click', function() {
                 const header = this;
-                toggleSection(header);
+                player.toggleSection(header);
             });
 
             document.getElementById('options').addEventListener('click', async function() {
@@ -49,7 +49,7 @@ class tsGame{
 
                 if(filters.style.display === 'none' || !filters.style.display){
                     filters.style.display = 'block';
-                    await loadFilters(allVideos);
+                    await player.loadFilters(allVideos);
                 } else {
                     filters.style.display = 'none';
                 }
