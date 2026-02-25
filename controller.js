@@ -39,5 +39,4 @@ class Controller {
 
 document.addEventListener('DOMContentLoaded', () => {
     new Controller();
-
 });

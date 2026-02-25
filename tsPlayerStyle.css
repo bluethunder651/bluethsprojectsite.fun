@@ -58,3 +58,20 @@ body {
 .status-warning {
   color: #ff9800;
 }
+
+.nav-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    transform: translateY(-2px);
+}
+
+.nav-btn.active {
+    background: #4CAF50;
+}

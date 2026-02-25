@@ -18,13 +18,13 @@ class tsGame{
 
     setupEventListeners(){
         
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const videoScreen = document.getElementById('video-screen');
             const videoPlayer = document.getElementById('video-player');
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
-            let allVideos = [];
+            let allVideos = player.getVideos();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
                 const btn = this;
@@ -42,6 +42,17 @@ class tsGame{
             document.getElementById('filter-header').addEventListener('click', function() {
                 const header = this;
                 toggleSection(header);
+            });
+
+            document.getElementById('options').addEventListener('click', async function() {
+                const filters = document.getElementById('filter-options');
+
+                if(filters.style.display === 'none' || !filters.style.display){
+                    filters.style.display = 'block';
+                    await loadFilters(allVideos);
+                } else {
+                    filters.style.display = 'none';
+                }
             });
 
         });
@@ -211,6 +222,24 @@ class tsGame{
         }
 
         return [];
+    }
+
+    loadFilters(videos){
+        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list'].forEach(id => {
+            document.getElementById(id).innerHTML = '';
+        });
+
+        videos.tags.slice(0,50).forEach(tag => {
+            const container = document.getElementById('tags-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${tag.trim().toLowerCase()}">
+                    ${tag}
+                </label>
+            `;
+            container.appendChild(div);
+        })
     }
 
     isH264Codec(codec){
