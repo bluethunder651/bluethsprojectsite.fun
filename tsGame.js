@@ -504,7 +504,7 @@ class tsGame{
         if(response.ok){
             const data = await response.json();
             if(data.error != null){
-                input = document.getElementById('player-name-input');
+                const input = document.getElementById('player-name-input');
                 input.textContent = '';
                 alert('Name is already taken. Please choose a different name.');
             }
