@@ -367,10 +367,8 @@ class tsPlayer{
                     font-size: 12px;    
                 `;
 
-                // Just show a message, don't filter the display
-                this.showInfo('Mobile mode enabled - videos will be checked for compatibility when played');
+                player.showInfo('Mobile mode enabled - videos will be checked for compatibility when played');
                 
-                // Refresh the current view (but don't filter)
                 if (allVideos.length > 0) {
                     displayVideos(allVideos);
                 }
