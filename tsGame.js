@@ -581,11 +581,21 @@ class tsGame{
                 gameEnded(data.scores, data.highest_streak);
             } else {
                 if(this.nextVideoData && this.nextVideoData.video_path === data.video_path){
-                    const videoPlayer = document.getElementById('video-player');
-                    videoPlayer.src = this.nextVideoData.video_url;
-                    videoPlayer.load();
+
+                    const main = document.getElementById('video-player');
+                    const preload = document.getElementById('video-preload');
+
+                    main.pause();
+
+                    main.style.display = 'none';
+                    preload.style.display = 'block';
+
+                    main.id = 'video-preload';
+                    preload.id = 'video-player';
+
+                    preload.currentTime = 0;
                     this.videoStartTime = Date.now();
-                    videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+                    preload.play().catch(e => console.log('Autoplay prevented: ', e));
 
                     this.fillButtons(this.nextVideoData.options);
 
@@ -603,14 +613,14 @@ class tsGame{
     }
 
     async preloadNextVideo(){
-        if (this.preloadingNextVideo) return;
-        
+        if(this.preloadingNextVideo) return;
+
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
-            if (!this.token) return [];
+            if(!this.token) return;
         }
 
-        if(!this.token) return [];
+        if(!this.token) return;
 
         try{
             this.preloadingNextVideo = true;
@@ -623,22 +633,28 @@ class tsGame{
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    playerName: this.playerName,
+                    playerName: this.playerName
                 })
             });
 
             if(response.ok){
                 const data = await response.json();
-                if(data.preload_data){
+
+                if (data.preload_data){
                     const preloadData = data.preload_data;
+
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData)}`
 
                     this.nextVideoData = {
                         video_path: preloadData.video_path,
-                        video_url: `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}`,
+                        video_url: videoUrl,
                         options: preloadData.options,
-                        song: reloadData.song
-                    }
+                        song: preloadData.song
+                    };
 
+                    const preloadPlayer = document.getElementById('video-preload');
+                    preloadPlayer.src = videoUrl;
+                    preloadPlayer.load();
                 }
             }
         } catch (error) {
@@ -646,7 +662,7 @@ class tsGame{
         } finally {
             this.preloadingNextVideo = false;
         }
-    }
+    }    
 
     isH264Codec(codec){
         if (!codec) return false;
