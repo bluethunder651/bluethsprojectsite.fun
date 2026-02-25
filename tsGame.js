@@ -24,7 +24,7 @@ class tsGame{
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
-            let allVideos = player.getVideos();
+            let allVideos = await player.getVideos();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
                 const btn = this;
