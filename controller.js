@@ -53,7 +53,7 @@ class Controller {
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
-                await fetch(`${this.website}/api/auth/logout`, { method: 'POST' });
+                await fetch(`${this.website}/api/auth/logout`, { method: 'POST' , credentials: 'include'});
                 localStorage.removeItem('user');
                 window.location.reload();
             });
@@ -61,7 +61,7 @@ class Controller {
     }
 
     checkAuthStatus(){
-        fetch(`${this.website}/api/auth/me`)
+        fetch(`${this.website}/api/auth/me`, { credentials: 'include'})
             .then(response => response.json())
             .then(data => {
                 const loginBtn = document.getElementById('login-btn');
