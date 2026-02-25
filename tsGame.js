@@ -1,5 +1,6 @@
 class tsGame{
     constructor(){
+        this.website = 'https://julia.bluethsprojectsite.fun';
         this.serverUrl = 'https://bluethsprojectsite.fun';
         this.token = null;
         this.tokenExpiry = null;
@@ -187,7 +188,7 @@ class tsGame{
 
     async refreshToken() {
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/token`, {
+            const response = await fetch(`${this.website}/api/local/token`, {
                 headers: {
                     'Referer': window.location.origin
                 }
