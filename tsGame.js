@@ -40,10 +40,13 @@ class tsGame{
                 });
             });
 
-            document.querySelectorAll('filter-header').addEventListener('click', function() {
-                const header = this;
-                player.toggleSection(header);
+            document.querySelectorAll('filter-header').forEach(id => {
+                id.addEventListener('click', function() {
+                    const header = this;
+                    player.toggleSection(header);
+                });
             });
+        
 
             document.getElementById('options').addEventListener('click', async function() {
                 const filters = document.getElementById('filter-options');
