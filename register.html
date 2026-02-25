@@ -154,7 +154,7 @@
                     submitBtn.textContent = 'Create Account';
                 }
             } catch (error) {
-                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.textContent = error;
                 errorEl.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create Account';

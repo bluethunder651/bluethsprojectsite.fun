@@ -75,7 +75,7 @@
                     errorEl.style.display = 'block';
                 }
             } catch (error) {
-                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.textContent = error;
                 errorEl.style.display = 'block';
             }
         });
