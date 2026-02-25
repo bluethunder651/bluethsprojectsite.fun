@@ -69,6 +69,8 @@ class Controller {
                 const logoutBtn = document.getElementById('logout-btn');
                 const usernameDisplay = document.getElementById('username-display');
 
+                console.log('Data.user: ', data.user)
+
                 if(data.user){
                     loginBtn.style.display = 'none';
                     registerBtn.style.display = 'none';
