@@ -437,7 +437,7 @@ class tsGame{
         if(hidden){
             videoPlayer.classList.add('video-hidden');
         } else {
-            videoPlayer.classList.remove('vide-hidden');
+            videoPlayer.classList.remove('video-hidden');
         }
 
         const response = await fetch(videoUrl, {
