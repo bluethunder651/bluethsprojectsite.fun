@@ -395,12 +395,12 @@ class tsGame{
                 networks: selectedNetworks,
                 countries: selectedCountries,
                 sfw: sfwFilter,
-            },
-            rounds: rounds,
-            startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
-            hintPercent: enableHintMode ? hintPercent : 25,
-            specialOpenings: enableSpecialOpenings,
-            singleplayer: true 
+                rounds: rounds,
+                startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
+                hintPercent: enableHintMode ? hintPercent : 25,
+                specialOpenings: enableSpecialOpenings,
+                singleplayer: true 
+            }
         });
 
         if(response.ok){
