@@ -268,7 +268,7 @@ class tsGame{
             `;
             container.appendChild(div);
         });
-        filterMetadata.language.slice(0,50).forEach(language => {
+        filterMetadata.languages.slice(0,50).forEach(language => {
             const container = document.getElementById('languages-list');
             const div = document.createElement('div');
             div.innerHTML = `
@@ -279,7 +279,72 @@ class tsGame{
             `;
             container.appendChild(div);
         });
-
+        filterMetadata.decades.slice(0,50).forEach(decade => {
+            const container = document.getElementById('decades-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${decade.trim().toLowerCase()}">
+                    ${decade}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.difficulties.slice(0,50).forEach(difficulty => {
+            const container = document.getElementById('difficulties-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${difficulty.trim().toLowerCase()}">
+                    ${difficulty}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.genres.slice(0,50).forEach(genre => {
+            const container = document.getElementById('genres-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${genre.trim().toLowerCase()}">
+                    ${genre}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.production_companies.slice(0,50).forEach(production_company => {
+            const container = document.getElementById('production-companies-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${production_company.trim().toLowerCase()}">
+                    ${production_company}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.networks.slice(0,50).forEach(network => {
+            const container = document.getElementById('languages-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${network.trim().toLowerCase()}">
+                    ${network}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.countries.slice(0,50).forEach(country => {
+            const container = document.getElementById('countries-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${country.trim().toLowerCase()}">
+                    ${country}
+                </label>
+            `;
+            container.appendChild(div);
+        });
     }
 
     isH264Codec(codec){
