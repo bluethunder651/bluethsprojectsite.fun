@@ -14,6 +14,7 @@ class tsGame{
         this.pendingCodecChecks = new Map();
         this.videoStartTime = Date.now()
         this.playerName = null;
+        this.current_song = null;
 
         this.setupEventListeners();
     }
@@ -442,8 +443,10 @@ class tsGame{
             landing_screen.classList.remove('active');
             game_screen.classList.add('active');
 
-            this.playVideo(data.hard_mode, data.video_path)
-            this.fillButtons(data.options)
+            this.current_song = data.song;
+
+            this.playVideo(data.hard_mode, data.video_path);
+            this.fillButtons(data.options);
         }
     }
 
@@ -538,6 +541,7 @@ class tsGame{
             body: JSON.stringify({
                 playerName: this.playerName,
                 selectedOption: selectedOption,
+                correctOption: this.current_song,
                 answerTime: Date.now(),
                 videoStartTime: this.videoStartTime
             })
