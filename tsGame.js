@@ -638,12 +638,11 @@ class tsGame{
             });
 
             if(response.ok){
-                const data = await response.json();
+                const preloadData = await response.json()
 
-                if (data.preload_data){
-                    const preloadData = data.preload_data;
+                if(preloadData && preloadData.video_path){
 
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData)}`
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}`
 
                     this.nextVideoData = {
                         video_path: preloadData.video_path,
@@ -654,7 +653,6 @@ class tsGame{
 
                     const preloadPlayer = document.getElementById('video-preload');
                     preloadPlayer.src = videoUrl;
-                    preloadPlayer.load();
                 }
             }
         } catch (error) {
