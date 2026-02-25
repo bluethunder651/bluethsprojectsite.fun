@@ -410,13 +410,30 @@ class tsGame{
             const game_screen = document.getElementById('game-screen');
             const filterOptions = document.getElementById('filter-options');
 
+            const data = await response.json();
+
             landing_screen.style.display = 'none';
             game_screen.style.display = 'block';
             filterOptions.style.display = 'none';
 
             landing_screen.classList.remove('active');
             game_screen.classList.add('active');
+
+            this.playVideo(data.extreme_mode, data.video_path)
         }
+    }
+
+    playVideo(hidden, video_path){
+        const videoPlayer = document.getElementById('video-player');
+        if(hidden){
+            videoPlayer.classList.add('video-hidden');
+        } else {
+            videoPlayer.classList.remove('vide-hidden');
+        }
+
+        videoPlayer.src = video_path;
+        videoStartTime = Date.now();
+        videoPlayer.play();
     }
 
     isH264Codec(codec){
