@@ -229,6 +229,8 @@ class tsGame{
             document.getElementById(id).innerHTML = '';
         });
 
+        console.log("Videos.tags: ", videos.tags);
+
         videos.tags.slice(0,50).forEach(tag => {
             const container = document.getElementById('tags-list');
             const div = document.createElement('div');
