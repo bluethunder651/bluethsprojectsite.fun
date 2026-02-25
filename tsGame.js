@@ -229,7 +229,7 @@ class tsGame{
             document.getElementById(id).innerHTML = '';
         });
 
-        console.log("Videos: ", videos);
+        console.log("Videos type: ", typeof videos);
 
         videos.forEach(video => {
             video.tags.slice(0,50).forEach(tag => {
