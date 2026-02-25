@@ -79,12 +79,6 @@ class tsGame{
                     player.submit_answer(selectedOption);
                 });
             });
-
-            document.getElementById('player-name-input').addEventListener('input', () => {
-                input = document.getElementById('player-name-input');
-                this.playerName = input.textContent; 
-            });
-
         });
     }
 
@@ -383,7 +377,10 @@ class tsGame{
         }
         if(!this.token) return [];
 
-        if(this.playerName == ''){
+        input = document.getElementById('player-name-input');
+        this.playerName = input.textContent; 
+
+        if(this.playerName == '' || this.playerName == null){
             return
         }
 
@@ -482,6 +479,35 @@ class tsGame{
             videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
         } else {
             console.error('Failed to load video: ', error);
+        }
+    }
+    
+    async join(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
+        const response = await fetch(`${this.serverUrl}/api/local/game/join`, {
+            method: 'POST',
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin
+            },
+            body: {
+                playerName: this.playerName
+            }
+        });
+
+        if(response.ok){
+            const data = await response.json();
+            if(data.error != null){
+                input = document.getElementById('player-name-input');
+                input.textContent = '';
+                alert('Name is already taken. Please choose a different name.');
+            }
         }
     }
 
