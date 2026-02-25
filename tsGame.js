@@ -206,6 +206,8 @@ class tsGame{
                     videos = data;
                 }
 
+                console.log('Videos type: ', typeof videos);
+
                 videos.forEach(video => {
                     if(video.filename && video.codec) {
                         const isH264 = this.isH264Codec(video.codec);
