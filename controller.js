@@ -1,6 +1,6 @@
 class Controller {
     constructor(){
-        this.website = "https://julia.bluethsprojectsite.fun"
+        this.website = "https://bluethsprojectsite.fun"
         this.setupEventListeners();
         this.checkAuthStatus();
     }
