@@ -257,30 +257,29 @@ class tsGame{
             document.getElementById(id).innerHTML = '';
         });
         
-        filterMetadata.forEach(metadata => {
-            metadata.tags.slice(0,50).forEach(tag => {
-                const container = document.getElementById('tags-list');
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <label>
-                        <input type="checkbox" value="${tag.trim().toLowerCase()}">
-                        ${tag}
-                    </label>
-                `;
-                container.appendChild(div);
-            });
-            metadata.language.slice(0,50).forEach(language => {
-                const container = document.getElementById('languages-list');
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <label>
-                        <input type="checkbox" value="${language.trim().toLowerCase()}">
-                        ${language}
-                    </label>
-                `;
-                container.appendChild(div);
-            });
+        metadata.tags.slice(0,50).forEach(tag => {
+            const container = document.getElementById('tags-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${tag.trim().toLowerCase()}">
+                    ${tag}
+                </label>
+            `;
+            container.appendChild(div);
         });
+        metadata.language.slice(0,50).forEach(language => {
+            const container = document.getElementById('languages-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${language.trim().toLowerCase()}">
+                    ${language}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+
     }
 
     isH264Codec(codec){
