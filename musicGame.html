@@ -13,6 +13,12 @@
         <p class="tagline">Family Edition</p>
         <button id="start-game" class="btn btn-primary">Start Game</button>
         <button id="go-home" class="btn btn-primary">Home</button>
+        <div class="auth-buttons" style="position: absolute; top: 20px; right: 20px;">
+          <button id="login-btn" class="btn btn-secondary">Login</button>
+          <button id="register-btn" class="btn btn-secondary">Sign Up</button>
+          <button id="logout-btn" class="btn btn-secondary" style="display: none;">Logout</button>
+          <span id="username-display" style="color: white; margin-left: 10px;"></span>
+        </div>
       </div>
       <div id="player-screen" class="screen">
         <h2>How Many Players?</h2>
@@ -117,9 +123,9 @@
         <button id="go-home" class="btn btn-primary">Home</button>
       </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
-    <script src="songs.js"></script>
-    <script src="game.js"></script>
-    <script src="controller.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <script defer src="songs.js"></script>
+    <script defer src="game.js"></script>
+    <script defer src="controller.js"></script>
   </body>
 </html>
