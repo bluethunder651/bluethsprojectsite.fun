@@ -564,6 +564,7 @@ class tsGame{
     }
 
     async next_video(){
+        const hardMode = document.getElementById('hard-mode').checked;
         const response = await fetch(`${this.website}/api/local/game/single/next`, {
             method: 'POST',
             headers: {
