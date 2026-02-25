@@ -88,7 +88,7 @@ class tsGame{
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-            const response = await fetch(`${this.serverUrl}/api/local/ping`, {
+            const response = await fetch(`${this.website}/api/local/ping`, {
                 signal: controller.signal,
                 mode: 'cors',
                 cache: 'no-cache'
@@ -113,7 +113,7 @@ class tsGame{
 
     async checkStatus(token){
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/status/simple`, {
+            const response = await fetch(`${this.website}/api/local/status/simple`, {
                 headers: token ? {'X-Auth-Token': token}: {},
                 cache: 'no-cache'
             });
@@ -146,7 +146,7 @@ class tsGame{
 
     async healthCheck(token){
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/health`, {
+            const response = await fetch(`${this.website}/api/local/health`, {
                 headers: token ? {'X-Auth-Token': token} : {},
                 cache: 'no-cache'
             });
@@ -214,7 +214,7 @@ class tsGame{
         if(!this.token) return [];
 
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/videos`, {
+            const response = await fetch(`${this.website}/api/local/videos`, {
                 headers:{
                     'X-Auth-Token': this.token,
                     'Referer': window.location.origin
@@ -258,7 +258,7 @@ class tsGame{
         if(!this.token) return [];
 
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/metadata/filters`, {
+            const response = await fetch(`${this.website}/api/local/metadata/filters`, {
                 headers: {
                     'X-Auth-Token': this.token,
                     'Referer': window.location.origin
@@ -454,7 +454,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(video_path)}`
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video_path)}`
 
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
