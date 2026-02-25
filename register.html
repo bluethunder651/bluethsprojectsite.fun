@@ -47,6 +47,7 @@
         const confirmInput = document.getElementById('confirmPassword');
         const strengthBar = document.getElementById('passwordStrength');
         const matchDiv = document.getElementById('passwordMatch');
+        const serverUrl = 'https://julia.bluethsprojectsite.fun';
         
         passwordInput.addEventListener('input', () => {
             const password = passwordInput.value;
@@ -127,7 +128,7 @@
             };
             
             try {
-                const response = await fetch('/api/auth/register', {
+                const response = await fetch(`${serverUrl}/api/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
