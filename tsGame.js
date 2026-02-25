@@ -40,7 +40,7 @@ class tsGame{
                 });
             });
 
-            document.querySelectorAll('filter-header').forEach(id => {
+            document.querySelectorAll('.filter-header').forEach(id => {
                 id.addEventListener('click', function() {
                     const header = this;
                     console.log('Clicked on ', id);
