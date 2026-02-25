@@ -431,6 +431,8 @@ class tsGame{
 
         if(!this.token) return [];
 
+        const videoUrl = `${this.serverUrl}/api/local/videos/${video_path}`
+
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
             videoPlayer.classList.add('video-hidden');
@@ -438,7 +440,7 @@ class tsGame{
             videoPlayer.classList.remove('vide-hidden');
         }
 
-        const response = await fetch(video_path, {
+        const response = await fetch(videoUrl, {
             headers: {
                 'X-Auth-Token': this.token,
                 'Referer': window.location.origin
