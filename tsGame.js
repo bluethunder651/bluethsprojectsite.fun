@@ -420,6 +420,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.playVideo(data.extreme_mode, data.video_path)
+            this.fillButtons(data.options)
         }
     }
 
@@ -431,7 +432,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const videoUrl = `${this.serverUrl}/api/local/videos/${video_path}`
+        const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(video_path)}`
 
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
@@ -452,9 +453,19 @@ class tsGame{
             const url = URL.createObjectURL(blob);
 
             videoPlayer.src = url;
+            videoPlayer.load();
             videoStartTime = Date.now();
-            videoPlayer.play();
+            videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+        } else {
+            console.error('Failed to load video: ', error);
         }
+    }
+
+    fillButtons(options){
+        document.querySelectorAll('.answer-btn').forEach((button, index) => {
+            button.textContent = options[index];
+            button.disabled = false;
+        })
     }
 
     isH264Codec(codec){
