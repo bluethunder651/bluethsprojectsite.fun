@@ -40,7 +40,7 @@ class tsGame{
                 });
             });
 
-            document.getElementById('filter-header').addEventListener('click', function() {
+            document.querySelectorAll('filter-header').addEventListener('click', function() {
                 const header = this;
                 player.toggleSection(header);
             });
