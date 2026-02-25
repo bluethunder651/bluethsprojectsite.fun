@@ -350,6 +350,16 @@ video {
     background: #4CAF50;
 }
 
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  margin-right: 10px;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
 .tag-list{
     display: flex;
     flex-wrap: wrap;

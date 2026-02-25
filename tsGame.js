@@ -1,7 +1,6 @@
 class tsGame{
     constructor(){
         this.website = 'https://julia.bluethsprojectsite.fun';
-        this.serverUrl = 'https://bluethsprojectsite.fun';
         this.token = null;
         this.tokenExpiry = null;
         this.statusCallbacks = [];
@@ -381,8 +380,6 @@ class tsGame{
         const input = document.getElementById('player-name-input');
         this.playerName = input.value; 
 
-        console.log('Player name: ', this.playerName)
-
         if(this.playerName == '' || this.playerName == null){
             return
         }
@@ -403,6 +400,7 @@ class tsGame{
         const enableHintMode = document.getElementById('enable-hint-mode').checked;
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
         const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
+        const hardMode = document.getElementById('hard-mode').checked;
         
         const response = await fetch(`${this.website}/api/local/game/start`, {
             method: "POST",
@@ -425,7 +423,8 @@ class tsGame{
                 startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
                 hintPercent: enableHintMode ? hintPercent : 25,
                 specialOpenings: enableSpecialOpenings,
-                singleplayer: singleplayer 
+                singleplayer: singleplayer,
+                hardMode: hardMode
             })
         });
 
@@ -443,7 +442,7 @@ class tsGame{
             landing_screen.classList.remove('active');
             game_screen.classList.add('active');
 
-            this.playVideo(data.extreme_mode, data.video_path)
+            this.playVideo(data.hard_mode, data.video_path)
             this.fillButtons(data.options)
         }
     }
@@ -547,6 +546,9 @@ class tsGame{
         if(response.ok){
             const data = await response.json();
             document.getElementById('scores').textContent = `${this.playerName}: ${data.scores[this.playerName]}, Streak: ${data.streaks[this.playerName]}`;
+            document.querySelectorAll('.answer-btn').forEach(button => {
+                button.disabled = true;
+            });
         }
     }
 
@@ -565,6 +567,5 @@ class tsGame{
 
 
 }
-
 
 const player = new tsGame();

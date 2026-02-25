@@ -69,7 +69,7 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        window.history.go(-1);
                     }, 2000);
                 } else {
                     errorEl.textContent = data.error || 'Login failed';
