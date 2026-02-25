@@ -604,6 +604,13 @@ class tsGame{
 
     async preloadNextVideo(){
         if (this.preloadingNextVideo) return;
+        
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
 
         try{
             this.preloadingNextVideo = true;
