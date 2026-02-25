@@ -402,7 +402,7 @@ class tsGame{
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
         const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
         
-        const response = await fetch(`${this.serverUrl}/api/local/game/start`, {
+        const response = await fetch(`${this.website}/api/local/game/start`, {
             method: "POST",
             headers: {
                 'X-Auth-Token': this.token,
@@ -491,7 +491,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.serverUrl}/api/local/game/join`, {
+        const response = await fetch(`${this.website}/api/local/game/join`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
@@ -527,7 +527,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.serverUrl}/api/local/game/submit_answer`, {
+        const response = await fetch(`${this.website}/api/local/game/submit_answer`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
