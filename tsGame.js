@@ -12,6 +12,8 @@ class tsGame{
         this.mobileMode = false;
         this.codecCache = new Map();
         this.pendingCodecChecks = new Map();
+        this.videoStartTime = Date.now()
+        this.playerName = null;
 
         this.setupEventListeners();
     }
@@ -64,7 +66,25 @@ class tsGame{
 
             document.getElementById('multiplayer').addEventListener('click', () => {
                 player.start_game(false)
-            })
+            });
+
+            document.querySelectorAll('.answer-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('answer-btn').forEach(button => {
+                        button.disabled = true;
+                        button.classList.remove('answered');
+                    });
+                    this.classList.add('answered');
+                    const selectedOption = button.textContent;
+                    player.submit_answer(selectedOption);
+                });
+            });
+
+            document.getElementById('player-name-input').addEventListener('input', () => {
+                input = document.getElementById('player-name-input');
+                this.playerName = input.textContent; 
+            });
+
         });
     }
 
@@ -363,6 +383,10 @@ class tsGame{
         }
         if(!this.token) return [];
 
+        if(this.playerName = ''){
+            return
+        }
+
         const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
@@ -380,7 +404,7 @@ class tsGame{
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
         const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
         
-        const response = await fetch(`${this.serverUrl}/api/local/game_start`, {
+        const response = await fetch(`${this.serverUrl}/api/local/game/start`, {
             method: "POST",
             headers: {
                 'X-Auth-Token': this.token,
@@ -454,7 +478,7 @@ class tsGame{
 
             videoPlayer.src = url;
             videoPlayer.load();
-            videoStartTime = Date.now();
+            this.videoStartTime = Date.now();
             videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
         } else {
             console.error('Failed to load video: ', error);
@@ -465,7 +489,35 @@ class tsGame{
         document.querySelectorAll('.answer-btn').forEach((button, index) => {
             button.textContent = options[index];
             button.disabled = false;
-        })
+        });
+    }
+
+    async submit_answer(selectedOption){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
+        const response = await fetch(`${this.serverUrl}/api/local/game/submit_answer`, {
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin,
+                'Content-Type': 'application/json'
+            }, 
+            body: JSON.stringify({
+                playerName: this.playerName,
+                selectedOption: selectedOption,
+                answerTime: Date.now(),
+                videoStartTime: this.videoStartTime
+            })
+        });
+
+        if(response.ok){
+            const data = await response.json();
+            document.getElementById('scores').textContent = `${this.playerName}: ${data.scores[this.playerName]}, Streak: ${data.player_streaks[this.playerName]}`;
+        }
     }
 
     isH264Codec(codec){
