@@ -25,6 +25,7 @@ class tsGame{
             const mobileCheckbox = document.getElementById('mobile-mode');
 
             let allVideos = await player.getVideos();
+            let filterMetadata = await player.getFilterMetadata();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
                 const btn = this;
@@ -49,7 +50,7 @@ class tsGame{
 
                 if(filters.style.display === 'none' || !filters.style.display){
                     filters.style.display = 'block';
-                    await player.loadFilters(allVideos);
+                    await player.loadFilters(filterMetadata);
                 } else {
                     filters.style.display = 'none';
                 }
@@ -206,8 +207,6 @@ class tsGame{
                     videos = data;
                 }
 
-                console.log('Videos: ', videos);
-
                 videos.forEach(video => {
                     if(video.filename && video.codec) {
                         const isH264 = this.isH264Codec(video.codec);
@@ -226,19 +225,40 @@ class tsGame{
         return [];
     }
 
-    loadFilters(videos){
+    async getFilterMetadata(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
+        try{
+            const response = await fetch(`${this.serverUrl}/api/local/metadata/filters`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+
+            if (response.ok){
+                const data = await response.json();
+                return data;
+            } else {
+                console.error('Failed to fetch filter metadata, status: ', response.status);
+            }
+        } catch (error){
+            console.error('Failed to fetch filter metadata: ', error);
+        }
+    }
+
+    loadFilters(filterMetadata){
         ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list'].forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
-
-        console.log('Videos: ', videos);
-
-        videos.forEach(video => {
-            console.log('Video Title: ', video.opening_name)
-        });
         
-        videos.forEach(video => {
-            video.tags.slice(0,50).forEach(tag => {
+        filterMetadata.forEach(metadata => {
+            metadata.tags.slice(0,50).forEach(tag => {
                 const container = document.getElementById('tags-list');
                 const div = document.createElement('div');
                 div.innerHTML = `
@@ -249,7 +269,7 @@ class tsGame{
                 `;
                 container.appendChild(div);
             });
-            video.language.slice(0,50).forEach(language => {
+            metadata.language.slice(0,50).forEach(language => {
                 const container = document.getElementById('languages-list');
                 const div = document.createElement('div');
                 div.innerHTML = `
