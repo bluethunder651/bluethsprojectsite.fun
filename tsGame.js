@@ -257,7 +257,7 @@ class tsGame{
             document.getElementById(id).innerHTML = '';
         });
         
-        metadata.tags.slice(0,50).forEach(tag => {
+        filterMetadata.tags.slice(0,50).forEach(tag => {
             const container = document.getElementById('tags-list');
             const div = document.createElement('div');
             div.innerHTML = `
@@ -268,7 +268,7 @@ class tsGame{
             `;
             container.appendChild(div);
         });
-        metadata.language.slice(0,50).forEach(language => {
+        filterMetadata.language.slice(0,50).forEach(language => {
             const container = document.getElementById('languages-list');
             const div = document.createElement('div');
             div.innerHTML = `
