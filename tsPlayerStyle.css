@@ -83,3 +83,17 @@ body {
 .filter-content.active {
     display: block;
 }
+
+#video-player{
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    margin: 20px 0;;
+}
+
+.video-hidden {
+    visibility: hidden;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
