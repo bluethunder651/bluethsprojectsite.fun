@@ -1,6 +1,7 @@
 class Controller {
     constructor(){
         this.website = "https://bluethsprojectsite.fun"
+        this.serverUrl = "https://julia.bluethsprojectsite.fun"
         this.setupEventListeners();
         this.checkAuthStatus();
     }
@@ -53,7 +54,7 @@ class Controller {
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
-                await fetch(`${this.website}/api/auth/logout`, { method: 'POST' , credentials: 'include'});
+                await fetch(`${this.serverUrl}/api/auth/logout`, { method: 'POST' , credentials: 'include'});
                 localStorage.removeItem('user');
                 window.location.reload();
             });
@@ -61,7 +62,7 @@ class Controller {
     }
 
     checkAuthStatus(){
-        fetch(`${this.website}/api/auth/me`, { credentials: 'include'})
+        fetch(`${this.serverUrl}/api/auth/me`, { credentials: 'include'})
             .then(response => response.json())
             .then(data => {
                 const loginBtn = document.getElementById('login-btn');

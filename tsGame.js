@@ -377,7 +377,7 @@ class tsGame{
         }
         if(!this.token) return [];
 
-        input = document.getElementById('player-name-input');
+        const input = document.getElementById('player-name-input');
         this.playerName = input.textContent; 
 
         if(this.playerName == '' || this.playerName == null){
