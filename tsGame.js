@@ -15,6 +15,10 @@ class tsGame{
         this.videoStartTime = Date.now()
         this.playerName = null;
         this.current_song = null;
+        this.nextVideoData = null;
+        this.nextVideoUrl = null;
+        this.nextVideoBlob = null;
+        this.preloadingNextVideo = null;
 
         this.setupEventListeners();
     }
@@ -583,12 +587,81 @@ class tsGame{
             if (data.ended){
                 gameEnded(data.scores, data.highest_streak);
             } else {
-                this.playVideo(hardMode, data.video_path);
-                this.fillButtons(data.options);
+                if(this.nextVideoData && this.nextVideoData.video_path === data.video_path){
+                    const videoPlayer = document.getElementById('video-player');
+                    videoPlayer.src = this.nextVideoData.video_url;
+                    videoPlayer.load();
+                    this.videoStartTime = Date.now();
+                    videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+
+                    this.fillButtons(this.nextVideoData.options);
+
+                    this.nextVideoData = null;
+                    this.preloadingNextVideo = false;
+                } else {
+                    this.playVideo(hardMode, data.video_path);
+                    this.fillButtons(data.options);
+                }
+                this.preloadNextVideo()
             }
         }
 
 
+    }
+
+    async preloadNextVideo(){
+        if (this.preloadingNextVideo) return;
+
+        try{
+            this.preloadingNextVideo = true;
+
+            const response = await fetch(`${this.website}/api/local/game/single/next/preload`, {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playerName: this.playerName,
+                })
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                if(data.preload_data){
+                    const preloadData = data.preload_data;
+
+                    const videoResponse = await fetch(`${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}`, {
+                        headers: {
+                            'X-Auth-Token': this.token,
+                            'Referer': window.location.origin
+                        }
+                    });
+
+                    if(videoResponse.ok){
+                        const blob = await videoResponse.blob();
+                        const url = URL.createObjectURL(blob);
+
+                        if(this.nextVideoData && this.nextVideoData.video_url){
+                            URL.revokeObjectURL(this.nextVideoData.video_url);
+                        }
+
+                        this.nextVideoData = {
+                            video_path: preloadData.video_path,
+                            video_url: url,
+                            options: preloadData.options,
+                            song: preloadData.song,
+                            blob: blob
+                        };
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Failed to preload next video: ', error);
+        } finally {
+            this.preloadingNextVideo = false;
+        }
     }
 
     isH264Codec(codec){
