@@ -324,7 +324,7 @@ class tsGame{
             container.appendChild(div);
         });
         filterMetadata.networks.slice(0,50).forEach(network => {
-            const container = document.getElementById('languages-list');
+            const container = document.getElementById('networks-list');
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
@@ -355,6 +355,7 @@ class tsGame{
 
     toggleSection(header){
         const content = header.nextElementSibling;
+        console.log('Content: ', content);
         content.classList.toggle('active');
         const arrow = header.querySelector('.arrow');
         arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
