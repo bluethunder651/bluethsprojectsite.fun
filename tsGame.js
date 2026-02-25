@@ -1,3 +1,5 @@
+const { startTransition } = require("react");
+
 class tsGame{
     constructor(){
         this.serverUrl = 'https://julia.bluethsprojectsite.fun';
@@ -43,11 +45,9 @@ class tsGame{
             document.querySelectorAll('.filter-header').forEach(id => {
                 id.addEventListener('click', function() {
                     const header = this;
-                    console.log('Clicked on ', id);
                     player.toggleSection(header);
                 });
-            });
-        
+            });        
 
             document.getElementById('options').addEventListener('click', async function() {
                 const filters = document.getElementById('filter-options');
@@ -60,6 +60,13 @@ class tsGame{
                 }
             });
 
+            document.getElementById('singleplayer').addEventListener('click', () => {
+                player.start_game(true)
+            });
+
+            document.getElementById('multiplayer').addEventListener('click', () => {
+                player.start_game(false)
+            })
         });
     }
 
@@ -351,6 +358,67 @@ class tsGame{
         });
     }
 
+    async start_game(singleplayer){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) return [];
+        }
+        if(!this.token) return [];
+
+        const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedDifficulties = Array.from(document.querySelectorAll('#difficulties-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedGenres = Array.from(document.querySelectorAll('#genres-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedProductionCompanies = Array.from(document.querySelectorAll('#production-companies-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedNetworks = Array.from(document.querySelectorAll('#networks-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const selectedCountries = Array.from(document.querySelectorAll('#countries-list input:checked')).map(checkbox => checkbox.ariaValueMax.toLowerCase().trim());
+        const enableSpecialOpenings = document.getElementById('special-checkbox').checked;
+        const enableRandomStartTime = document.getElementById('enable-random-start').checked;
+        const startMin = enableRandomStartTime ? (document.getElementById('start-min').value) || 0 : 0;
+        const startMax = enableRandomStartTime ? (document.getElementById('start-max').value) || 90 : 0;
+        const sfwFilter = document.getElementById('sfw-filter').checked;
+        const enableHintMode = document.getElementById('enable-hint-mode').checked;
+        const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
+        const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
+        
+        const response = await fetch(`${this.serverUrl}/api/local/game_start`, {
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin
+            },
+            filters: {
+                tags: selectedTags,
+                languages: selectedLanguages,
+                decades: selectedDecades,
+                difficulties: selectedDifficulties,
+                genres: selectedGenres,
+                production_companies: selectedProductionCompanies,
+                networks: selectedNetworks,
+                countries: selectedCountries,
+                sfw: sfwFilter,
+            },
+            rounds: rounds,
+            startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
+            hintPercent: enableHintMode ? hintPercent : 25,
+            specialOpenings: enableSpecialOpenings,
+            singleplayer: true 
+        });
+
+        if(response.ok){
+            const landing_screen = document.getElementById('landing-screen');
+            const game_screen = document.getElementById('game-screen');
+            const filterOptions = document.getElementById('filter-options');
+
+            landing_screen.style.display = 'none';
+            game_screen.style.display = 'block';
+            filterOptions.style.display = 'none';
+
+            landing_screen.classList.remove('active');
+            game_screen.classList.add('active');
+        }
+    }
+
     isH264Codec(codec){
         if (!codec) return false;
         const codecLower= codec.toLowerCase();
@@ -359,7 +427,6 @@ class tsGame{
 
     toggleSection(header){
         const content = header.nextElementSibling;
-        console.log('Content: ', content);
         content.classList.toggle('active');
         const arrow = header.querySelector('.arrow');
         arrow.textContent = content.classList.contains('active') ? '▲' : '▼';

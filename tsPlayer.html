@@ -27,6 +27,11 @@
                 </div>
                 <div id="filter-options" style="display: none;">
                     <div class="filter-section">
+                        <div class="filter-content">
+                            Rounds <input type="number" id="rounds-input" min="0" max="1000" value="10">
+                        </div>
+                    </div>
+                    <div class="filter-section">
                         <div class="filter-header">
                             Tags <span class="arrow">▼</span>
                         </div>
@@ -150,15 +155,23 @@
                         </div>
                     </div>
                 </div>
-                <div id="video-screen" style="display: none;">
-                    <div class="video-container">
-                        <video id="video-player" controls playsinline></video>
-                        <video id="video-preload" preload="auto" style="display: none;"></video>
-                    </div>
-                    <div id="answer-title" class="video-title"></div> 
-                </div>
             </div>
         </div>    
+        <div id="game-screen" class="screen">
+            <div id="video-screen" style="display: none;">
+                <div id="answer-title" class="video-title"></div> 
+                <div class="video-container">
+                    <video id="video-player" controls playsinline></video>
+                    <video id="video-preload" preload="auto" style="display: none;"></video>
+                </div>
+            </div>
+            <div id="answer-buttons" style="display: none;">
+                <button id="option-1" class="answer-btn"></button>
+                <button id="option-2" class="answer-btn"></button>
+                <button id="option-3" class="answer-btn"></button>
+                <button id="option-4" class="answer-btn"></button>
+            </div>
+        </div>
         <script src="tsGame.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
         <script src="controller.js"></script>
