@@ -1,5 +1,3 @@
-const { startTransition } = require("react");
-
 class tsGame{
     constructor(){
         this.serverUrl = 'https://julia.bluethsprojectsite.fun';
