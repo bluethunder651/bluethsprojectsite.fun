@@ -384,7 +384,8 @@ class tsGame{
             method: "POST",
             headers: {
                 'X-Auth-Token': this.token,
-                'Referer': window.location.origin
+                'Referer': window.location.origin,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 tags: selectedTags,
@@ -400,7 +401,7 @@ class tsGame{
                 startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
                 hintPercent: enableHintMode ? hintPercent : 25,
                 specialOpenings: enableSpecialOpenings,
-                singleplayer: true 
+                singleplayer: singleplayer 
             })
         });
 
