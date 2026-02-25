@@ -948,6 +948,7 @@ class tsPlayer{
 
     showInfo(message) {
         const infoEl = document.createElement('div');
+        const videoBrowser = document.getElementById('video-browser')
         infoEl.className = 'info-message';
         infoEl.textContent = message;
         infoEl.style.cssText = `
