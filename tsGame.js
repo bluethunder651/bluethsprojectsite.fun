@@ -517,7 +517,7 @@ class tsGame{
 
         if(response.ok){
             const data = await response.json();
-            document.getElementById('scores').textContent = `${this.playerName}: ${data.scores[this.playerName]}, Streak: ${data.player_streaks[this.playerName]}`;
+            document.getElementById('scores').textContent = `${this.playerName}: ${data.scores[this.playerName]}, Streak: ${data.streaks[this.playerName]}`;
         }
     }
 
