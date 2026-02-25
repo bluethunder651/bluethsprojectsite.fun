@@ -2,6 +2,7 @@ class Controller {
     constructor(){
         this.website = "https://bluethsprojectsite.fun"
         this.setupEventListeners();
+        this.checkAuthStatus();
     }
 
     setupEventListeners() {
@@ -34,8 +35,57 @@ class Controller {
                 window.location.href = `${self.website}/tsPlayer.html`
             });
         }
+
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                window.location.href = 'login.html';
+            });
+        }
+
+        const registerBtn = document.getElementById('register-btn');
+        if (registerBtn) {
+            registerBtn.addEventListener('click', () => {
+                window.location.href = 'register.html';
+            });
+        }
+
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                localStorage.removeItem('user');
+                window.location.reload();
+            });
+        }
     }
+
+    checkAuthStatus(){
+        fetch('/api/auth/me')
+            .then(response => response.json())
+            .then(data => {
+                const loginBtn = document.getElementById('login-btn');
+                const registerBtn = document.getElementById('register-btn');
+                const logoutBtn = document.getElementById('logout-btn');
+                const usernameDisplay = document.getElementById('username-display');
+
+                if(data.user){
+                    loginBtn.style.display = 'none';
+                    registerBtn.style.display = 'none';
+                    logoutBtn.style.display = 'inline-block';
+                    usernameDisplay.textContent = `Welcome, ${data.user.username}!`;
+                } else {
+                    loginBtn.style.display = 'inline-block';
+                    registerBtn.style.display = 'inline-block';
+                    logoutBtn.style.display = 'none';
+                    usernameDisplay.textContent = "";
+                }
+            });
+    }
+
 }
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     new Controller();

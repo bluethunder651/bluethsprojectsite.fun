@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login - Blueth's Project Site</title>
+        <link rel="stylesheet" href="login.css">
+    </head>
+    <body>
+        <div class="auth-container">
+            <h1 class="auth-title">Login</h1>
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rememberMe" name="remember_me">
+                    <label for="rememberMe">Remember Me</label>
+                </div>
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+            <div class="auth-links">
+                <a href="register.html">Create Account</a>
+                <a href="forgot-password.html">Forgot Password?</a>
+                <a href="index.html">Home</a>
+            </div>
+        </div>
+    </body>
+    <script defer src="signandlogin.js"></script>
+</html>
