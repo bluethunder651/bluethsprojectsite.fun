@@ -234,6 +234,10 @@ class tsGame{
         console.log("Videos type: ", typeof videos);
 
         videos.forEach(video => {
+            console.log('Video Title: ', video.opening_name)
+        });
+        
+        videos.forEach(video => {
             video.tags.slice(0,50).forEach(tag => {
                 const container = document.getElementById('tags-list');
                 const div = document.createElement('div');
