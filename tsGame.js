@@ -381,11 +381,12 @@ class tsGame{
         const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
         
         const response = await fetch(`${this.serverUrl}/api/local/game_start`, {
+            method: "POST",
             headers: {
                 'X-Auth-Token': this.token,
                 'Referer': window.location.origin
             },
-            filters: {
+            body: JSON.stringify({
                 tags: selectedTags,
                 languages: selectedLanguages,
                 decades: selectedDecades,
@@ -400,7 +401,7 @@ class tsGame{
                 hintPercent: enableHintMode ? hintPercent : 25,
                 specialOpenings: enableSpecialOpenings,
                 singleplayer: true 
-            }
+            })
         });
 
         if(response.ok){
