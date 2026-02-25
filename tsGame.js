@@ -381,6 +381,8 @@ class tsGame{
         const input = document.getElementById('player-name-input');
         this.playerName = input.textContent; 
 
+        console.log('Player name: ', this.playerName)
+
         if(this.playerName == '' || this.playerName == null){
             return
         }
