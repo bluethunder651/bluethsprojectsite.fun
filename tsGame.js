@@ -476,25 +476,11 @@ class tsGame{
         } else {
             videoPlayer.classList.remove('video-hidden');
         }
-
-        const response = await fetch(videoUrl, {
-            headers: {
-                'X-Auth-Token': this.token,
-                'Referer': window.location.origin
-            }
-        })
-
-        if(response.ok){
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-
-            videoPlayer.src = url;
-            videoPlayer.load();
-            this.videoStartTime = Date.now();
-            videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
-        } else {
-            console.error('Failed to load video: ', error);
-        }
+        
+        videoPlayer.src = videoUrl;
+        videoPlayer.load();
+        this.videoStartTime = Date.now();
+        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
     }
     
     async join(){
@@ -568,6 +554,13 @@ class tsGame{
     }
 
     async next_video(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
         const hardMode = document.getElementById('hard-mode').checked;
         const response = await fetch(`${this.website}/api/local/game/single/next`, {
             method: 'POST',
@@ -632,29 +625,13 @@ class tsGame{
                 if(data.preload_data){
                     const preloadData = data.preload_data;
 
-                    const videoResponse = await fetch(`${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}`, {
-                        headers: {
-                            'X-Auth-Token': this.token,
-                            'Referer': window.location.origin
-                        }
-                    });
-
-                    if(videoResponse.ok){
-                        const blob = await videoResponse.blob();
-                        const url = URL.createObjectURL(blob);
-
-                        if(this.nextVideoData && this.nextVideoData.video_url){
-                            URL.revokeObjectURL(this.nextVideoData.video_url);
-                        }
-
-                        this.nextVideoData = {
-                            video_path: preloadData.video_path,
-                            video_url: url,
-                            options: preloadData.options,
-                            song: preloadData.song,
-                            blob: blob
-                        };
+                    this.nextVideoData = {
+                        video_path: preloadData.video_path,
+                        video_url: `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}`,
+                        options: preloadData.options,
+                        song: reloadData.song
                     }
+
                 }
             }
         } catch (error) {
