@@ -77,8 +77,13 @@ class tsGame{
                     });
                     this.classList.add('answered');
                     const selectedOption = button.textContent;
+                    document.getElementById('video-player').classList.remove('video-hidden');
                     player.submit_answer(selectedOption);
                 });
+            });
+
+            document.getElementById('next-video').addEventListener('click', () => {
+                player.next_video();
             });
         });
     }
@@ -403,7 +408,7 @@ class tsGame{
         const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
         const hardMode = document.getElementById('hard-mode').checked;
         
-        const response = await fetch(`${this.website}/api/local/game/start`, {
+        const response = await fetch(`${this.website}/api/local/game/single/start`, {
             method: "POST",
             headers: {
                 'X-Auth-Token': this.token,
@@ -411,6 +416,7 @@ class tsGame{
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                playerName: this.playerName,
                 tags: selectedTags,
                 languages: selectedLanguages,
                 decades: selectedDecades,
@@ -531,7 +537,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.website}/api/local/game/submit_answer`, {
+        const response = await fetch(`${this.website}/api/local/game/single/submit`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
@@ -553,7 +559,35 @@ class tsGame{
             document.querySelectorAll('.answer-btn').forEach(button => {
                 button.disabled = true;
             });
+            document.getElementById('next-video').disabled = false;
         }
+    }
+
+    async next_video(){
+        const response = await fetch(`${this.website}/api/local/game/single/next`, {
+            method: 'POST',
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                playerName: this.playerName
+            })
+        });
+
+        if(response.ok){
+            const data = await response.json();
+
+            if (data.ended){
+                gameEnded(data.scores, data.highest_streak);
+            } else {
+                this.playVideo(hardMode, data.video_path);
+                this.fillButtons(data.options);
+            }
+        }
+
+
     }
 
     isH264Codec(codec){

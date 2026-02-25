@@ -36,7 +36,7 @@
                 </div>
                 <div id="filter-options" style="display: none;">
                     <div class="filter-section">
-                        <div class="filter-header">
+                        <div class="filter-header-non-dropdown">
                             <label>
                                 <input type="checkbox" id="hard-mode" value="hard-mode">
                                 Hard Mode
@@ -44,7 +44,7 @@
                         </div>
                     </div>
                     <div class="filter-section">
-                        <div class="filter-header">
+                        <div class="filter-header-non-dropdown">
                             Rounds <input type="number" id="rounds-input" min="0" max="1000" value="10">
                         </div>
                     </div>
@@ -188,6 +188,10 @@
                 <button data-option="2" class="answer-btn"></button>
                 <button data-option="3" class="answer-btn"></button>
                 <button data-option="4" class="answer-btn"></button>
+            </div>
+            <div id="nav-bar">
+                <button id="go-home" class="nav-btn">Home</button>
+                <button id="next-video" class="nav-btn" disabled>Next</button>
             </div>
         </div>
         <script defer src="tsGame.js"></script>
