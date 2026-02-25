@@ -75,3 +75,11 @@ body {
 .nav-btn.active {
     background: #4CAF50;
 }
+
+.filter-content {
+    display: none;
+}
+
+.filter-content.active {
+    display: block;
+}
