@@ -379,7 +379,7 @@ class tsGame{
         if(!this.token) return [];
 
         const input = document.getElementById('player-name-input');
-        this.playerName = input.textContent; 
+        this.playerName = input.value; 
 
         console.log('Player name: ', this.playerName)
 
@@ -565,5 +565,6 @@ class tsGame{
 
 
 }
+
 
 const player = new tsGame();
