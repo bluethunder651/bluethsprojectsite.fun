@@ -24,8 +24,7 @@ class tsGame{
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
-            const allVideos = player.getVideos();
-            let filteredVideos = [];
+            let allVideos = player.getVideos();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
                 const btn = this;
@@ -207,7 +206,7 @@ class tsGame{
                     videos = data;
                 }
 
-                console.log('Videos type: ', typeof videos);
+                console.log('Videos: ', videos);
 
                 videos.forEach(video => {
                     if(video.filename && video.codec) {
@@ -232,7 +231,7 @@ class tsGame{
             document.getElementById(id).innerHTML = '';
         });
 
-        console.log("Videos type: ", typeof videos);
+        console.log('Videos: ', videos);
 
         videos.forEach(video => {
             console.log('Video Title: ', video.opening_name)
