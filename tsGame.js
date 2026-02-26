@@ -478,7 +478,7 @@ class tsGame{
 
             this.current_song = this.playlist[this.currentPlaylistIndex];
 
-            options = this.getOptions();
+            options = await this.getOptions();
 
             this.playVideo(this.hardMode);
             this.fillButtons(options);
