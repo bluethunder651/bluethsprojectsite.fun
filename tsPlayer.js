@@ -1,6 +1,7 @@
 class tsPlayer{
     constructor(){
         this.serverUrl = 'https://bluethsprojectsite.fun';
+        this.website = 'https://julia.bluethsprojectsite.fun';
         this.token = null;
         this.tokenExpiry = null;
         this.statusCallbacks = [];
@@ -21,7 +22,7 @@ class tsPlayer{
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-            const response = await fetch(`${this.serverUrl}/api/local/ping`, {
+            const response = await fetch(`${this.website}/api/local/ping`, {
                 signal: controller.signal,
                 mode: 'cors',
                 cache: 'no-cache'
@@ -49,7 +50,7 @@ class tsPlayer{
 
     async checkStatus(token){
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/status/simple`, {
+            const response = await fetch(`${this.website}/api/local/status/simple`, {
                 headers: token ? {'X-Auth-Token': token} : {},
                 cache: 'no-cache'
             });
@@ -82,7 +83,7 @@ class tsPlayer{
 
     async healthCheck(token){
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/health`, {
+            const response = await fetch(`${this.website}/api/local/health`, {
                 headers: token ? {'X-Auth-Token': token} : {},
                 cache: 'no-cache'
             });
@@ -150,7 +151,7 @@ class tsPlayer{
 
     async refreshToken(){
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/token`, {
+            const response = await fetch(`${this.website}/api/local/token`, {
                 headers: {
                     'Referer': window.location.origin
                 }
