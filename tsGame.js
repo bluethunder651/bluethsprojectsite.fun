@@ -478,7 +478,6 @@ class tsGame{
         }
         
         videoPlayer.src = videoUrl;
-        videoPlayer.load();
         this.videoStartTime = Date.now();
         videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
     }

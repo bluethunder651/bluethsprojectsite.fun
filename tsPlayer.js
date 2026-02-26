@@ -492,30 +492,14 @@ class tsPlayer{
                     const videoUrl = `${player.website}/api/local/videos/${filename}?token=${encodeURIComponent(player.token)}`;
                     console.log("Video URL: " + videoUrl);
                     
-                    const response = await fetch(videoUrl, {
-                        headers: {
-                            'X-Auth-Token': player.token,
-                            'Referer': window.location.origin
-                        }
-                    });
+                    videoPlayer.removeEventListener('ended', handleVideoEnded);
+                    videoPlayer.src = videoUrl;
+                    videoPlayer.load();
+                    videoPlayer.addEventListener('ended', handleVideoEnded);
 
-                    if (response.ok){
-                        const blob = await response.blob();
-                        const url = URL.createObjectURL(blob);
+                    preloadNextVideos(index)
 
-                        videoPlayer.removeEventListener('ended', handleVideoEnded);
-                        videoPlayer.src = url;
-                        videoPlayer.load();
-                        videoPlayer.addEventListener('ended', handleVideoEnded);
-                        
-                        // Start preloading and checking next videos
-                        preloadNextVideos(index);
-                        
-                        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
-                    } else{
-                        showError('Failed to load video: '+ response.status);
-                        setTimeout(() => handleVideoEnded(), 1000);
-                    } 
+                    videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e))
                 } catch (error) {
                     showError('Failed to load video: ' + error.message);
                     setTimeout(() => handleVideoEnded(), 1000);
@@ -528,20 +512,12 @@ class tsPlayer{
                     if (currentIndex + 1 < playlist.length) {
                         const nextVideo = playlist[currentIndex + 1];
                         try {
-                            const response = await fetch(`${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}?token=${encodeURIComponent(player.token)}`, {
-                                headers: {
-                                    'X-Auth-Token': player.token,
-                                    'Referer': window.location.origin
-                                }
-                            });
                             
-                            if (response.ok) {
-                                const blob = await response.blob();
-                                const url = URL.createObjectURL(blob);
-                                preloader.src = url;
-                                preloader.load();
-                                console.log('Preloaded next video:', nextVideo.filename);
-                            }
+                            const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}?token=${encodeURIComponent(player.token)}`;
+                            preloader.src = videoUrl;
+                            preloader.load();
+                            console.log('Preloaded next video:', nextVideo.filename);
+
                         } catch (error) {
                             console.log('Failed to preload next video:', error);
                         }
@@ -570,23 +546,13 @@ class tsPlayer{
                         // Found a compatible video, preload it
                         console.log(`Found compatible next video at index ${nextIndex}: ${nextVideo.filename}`);
                         try {
-                            const response = await fetch(`${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}?token=${encodeURIComponent(player.token)}`, {
-                                headers: {
-                                    'X-Auth-Token': player.token,
-                                    'Referer': window.location.origin
-                                }
-                            });
-                            
-                            if (response.ok) {
-                                const blob = await response.blob();
-                                const url = URL.createObjectURL(blob);
-                                preloader.src = url;
-                                preloader.load();
-                                
-                                // Store which video we preloaded
-                                preloader.dataset.preloadedIndex = nextIndex;
-                                console.log(`Preloaded video ${nextIndex + 1}/${playlist.length}: ${nextVideo.filename}`);
-                            }
+
+                            const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}?token=${encodeURIComponent(player.token)}`;
+                            preloader.src = videoUrl;
+                            preloader.load();
+                            preloader.dataset.preloadedIndex = nextIndex;
+                            console.log(`Preloaded video ${nextIndex + 1}/${playlist.length}: ${nextVideo.filename}`);
+
                             break; // Stop after preloading one video
                         } catch (error) {
                             console.log('Failed to preload next video:', error);
@@ -815,22 +781,10 @@ class tsPlayer{
                 const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(filename)}?token=${encodeURIComponent(player.token)}`;
                 console.log('Loading video from:', videoUrl);
                 
-                const response = await fetch(videoUrl, {
-                    headers: {
-                        'X-Auth-Token': player.token,
-                        'Referer': window.location.origin
-                    }
-                });
+                videoPlayer.src = videoUrl;
+                videoPlayer.load();
+                videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
                 
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    videoPlayer.src = url;
-                    videoPlayer.load();
-                    videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
-                } else {
-                    showError('Failed to load video: ' + response.status);
-                }
             } catch (error) {
                 showError('Failed to load video: ' + error.message);
             }
@@ -996,24 +950,9 @@ class tsPlayer{
         videoPath.controls = true;
         videoPath.style.width = '100%'
 
-        try{
-            const response = await fetch(videoUrl, {
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin
-                }
-            });
-
-            if(response.ok){
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                video.src = url;
-                document.body.appendChild(video);
-                video.play();
-            }
-        } catch (error) {
-            console.error('Failed to load video: ', error);
-        }
+        video.src = videoUrl;
+        document.body.appendChild(video);
+        video.play();
     }
 
     async searchVideos(query){
