@@ -462,7 +462,9 @@ class tsGame{
             const game_screen = document.getElementById('game-screen');
             const filterOptions = document.getElementById('filter-options');
 
-            this.playlist = await response.json();
+            const data = await response.json();
+
+            this.playlist = data.playlist;
 
             this.shuffleArray(this.playlist);
             this.currentPlaylistIndex = 0;
