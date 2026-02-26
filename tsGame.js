@@ -468,7 +468,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video_path)}`
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video_path)}?token=${encodeURIComponent(this.token)}`
 
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
