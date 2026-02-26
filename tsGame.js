@@ -647,11 +647,13 @@ class tsGame{
                         video_path: preloadData.video_path,
                         video_url: videoUrl,
                         options: preloadData.options,
-                        song: preloadData.song
+                        song: preloadData.song,
+                        full_song: preloadData.full_song
                     };
 
                     const preloadPlayer = document.getElementById('video-preload');
                     preloadPlayer.src = videoUrl;
+                    preloadPlayer.load();
                 }
             }
         } catch (error) {
