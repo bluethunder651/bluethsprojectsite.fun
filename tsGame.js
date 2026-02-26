@@ -24,6 +24,7 @@ class tsGame{
         this.totalRounds = 10;
         this.playlist = [];
         this.currentPlaylistIndex = 0;
+        this.hardMode = true;
 
         this.setupEventListeners();
     }
@@ -428,7 +429,7 @@ class tsGame{
         const enableHintMode = document.getElementById('enable-hint-mode').checked;
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
         this.totalRounds = parseInt(document.getElementById('rounds-input').value) || 10;
-        const hardMode = document.getElementById('hard-mode').checked;
+        this.hardMode = document.getElementById('hard-mode').checked;
         
         const response = await fetch(`${this.website}/api/local/game/single/start`, {
             method: "POST",
@@ -453,7 +454,7 @@ class tsGame{
                 hintPercent: enableHintMode ? hintPercent : 25,
                 specialOpenings: enableSpecialOpenings,
                 singleplayer: singleplayer,
-                hardMode: hardMode
+                hardMode: this.hardMode
             })
         });
 
@@ -475,10 +476,12 @@ class tsGame{
             landing_screen.classList.remove('active');
             game_screen.classList.add('active');
 
-            this.current_song = data.song;
+            this.current_song = this.playlist[this.currentPlaylistIndex];
 
-            this.playVideo(data.hard_mode);
-            this.fillButtons(data.options);
+            options = this.getOptions();
+
+            this.playVideo(this.hardMode);
+            this.fillButtons(options);
 
             this.preloadNextVideos();
         }
@@ -488,6 +491,32 @@ class tsGame{
         for (let i = array.length - 1; i > 0; i--){
             const j = Math.floor(Math.random()*(i+1));
             [array[i], array[j]] = [array[j], array[i]]
+        }
+    }
+
+    async getOptions(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
+        const response = await fetch(`${this.website}/api/local/game/single/options`, {
+            method: 'POST',
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                currentSong: this.current_song,
+                playlist: this.playlist
+            }
+        });
+
+        if(response.ok){
+            return response;
         }
     }
 
