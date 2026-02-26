@@ -477,10 +477,22 @@ class tsGame{
             videoPlayer.classList.remove('video-hidden');
         }
         
-        videoPlayer.src = videoUrl;
-        videoPlayer.load();
-        this.videoStartTime = Date.now();
-        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+        const response = await fetch(videoUrl, {
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin,
+            }
+        });
+
+        if(response.ok){
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            videoPlayer.src = url;
+            videoPlayer.load();
+            this.videoStartTime = Date.now();
+            videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+        }
     }
     
     async join(){
@@ -652,7 +664,21 @@ class tsGame{
                     };
 
                     const preloadPlayer = document.getElementById('video-preload');
-                    preloadPlayer.src = videoUrl;
+
+                    const response = await fetch(videoUrl, {
+                        headers: {
+                            'X-Auth-Token': this.token,
+                            'Referer': window.location.origin
+                        }
+                    });
+
+                    if(response.ok){
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+
+                        preloadPlayer.src = url;
+                        preloadPlayer.load();
+                    }
                 }
             }
         } catch (error) {
