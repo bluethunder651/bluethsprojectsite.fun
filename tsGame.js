@@ -478,7 +478,7 @@ class tsGame{
 
             this.current_song = this.playlist[this.currentPlaylistIndex];
 
-            options = await this.getOptions();
+            const options = await this.getOptions();
 
             this.playVideo(this.hardMode);
             this.fillButtons(options);
@@ -509,14 +509,14 @@ class tsGame{
                 'Referer': window.location.origin,
                 'Content-Type': 'application/json'
             },
-            body: {
+            body: JSON.stringify({
                 currentSong: this.current_song,
                 playlist: this.playlist
-            }
+            })
         });
 
         if(response.ok){
-            return response;
+            return await response.json();
         }
     }
 
