@@ -19,6 +19,9 @@ class tsGame{
         this.nextVideoUrl = null;
         this.nextVideoBlob = null;
         this.preloadingNextVideo = null;
+        this.isGameActive = false;
+        this.currentRound = 1;
+        this.totalRounds = 10;
 
         this.setupEventListeners();
     }
@@ -31,7 +34,6 @@ class tsGame{
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
-            let allVideos = await player.getVideos();
             let filterMetadata = await player.getFilterMetadata();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
@@ -66,6 +68,7 @@ class tsGame{
             });
 
             document.getElementById('singleplayer').addEventListener('click', () => {
+                this.currentPlaylistIndex = 0;
                 player.start_game(true)
             });
 
@@ -89,6 +92,18 @@ class tsGame{
             document.getElementById('next-video').addEventListener('click', () => {
                 player.next_video();
             });
+
+            videoPlayer.addEventListener('ended', () => {
+                if (this.isGameActive) {
+                    this.handleVideoEnded();
+                }
+            });
+
+            preloader.addEventListener('ended', () => {
+                if(this.isGameActive) {
+                    this.handleVideoEnded();
+                }
+            })
         });
     }
 
@@ -409,7 +424,7 @@ class tsGame{
         const sfwFilter = document.getElementById('sfw-filter').checked;
         const enableHintMode = document.getElementById('enable-hint-mode').checked;
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
-        const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
+        this.totalRounds = parseInt(document.getElementById('rounds-input').value) || 10;
         const hardMode = document.getElementById('hard-mode').checked;
         
         const response = await fetch(`${this.website}/api/local/game/single/start`, {
@@ -430,7 +445,7 @@ class tsGame{
                 networks: selectedNetworks,
                 countries: selectedCountries,
                 sfw: sfwFilter,
-                rounds: rounds,
+                rounds: this.totalRounds,
                 startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
                 hintPercent: enableHintMode ? hintPercent : 25,
                 specialOpenings: enableSpecialOpenings,
@@ -457,6 +472,8 @@ class tsGame{
 
             this.playVideo(data.hard_mode, data.video_path);
             this.fillButtons(data.options);
+
+            this.preloadNextVideo();
         }
     }
 
@@ -467,6 +484,15 @@ class tsGame{
         }
 
         if(!this.token) return [];
+
+        if(this.mobileMode){
+            const isCompatible = await this.checkVideoCompatibility(video_path);
+            if(!isCompatible){
+                console.log('Video not compatible with mobile mode, skipping...');
+                this.handleVideoEnded();
+                return;
+            }
+        }
 
         const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video_path)}?token=${encodeURIComponent(this.token)}`
 
@@ -481,7 +507,47 @@ class tsGame{
         this.videoStartTime = Date.now();
         videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
     }
+
+    handleVideoEnded(){
+        if(this.nextVideoData){
+            const mainPlayer = document.getElementById('video-player');
+            const preloadPlayer = document.getElementById('video-preload');
+
+            mainPlayer.style.display = 'none';
+            preloadPlayer.style.display = 'block';
+
+            mainPlayer.id = 'video-preload';
+            preloadPlayer.id = 'video-player';
+
+            preloadPlayer.currentTime = 0;
+            this.videoStartTime = Date.now();
+            preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+
+            this.current_song = this.nextVideoData.song;
+            this.fillButtons(this.nextVideoData.options);
+
+            this.nextVideoData = null;
+
+            this.preloadNextVideo();
+
+            this.currentRound++;
+        } else {
+            this.next_video();
+        }
+    }
     
+    async checkVideoCompatibility(video_path){
+        if(this.codecCache.has(video_path)){
+            return this.codecCache.get(video_path);
+        }
+
+        const h264Extensions = ['.mp4', '.m4v', '.mov']
+        const isCompatible = h264Extensions.some(ext => video_path.toLowerCase().endsWith(ext));
+
+        this.codecCache.set(video_path, isCompatible);
+        return isCompatible;
+    }
+
     async join(){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -578,32 +644,15 @@ class tsGame{
 
             if (data.ended){
                 gameEnded(data.scores, data.highest_streak);
+                this.isGameActive = false;
             } else {
                 if(this.nextVideoData && this.nextVideoData.video_path === data.video_path){
-
-                    const main = document.getElementById('video-player');
-                    const preload = document.getElementById('video-preload');
-
-                    main.pause();
-
-                    main.style.display = 'none';
-                    preload.style.display = 'block';
-
-                    main.id = 'video-preload';
-                    preload.id = 'video-player';
-
-                    preload.currentTime = 0;
-                    this.videoStartTime = Date.now();
-                    preload.play().catch(e => console.log('Autoplay prevented: ', e));
-
-                    this.fillButtons(this.nextVideoData.options);
-
-                    this.nextVideoData = null;
-                    this.preloadingNextVideo = false;
+                    this.usePreloadedVideo();
                 } else {
                     this.playVideo(hardMode, data.video_path);
                     this.fillButtons(data.options);
                 }
+                this.currentRound++;
                 this.preloadNextVideo()
             }
         }
@@ -611,8 +660,32 @@ class tsGame{
 
     }
 
+    usePreloadedVideo(){
+        const mainPlayer = document.getElementById('video-player');
+        const preloadPlayer = document.getElementById('video-preload');
+
+        mainPlayer.pause();
+
+        mainPlayer.style.display = 'none';
+        preloadPlayer.style.display = 'block';
+
+        mainPlayer.id = 'video-preload';
+        preloadPlayer.id = 'video-player';
+
+        preloadPlayer.currentTime = 0;
+        this.videoStartTime = Date.now();
+        preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+
+        this.current_song = this.nextVideoData.song;
+        this.fillButtons(this.nextVideoData.options);
+
+        this.nextVideoData = null;
+    }
+
     async preloadNextVideo(){
         if(this.preloadingNextVideo) return;
+
+        if (!this.isGameActive || this.currentRound >= this.totalRounds) return;
 
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -620,6 +693,28 @@ class tsGame{
         }
 
         if(!this.token) return;
+
+        if(!this.mobileMode){
+            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}?token=${encodeURIComponent(this.token)}`
+
+            this.nextVideoData = {
+                video_path: preloadData.video_path,
+                video_url: videoUrl,
+                options: preloadData.options,
+                song: preloadData.song,
+                full_song: preloadData.full_song
+            };
+
+            const preloadPlayer = document.getElementById('video-preload');
+            preloadPlayer.src = videoUrl;
+            preloadPlayer.load();
+        } else {
+            let checkedCount = 0;
+        }
+
+
+
+
 
         try{
             this.preloadingNextVideo = true;
@@ -641,6 +736,13 @@ class tsGame{
 
                 if(preloadData && preloadData.video_path){
 
+                    if(this.mobileMode){
+                        const isCompatible = await this.checkVideoCompatibility(preloadData.video_path);
+                        if(!isCompatible){
+                            console.log('Next video not compatible with mobile mode, skipping preload');
+                            return;
+                        }
+                    }
                     const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}?token=${encodeURIComponent(this.token)}`
 
                     this.nextVideoData = {
@@ -662,6 +764,19 @@ class tsGame{
             this.preloadingNextVideo = false;
         }
     }    
+
+    gameEnded(scores, highest_streak){
+        this.isGameActive = false;
+        const gameScreen = document.getElementById('game-screen');
+        const landingScreen = document.getElementById('landing-screen');
+        
+        alert(`Game over!\nFinal score: ${scores[this.playerName]}\nHighest Streak: ${highest_streak[this.playerName]}`)
+
+        gameScreen.style.display = 'none';
+        landingScreen.style.display = 'block';
+        landingScreen.classList.add('active');
+        gameScreen.classList.remove('active');
+    }
 
     isH264Codec(codec){
         if (!codec) return false;
