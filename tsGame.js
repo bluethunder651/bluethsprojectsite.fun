@@ -536,6 +536,8 @@ class tsGame{
 
         const video = this.playlist[this.currentPlaylistIndex]
 
+        console.log('this.playlist: ', this.playlist);
+        console.log('Video: ', video);
         console.log('Video.filename: ', video.filename);
 
 
