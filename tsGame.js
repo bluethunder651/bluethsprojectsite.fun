@@ -477,22 +477,10 @@ class tsGame{
             videoPlayer.classList.remove('video-hidden');
         }
         
-        const response = await fetch(videoUrl, {
-            headers: {
-                'X-Auth-Token': this.token,
-                'Referer': window.location.origin,
-            }
-        });
-
-        if(response.ok){
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-
-            videoPlayer.src = url;
-            videoPlayer.load();
-            this.videoStartTime = Date.now();
-            videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
-        }
+        videoPlayer.src = videoUrl;
+        videoPlayer.load();
+        this.videoStartTime = Date.now();
+        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
     }
     
     async join(){
@@ -654,7 +642,7 @@ class tsGame{
 
                 if(preloadData && preloadData.video_path){
 
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}`
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}?token=${encodeURIComponent(this.token)}`
 
                     this.nextVideoData = {
                         video_path: preloadData.video_path,
@@ -664,21 +652,7 @@ class tsGame{
                     };
 
                     const preloadPlayer = document.getElementById('video-preload');
-
-                    const response = await fetch(videoUrl, {
-                        headers: {
-                            'X-Auth-Token': this.token,
-                            'Referer': window.location.origin
-                        }
-                    });
-
-                    if(response.ok){
-                        const blob = await response.blob();
-                        const url = URL.createObjectURL(blob);
-
-                        preloadPlayer.src = url;
-                        preloadPlayer.load();
-                    }
+                    preloadPlayer.src = videoUrl;
                 }
             }
         } catch (error) {
