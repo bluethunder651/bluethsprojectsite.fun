@@ -279,7 +279,7 @@ class tsPlayer{
             await player.refreshToken();
             
             try {
-                const response = await fetch(`${player.serverUrl}/api/local/tags`, {
+                const response = await fetch(`${player.website}/api/local/tags`, {
                     headers: {
                         'X-Auth-Token': player.token,
                         'Referer': window.location.origin
@@ -329,7 +329,7 @@ class tsPlayer{
             loadingIndicator.style.display = 'block';
             
             try {
-                const response = await fetch(`${player.serverUrl}/api/local/videos/filter`, {
+                const response = await fetch(`${player.website}/api/local/videos/filter`, {
                     method: 'POST',
                     headers: {
                         'X-Auth-Token': player.token,
@@ -489,7 +489,7 @@ class tsPlayer{
                     }
 
                     const filename = encodeURIComponent(video.filename)
-                    const videoUrl = `${player.serverUrl}/api/local/videos/${filename}`;
+                    const videoUrl = `${player.website}/api/local/videos/${filename}`;
                     console.log("Video URL: " + videoUrl);
                     
                     const response = await fetch(videoUrl, {
@@ -528,7 +528,7 @@ class tsPlayer{
                     if (currentIndex + 1 < playlist.length) {
                         const nextVideo = playlist[currentIndex + 1];
                         try {
-                            const response = await fetch(`${player.serverUrl}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`, {
+                            const response = await fetch(`${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`, {
                                 headers: {
                                     'X-Auth-Token': player.token,
                                     'Referer': window.location.origin
@@ -570,7 +570,7 @@ class tsPlayer{
                         // Found a compatible video, preload it
                         console.log(`Found compatible next video at index ${nextIndex}: ${nextVideo.filename}`);
                         try {
-                            const response = await fetch(`${player.serverUrl}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`, {
+                            const response = await fetch(`${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`, {
                                 headers: {
                                     'X-Auth-Token': player.token,
                                     'Referer': window.location.origin
@@ -712,7 +712,7 @@ class tsPlayer{
                 errorMessage.style.display = 'none';
                 try{
                     // Changed to POST and added count parameter in body
-                    const response = await fetch(`${player.serverUrl}/api/local/videos/random?count=1`, {
+                    const response = await fetch(`${player.website}/api/local/videos/random?count=1`, {
                         method: 'POST',  // Specify POST method
                         headers: {
                             'X-Auth-Token': player.token,
@@ -812,7 +812,7 @@ class tsPlayer{
             currentVideoTitle.textContent = filename;
             
             try {
-                const videoUrl = `${player.serverUrl}/api/local/videos/${encodeURIComponent(filename)}`;
+                const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(filename)}`;
                 console.log('Loading video from:', videoUrl);
                 
                 const response = await fetch(videoUrl, {
@@ -902,7 +902,7 @@ class tsPlayer{
         console.log("Token valid, fetching videos...")
 
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/videos`, {
+            const response = await fetch(`${this.website}/api/local/videos`, {
                 headers: {
                     'X-Auth-Token': this.token,
                     'Referer': window.location.origin
@@ -990,7 +990,7 @@ class tsPlayer{
         if(!this.token) return;
 
 
-        const videoUrl = `${this.serverUrl}/api/local/videos/${encodeURIComponent(videoPath)}`
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(videoPath)}`
 
         const video = document.createElement('video');
         videoPath.controls = true;
@@ -1020,7 +1020,7 @@ class tsPlayer{
         if(!this.token || query.length < 3) return [];
 
         try{
-            const response = await fetch(`${this.serverUrl}/api/local/search?q=${encodeURIComponent(query)}`, {
+            const response = await fetch(`${this.website}/api/local/search?q=${encodeURIComponent(query)}`, {
                 headers: {
                     'X-Auth-Token': this.token,
                     'Referer': window.location.origin
