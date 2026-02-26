@@ -22,6 +22,8 @@ class tsGame{
         this.isGameActive = false;
         this.currentRound = 1;
         this.totalRounds = 10;
+        this.playlist = [];
+        this.currentPlaylistIndex = 0;
 
         this.setupEventListeners();
     }
@@ -34,6 +36,7 @@ class tsGame{
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
+            this.playlist = await player.getVideos();
             let filterMetadata = await player.getFilterMetadata();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
@@ -459,7 +462,11 @@ class tsGame{
             const game_screen = document.getElementById('game-screen');
             const filterOptions = document.getElementById('filter-options');
 
-            const data = await response.json();
+            this.playlist = await response.json();
+
+            this.shuffleArray(this.playlist);
+            this.currentPlaylistIndex = 0;
+
 
             landing_screen.style.display = 'none';
             game_screen.style.display = 'block';
@@ -470,20 +477,35 @@ class tsGame{
 
             this.current_song = data.song;
 
-            this.playVideo(data.hard_mode, data.video_path);
+            this.playVideo(data.hard_mode);
             this.fillButtons(data.options);
 
-            this.preloadNextVideo();
+            this.preloadNextVideos();
         }
     }
 
-    async playVideo(hidden, video_path){
+    shuffleArray(array){
+        for (let i = array.length - 1; i > 0; i--){
+            const j = Math.floor(Math.random()*(i+1));
+            [array[i], array[j]] = [array[j], array[i]]
+        }
+    }
+
+    async playVideo(hidden){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
         }
 
         if(!this.token) return [];
+
+        if(!this.playlist || this.currentPlaylistIndex > this.playlist.length){
+            console.log('No more videos in queue');
+            this.gameEnded();
+        }
+
+        const video = this.playlist[this.currentPlaylistIndex]
+
 
         if(this.mobileMode){
             const isCompatible = await this.checkVideoCompatibility(video_path);
@@ -493,8 +515,7 @@ class tsGame{
                 return;
             }
         }
-
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video_path)}?token=${encodeURIComponent(this.token)}`
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.filename)}?token=${encodeURIComponent(this.token)}`
 
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
@@ -528,7 +549,7 @@ class tsGame{
 
             this.nextVideoData = null;
 
-            this.preloadNextVideo();
+            this.preloadNextVideos();
 
             this.currentRound++;
         } else {
@@ -653,7 +674,7 @@ class tsGame{
                     this.fillButtons(data.options);
                 }
                 this.currentRound++;
-                this.preloadNextVideo()
+                this.preloadNextVideos()
             }
         }
 
@@ -682,7 +703,7 @@ class tsGame{
         this.nextVideoData = null;
     }
 
-    async preloadNextVideo(){
+    async preloadNextVideos(){
         if(this.preloadingNextVideo) return;
 
         if (!this.isGameActive || this.currentRound >= this.totalRounds) return;
@@ -694,75 +715,63 @@ class tsGame{
 
         if(!this.token) return;
 
+        const preload = document.getElementById('video-preload');
+
+        this.preloadingNextVideo = true;
+
         if(!this.mobileMode){
-            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}?token=${encodeURIComponent(this.token)}`
-
-            this.nextVideoData = {
-                video_path: preloadData.video_path,
-                video_url: videoUrl,
-                options: preloadData.options,
-                song: preloadData.song,
-                full_song: preloadData.full_song
-            };
-
-            const preloadPlayer = document.getElementById('video-preload');
-            preloadPlayer.src = videoUrl;
-            preloadPlayer.load();
-        } else {
-            let checkedCount = 0;
-        }
-
-
-
-
-
-        try{
-            this.preloadingNextVideo = true;
-
-            const response = await fetch(`${this.website}/api/local/game/single/next/preload`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    playerName: this.playerName
-                })
-            });
-
-            if(response.ok){
-                const preloadData = await response.json()
-
-                if(preloadData && preloadData.video_path){
-
-                    if(this.mobileMode){
-                        const isCompatible = await this.checkVideoCompatibility(preloadData.video_path);
-                        if(!isCompatible){
-                            console.log('Next video not compatible with mobile mode, skipping preload');
-                            return;
-                        }
-                    }
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(preloadData.video_path)}?token=${encodeURIComponent(this.token)}`
-
-                    this.nextVideoData = {
-                        video_path: preloadData.video_path,
-                        video_url: videoUrl,
-                        options: preloadData.options,
-                        song: preloadData.song,
-                        full_song: preloadData.full_song
-                    };
-
-                    const preloadPlayer = document.getElementById('video-preload');
-                    preloadPlayer.src = videoUrl;
-                    preloadPlayer.load();
+            if(this.currentPlaylistIndex + 1 < this.playlist.length){
+                const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
+                try{
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`;
+                    preload.src = videoUrl;
+                    preload.load();
+                    console.log('Preloaded next video: ', nextVideo.filename);
+                } catch (error){
+                    console.log('Failed to preload next video: ', error);
                 }
             }
-        } catch (error) {
-            console.log('Failed to preload next video: ', error);
-        } finally {
-            this.preloadingNextVideo = false;
+            return;
+        } 
+
+        let nextIndex = this.currentPlaylistIndex + 1;
+        let checkedCount = 0;
+        const maxChecks = 5;
+
+        while(nextIndex < this.playlist.length && checkedCount < maxChecks){
+            const nextVideo = this.playlist[nextIndex];
+
+            let isCompatible = player.codecCache.get(nextVideo.filename);
+
+            if(isCompatible === undefined){
+                isCompatible = await player.getVideoCodec(nextVideo.filename);
+            }
+
+            if(isCompatible){
+                try{
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`;
+                    preload.src = videoUrl;
+                    preload.load();
+                    preload.dataset.preloadedIndex = nextIndex;
+                    console.log(`Preloaded video ${nextIndex + 1}/${this.playlist.length}: ${nextVideo.filename}`);
+
+                    break;
+                } catch (error) {
+                    console.log('Failed to load next video: ', error);
+                }
+            } else {
+                console.log(`Video at index ${nextIndex} not H.264 compatible. Skipping to next video.`);
+            }
+
+            nextIndex++;
+            checkedCount++;
         }
+
+        if(checkedCount >= maxChecks){
+            console.log('Reached maximum lookahead, no compatible video found nearby.');
+        }
+
+        this.preloadingNextVideo = false;
     }    
 
     gameEnded(scores, highest_streak){
