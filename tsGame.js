@@ -37,7 +37,6 @@ class tsGame{
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
-            this.playlist = await player.getVideos();
             let filterMetadata = await player.getFilterMetadata();
 
             document.getElementById('refresh-status').addEventListener('click', function() {
@@ -534,6 +533,8 @@ class tsGame{
         }
 
         const video = this.playlist[this.currentPlaylistIndex]
+
+        console.log('Video.filename: ', video.filename);
 
 
         if(this.mobileMode){
