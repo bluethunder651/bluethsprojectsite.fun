@@ -704,13 +704,12 @@ class tsGame{
 
             const options = await this.getOptions();
 
-            const preload = document.getElementById('video-preload');
-
             this.usePreloadedVideo(options);
+
+            this.preloadNextVideos();
 
             this.currentRound++;
             this.currentPlaylistIndex++;
-            this.preloadNextVideos();
         }
     }
 
