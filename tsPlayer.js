@@ -501,6 +501,24 @@ class tsPlayer{
 
                     preloadNextVideos(index)
 
+                    if('mediaSession' in navigator){
+                        navigator.mediaSession.metadata = new MediaMetadata({
+                            title: video.opening_name || video.filename,
+                            artist: 'Theme Song Player',
+                            album: 'Playlist Mode'
+                        });
+
+                        navigator.mediaSession.setActionHandler('play', () => videoPlayer.play());
+                        navigator.mediaSession.setActionHandler('pause', () => videoPlayer.pause());
+
+                        navigator.mediaSession.setActionHandler('previoustrack', () => {
+                            if(currentPlaylistIndex > 0) playPlaylistVideo(currentPlaylistIndex-1);
+                        });
+                        navigator.mediaSession.setActionHandler('nexttrack', () => {
+                            handleVideoEnded();
+                        });
+                    }
+
                     videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e))
                 } catch (error) {
                     showError('Failed to load video: ' + error.message);
@@ -799,14 +817,14 @@ class tsPlayer{
             videoPlayer.addEventListener('error', () => {
                 const err = videoPlayer.error;
 
-                player.mobileLog(err);
-                player.mobileLog(err.code);
+                //player.mobileLog(err);
+                //player.mobileLog(err.code);
 
                 if(!err) return;
 
                 if(err.code === 4){
                     console.log("Unsupported video format detected. Auto-skipping.");
-                    player.mobileLog('Unsupported video format.')
+                    //player.mobileLog('Unsupported video format.')
                     playPlaylistVideo(currentPlaylistIndex + 1);
                 }
 
@@ -827,7 +845,7 @@ class tsPlayer{
                     }); 
                 } else if(retryCount >= maxRetries){
                     console.log('Max retries hit. The video stream has failed.');
-                    player.mobileLog('Max retries hit.')
+                    //player.mobileLog('Max retries hit.')
                     playPlaylistVideo(currentPlaylistIndex + 1);
                 }
             });
