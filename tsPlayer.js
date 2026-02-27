@@ -176,6 +176,8 @@ class tsPlayer{
         let playlist = [];
         let currentPlaylistIndex = 0;
         let isPlayingPlaylist = false;
+        let retryCount = 0;
+        const maxRetries = 3;
 
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -784,7 +786,7 @@ class tsPlayer{
                 videoPlayer.src = videoUrl;
                 videoPlayer.load();
                 videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
-                
+
             } catch (error) {
                 showError('Failed to load video: ' + error.message);
             }
@@ -793,6 +795,30 @@ class tsPlayer{
             // Video player event listeners
             videoPlayer.addEventListener('timeupdate', updateProgress);
             videoPlayer.addEventListener('loadedmetadata', updateDuration);
+
+            videoPlayer.addEventListener('error', () => {
+                const err = videoPlayer.error;
+
+                if (err && (err.code === 2 || err.code === 3) && retryCount < maxRetries){
+                    retryCount++;
+                    console.log('Stream interrupted. Retrying video...');
+
+                    const currentSrc = videoPlayer.src;
+                    const currentTime = videoPlayer.currentTime;
+
+                    videoPlayer.src = currentSrc;
+                    videoPlayer.load();
+
+                    videoPlayer.addEventListener('loadedmetadata', function resumePlayback(){
+                        videoPlayer.currentTime = currentTime;
+                        videoPlayer.play().catch(e => 'Autoplay prevented on retry: ', e);
+                        videoPlayer.removeEventListener('loadedmetadata', resumePlayback);
+                    }); 
+                } else if(retryCount >= maxRetries){
+                    console.log('Max retries hit. The video stream has failed.');
+                    setTimeout(() => playPlaylistVideo(index + 1), 500);
+                }
+            });
             
             function updateProgress() {
                 if (videoPlayer.duration) {
