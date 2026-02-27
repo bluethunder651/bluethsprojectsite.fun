@@ -562,15 +562,18 @@ class tsGame{
             const mainPlayer = document.getElementById('video-player');
             const preloadPlayer = document.getElementById('video-preload');
 
-            mainPlayer.style.display = 'none';
-            preloadPlayer.style.display = 'block';
+            mainPlayer.src = preloadPlayer.src;
+            preloadPlayer.src = '';
 
-            mainPlayer.id = 'video-preload';
-            preloadPlayer.id = 'video-player';
+            if(this.hardMode){
+                mainPlayer.classList.add('video-hidden');
+            } else {
+                mainPlayer.classList.remove('video-hidden');
+            }
 
-            preloadPlayer.currentTime = 0;
+            mainPlayer.currentTime = 0;
             this.videoStartTime = Date.now();
-            preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+            mainPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
 
             this.current_song = this.playlist[this.currentPlaylistIndex];
             
@@ -717,23 +720,18 @@ class tsGame{
         const mainPlayer = document.getElementById('video-player');
         const preloadPlayer = document.getElementById('video-preload');
 
-        mainPlayer.pause();
+        mainPlayer.src = preloadPlayer.src;
+        preloadPlayer.src = '';
 
         if(this.hardMode){
-            preloadPlayer.classList.add('video-hidden');
+            mainPlayer.classList.add('video-hidden');
         } else {
-            preloadPlayer.classList.remove('video-hidden');
+            mainPlayer.classList.remove('video-hidden');
         }
 
-        mainPlayer.style.display = 'none';
-        preloadPlayer.style.display = 'block';
-
-        mainPlayer.id = 'video-preload';
-        preloadPlayer.id = 'video-player';
-
-        preloadPlayer.currentTime = 0;
+        mainPlayer.currentTime = 0;
         this.videoStartTime = Date.now();
-        preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+        mainPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
 
         this.fillButtons(options);
     }
@@ -758,7 +756,7 @@ class tsGame{
             if(this.currentPlaylistIndex + 1 < this.playlist.length){
                 const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
                 try{
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${this.token}`;
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
                     preload.src = videoUrl;
                     preload.load();
                     console.log('Preloaded next video: ', nextVideo.file_path);
@@ -766,6 +764,7 @@ class tsGame{
                     console.log('Failed to preload next video: ', error);
                 }
             }
+            this.preloadingNextVideo = false;
             return;
         } 
 
@@ -784,7 +783,7 @@ class tsGame{
 
             if(isCompatible){
                 try{
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}`;
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
                     preload.src = videoUrl;
                     preload.load();
                     preload.dataset.preloadedIndex = nextIndex;
@@ -797,15 +796,12 @@ class tsGame{
             } else {
                 console.log(`Video at index ${nextIndex} not H.264 compatible. Skipping to next video.`);
             }
-
             nextIndex++;
             checkedCount++;
         }
-
         if(checkedCount >= maxChecks){
             console.log('Reached maximum lookahead, no compatible video found nearby.');
         }
-
         this.preloadingNextVideo = false;
     }    
 
