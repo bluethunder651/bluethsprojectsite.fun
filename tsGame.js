@@ -706,12 +706,8 @@ class tsGame{
 
             const preload = document.getElementById('video-preload');
 
-            if(preload.src && preload.src.includes(encodeURIComponent(this.current_song.file_path))){
-                this.usePreloadedVideo(options);
-            } else {
-                this.playVideo(this.hardMode);
-                this.fillButtons(options);
-            }
+            this.usePreloadedVideo(options);
+
             this.currentRound++;
             this.currentPlaylistIndex++;
             this.preloadNextVideos();
