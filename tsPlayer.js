@@ -799,6 +799,13 @@ class tsPlayer{
             videoPlayer.addEventListener('error', () => {
                 const err = videoPlayer.error;
 
+                if(!err) return;
+
+                if(err.code === 4){
+                    console.log("Unsupported video format detected. Auto-skipping.");
+                    setTimeout(() => playPlaylistVideo(index + 1), 500);
+                }
+
                 if (err && (err.code === 2 || err.code === 3) && retryCount < maxRetries){
                     retryCount++;
                     console.log('Stream interrupted. Retrying video...');
