@@ -806,7 +806,8 @@ class tsPlayer{
 
                 if(err.code === 4){
                     console.log("Unsupported video format detected. Auto-skipping.");
-                    setTimeout(() => playPlaylistVideo(index + 1), 500);
+                    player.mobileLog('Unsupported video format.')
+                    playPlaylistVideo(currentPlaylistIndex + 1);
                 }
 
                 if (err && (err.code === 2 || err.code === 3) && retryCount < maxRetries){
@@ -826,7 +827,8 @@ class tsPlayer{
                     }); 
                 } else if(retryCount >= maxRetries){
                     console.log('Max retries hit. The video stream has failed.');
-                    setTimeout(() => playPlaylistVideo(index + 1), 500);
+                    player.mobileLog('Max retries hit.')
+                    playPlaylistVideo(currentPlaylistIndex + 1);
                 }
             });
             
