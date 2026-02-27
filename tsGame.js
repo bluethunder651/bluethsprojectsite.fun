@@ -697,8 +697,8 @@ class tsGame{
         if(response.ok){
             const data = await response.json();
 
-            if (data.ended){
-                this.gameEnded(data.scores, data.highest_streak);
+            if (data.ended === true){
+                this.gameEnded(data.scores[this.playerName], data.highest_streak[this.playerName]);
                 this.isGameActive = false;
             } else {
                 if(this.nextVideoData && this.nextVideoData.video_path === data.video_path){
@@ -809,6 +809,8 @@ class tsGame{
     }    
 
     gameEnded(scores, highest_streak){
+        const main = document.getElementById('video-player');
+        main.pause();
         this.isGameActive = false;
         const gameScreen = document.getElementById('game-screen');
         const landingScreen = document.getElementById('landing-screen');
