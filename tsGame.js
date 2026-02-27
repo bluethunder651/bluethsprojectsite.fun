@@ -15,7 +15,6 @@ class tsGame{
         this.videoStartTime = Date.now()
         this.playerName = null;
         this.current_song = null;
-        this.nextVideoData = null;
         this.nextVideoUrl = null;
         this.nextVideoBlob = null;
         this.preloadingNextVideo = null;
@@ -483,10 +482,9 @@ class tsGame{
 
             this.playVideo(this.hardMode);
             this.fillButtons(options);
+            this.preloadNextVideos();
 
             this.currentPlaylistIndex++;
-
-            this.preloadNextVideos();
         }
     }
 
@@ -565,8 +563,8 @@ class tsGame{
         videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
     }
 
-    handleVideoEnded(){
-        if(this.nextVideoData){
+    async handleVideoEnded(){
+        if(this.playlist[this.currentPlaylistIndex]){
             const mainPlayer = document.getElementById('video-player');
             const preloadPlayer = document.getElementById('video-preload');
 
@@ -580,14 +578,13 @@ class tsGame{
             this.videoStartTime = Date.now();
             preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
 
-            this.current_song = this.nextVideoData.song;
-            this.fillButtons(this.nextVideoData.options);
-
-            this.nextVideoData = null;
-
+            this.current_song = this.playlist[this.currentPlaylistIndex];
+            
+            const options = await this.getOptions();
+            this.fillButtons(options);
             this.preloadNextVideos();
-
             this.currentRound++;
+            this.currentPlaylistIndex++;
         } else {
             this.next_video();
         }
@@ -702,15 +699,15 @@ class tsGame{
                 this.gameEnded(data.scores, data.highest_streak);
                 this.isGameActive = false;
             } else {
-                if(this.nextVideoData){
+                if(this.playlist[this.currentPlaylistIndex]){
                     this.usePreloadedVideo();
                 } else {
                     this.playVideo(this.hardMode, this.playlist[this.currentPlaylistIndex].file_path);
                     this.fillButtons(options);
                 }
                 this.currentRound++;
-                this.currentPlaylistIndex++;
                 this.preloadNextVideos()
+                this.currentPlaylistIndex++;
             }
 
         }
@@ -718,7 +715,7 @@ class tsGame{
 
     }
 
-    usePreloadedVideo(){
+    async usePreloadedVideo(){
         const mainPlayer = document.getElementById('video-player');
         const preloadPlayer = document.getElementById('video-preload');
 
@@ -734,10 +731,9 @@ class tsGame{
         this.videoStartTime = Date.now();
         preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
 
-        this.current_song = this.nextVideoData.song;
-        this.fillButtons(this.nextVideoData.options);
-
-        this.nextVideoData = null;
+        this.current_song = this.playlist[this.currentPlaylistIndex + 1].game_name;
+        const options = await this.getOptions();
+        this.fillButtons(options);
     }
 
     async preloadNextVideos(){
