@@ -604,6 +604,14 @@ class tsPlayer{
                         const nextVideo = playlist[nextIndex];
                         const progressText = `(${nextIndex + 1}/${playlist.length}) `;
                         currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+
+                        if('mediaSession' in navigator){
+                            navigator.mediaSession.metadata = new MediaMetadata({
+                                title: nextVideo.opening_name || nextVideo.filename,
+                                artist: 'Theme Song Player',
+                                album: 'Playlist Mode'
+                            });
+                        }
                         
                         // Start preloading the next one
                         preloadNextVideos(nextIndex);
