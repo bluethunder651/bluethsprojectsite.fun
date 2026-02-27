@@ -800,6 +800,7 @@ class tsPlayer{
                 const err = videoPlayer.error;
 
                 player.mobileLog(err);
+                player.mobileLog(err.code);
 
                 if(!err) return;
 
