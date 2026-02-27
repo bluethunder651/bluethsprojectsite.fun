@@ -514,7 +514,6 @@ class tsGame{
             },
             body: JSON.stringify({
                 currentSong: this.current_song['game_name'],
-                playlist: this.playlist
             })
         });
 
@@ -716,7 +715,7 @@ class tsGame{
         }
     }
 
-    async usePreloadedVideo(){
+    async usePreloadedVideo(options){
         const mainPlayer = document.getElementById('video-player');
         const preloadPlayer = document.getElementById('video-preload');
 
