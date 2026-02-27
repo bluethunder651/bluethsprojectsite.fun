@@ -519,7 +519,28 @@ class tsPlayer{
                         });
                     }
 
-                    videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e))
+                    videoPlayer.play()
+                        .then(() => {
+                            if('mediaSession' in navigator){
+                                 navigator.mediaSession.playbackState = 'playing';
+
+                                 navigator.mediaSession.metadata = new MediaMetadata({
+                                    title: video.opening_name || video.filename,
+                                    artist: 'Theme Song Player',
+                                    album: 'Playlist Mode'
+                                 });
+
+                                 navigator.mediaSession.setActionHandler('play', () => videoPlayer.play());
+                                 navigator.mediaSession.setActionHandler('pause', () => videoPlayer.pause());
+                                 navigator.mediaSession.setActionHandler('previoustrack', () => {
+                                    if(currentPlaylistIndex > 0) playPlaylistVideo(currentPlaylistIndex - 1);
+                                 });
+                                 navigator.mediaSession.setActionHandler('nexttrack', () => {
+                                    handleVideoEnded();
+                                 });
+                            }
+                        })
+                        .catch(e => {console.log('Autoplay prevented: ', e); if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'});
                 } catch (error) {
                     showError('Failed to load video: ' + error.message);
                     setTimeout(() => handleVideoEnded(), 1000);
@@ -604,6 +625,9 @@ class tsPlayer{
                         const nextVideo = playlist[nextIndex];
                         const progressText = `(${nextIndex + 1}/${playlist.length}) `;
                         currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+                        
+                        // Start preloading the next one
+                        preloadNextVideos(nextIndex);
 
                         if('mediaSession' in navigator){
                             navigator.mediaSession.metadata = new MediaMetadata({
@@ -612,12 +636,29 @@ class tsPlayer{
                                 album: 'Playlist Mode'
                             });
                         }
-                        
-                        // Start preloading the next one
-                        preloadNextVideos(nextIndex);
-                        
-                        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
-                        currentPlaylistIndex = nextIndex;
+
+                        videoPlayer.play()
+                            .then(() => {
+                                if('mediaSession' in navigator){
+                                    navigator.mediaSession.playbackState = 'playing';
+
+                                    navigator.mediaSession.metadata = new MediaMetadata({
+                                        title: nextVideo.opening_name || nextVideo.filename,
+                                        artist: 'Theme Song Player',
+                                        album: 'Playlist Mode'
+                                    });
+
+                                    navigator.mediaSession.setActionHandler('play', () => videoPlayer.play());
+                                    navigator.mediaSession.setActionHandler('pause', () => videoPlayer.pause());
+                                    navigator.mediaSession.setActionHandler('previoustrack', () => {
+                                        if(currentPlaylistIndex > 0) playPlaylistVideo(currentPlaylistIndex - 1);
+                                    });
+                                    navigator.mediaSession.setActionHandler('nexttrack', () => {
+                                        handleVideoEnded();
+                                    });
+                                }
+                            })
+                            .catch(e => {console.log('Autoplay prevented: ', e); if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'});                        currentPlaylistIndex = nextIndex;
                     } else {
                         // Fall back to normal playback (will check compatibility)
                         playPlaylistVideo(nextIndex);
@@ -833,7 +874,7 @@ class tsPlayer{
                 if(err.code === 4){
                     console.log("Unsupported video format detected. Auto-skipping.");
                     //player.mobileLog('Unsupported video format.')
-                    playPlaylistVideo(currentPlaylistIndex + 1);
+                    handleVideoEnded();
                 }
 
                 if (err && (err.code === 2 || err.code === 3) && retryCount < maxRetries){
@@ -854,7 +895,7 @@ class tsPlayer{
                 } else if(retryCount >= maxRetries){
                     console.log('Max retries hit. The video stream has failed.');
                     //player.mobileLog('Max retries hit.')
-                    playPlaylistVideo(currentPlaylistIndex + 1);
+                    handleVideoEnded();
                 }
             });
             
