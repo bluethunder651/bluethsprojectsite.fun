@@ -197,6 +197,7 @@ class tsPlayer{
             const durationSpan = document.getElementById('duration');
             const mobileCheckbox = document.getElementById('mobile-mode');
             const mobileIndicator = document.createElement('div');
+            const pipBtn = document.getElementById('pip-btn');
 
             mobileIndicator.id = 'mobile-indicator';
             mobileIndicator.style.display = 'none';
@@ -237,7 +238,42 @@ class tsPlayer{
             document.getElementById('random-video').addEventListener('click', () => {
                 videoBrowser.style.display = 'block';
                 loadRandomVideo();
-            })
+            });
+
+            if(document.pictureInPictureEnabled){
+                pipBtn.style.display = 'inline-block';
+
+                pipBtn.addEventListener('click', async () => {
+                    try{
+                        if(document.pictureInPictureElement){
+                            await document.exitPictureInPicture();
+                        }
+                        else if (videoPlayer.readyState > 0){
+                            await videoPlayer.requestPictureInPicture();
+                        } 
+                        else {
+                            player.showInfo('Play a video first before entering PIP mode');
+                        }
+                    } catch (error) {
+                        console.error('PiP failed, ', error);
+                        player.mobileLog('PiP error: ' + error.message);
+                    }
+                });
+                
+                videoPlayer.addEventListener('enterpictureinpicture', () => {
+                    pipBtn.textContent = 'Exit PiP';
+                    pipBtn.style.background = '#4CAF50'
+                });
+
+                videoPlayer.addEventListener('leavepictureinpicture', () => {
+                    pipBtn.textContent = '◳ PiP Mode';
+                    pipBtn.style.background = '';
+                });          
+            } else {
+                console.log('Picture-in-Picture not supported in this browser.');
+            }
+
+
             
             // Back to browser
             document.getElementById('back-to-browser').addEventListener('click', () => {
