@@ -31,9 +31,9 @@ class tsGame{
     setupEventListeners(){
         
         document.addEventListener('DOMContentLoaded', async function() {
-        if(Date.now() > this.tokenExpiry || !this.token){
-            await this.refreshToken();
-            if(!this.token) return [];
+        if(Date.now() > player.tokenExpiry || !player.token){
+            await player.refreshToken();
+            if(!player.token) return [];
         }
         if(!this.token) return [];
             const videoScreen = document.getElementById('video-screen');
@@ -43,7 +43,7 @@ class tsGame{
 
             await fetch(`${player.website}/api/local/build-cache`, {
                 headers: {
-                    'X-Auth-Token': this.token,
+                    'X-Auth-Token': player.token,
                     'Referer': window.location.origin
                 }
             });
