@@ -31,22 +31,10 @@ class tsGame{
     setupEventListeners(){
         
         document.addEventListener('DOMContentLoaded', async function() {
-        if(Date.now() > player.tokenExpiry || !player.token){
-            await player.refreshToken();
-            if(!player.token) return [];
-        }
-        if(!this.token) return [];
             const videoScreen = document.getElementById('video-screen');
             const videoPlayer = document.getElementById('video-player');
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
-
-            await fetch(`${player.website}/api/local/build-cache`, {
-                headers: {
-                    'X-Auth-Token': player.token,
-                    'Referer': window.location.origin
-                }
-            });
 
             let filterMetadata = await player.getFilterMetadata();
 
