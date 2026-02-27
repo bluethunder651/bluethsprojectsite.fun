@@ -24,6 +24,8 @@ class tsGame{
         this.playlist = [];
         this.currentPlaylistIndex = 0;
         this.hardMode = true;
+        this.scores = 0;
+        this.highest_streak = 0;
 
         this.setupEventListeners();
     }
@@ -105,6 +107,10 @@ class tsGame{
                 if(this.isGameActive) {
                     this.handleVideoEnded();
                 }
+            });
+
+            document.getElementById('go-home-btn').addEventListener('click', () => {
+                player.gameEnded(this.scores, this.highest_streak);
             })
         });
     }
@@ -532,7 +538,7 @@ class tsGame{
 
         if(!this.playlist || this.currentPlaylistIndex > this.playlist.length){
             console.log('No more videos in queue');
-            this.gameEnded(0, 0);
+            this.gameEnded(this.scores, this.highest_streak);
         }
 
         const video = this.playlist[this.currentPlaylistIndex]
@@ -698,8 +704,11 @@ class tsGame{
         if(response.ok){
             const data = await response.json();
     
+            this.scores = data.scores;
+            this.highest_streak = data.highest_streak
+
             if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length){
-                this.gameEnded(data.scores || document.getElementById('scores').textContent, data.highest_streak || 0);
+                this.gameEnded(this.scores || document.getElementById('scores').textContent, this.highest_streak || 0);
                 this.isGameActive = false;
                 return;
             }
