@@ -703,7 +703,7 @@ class tsGame{
                 if(this.nextVideoData){
                     this.usePreloadedVideo();
                 } else {
-                    this.playVideo(this.hardMode, this.playlist[this.currentPlaylistIndex][file_path]);
+                    this.playVideo(this.hardMode, this.playlist[this.currentPlaylistIndex].file_path);
                     this.fillButtons(options);
                 }
                 this.currentRound++;
