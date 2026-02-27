@@ -681,7 +681,6 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const hardMode = document.getElementById('hard-mode').checked;
         const response = await fetch(`${this.website}/api/local/game/single/next`, {
             method: 'POST',
             headers: {
@@ -696,16 +695,16 @@ class tsGame{
 
         if(response.ok){
             const data = await response.json();
-
+            const options = await this.getOptions();
             if (data.ended === true){
-                this.gameEnded(data.scores[this.playerName], data.highest_streak[this.playerName]);
+                this.gameEnded(data.scores, data.highest_streak);
                 this.isGameActive = false;
             } else {
-                if(this.nextVideoData && this.nextVideoData.video_path === data.video_path){
+                if(this.nextVideoData){
                     this.usePreloadedVideo();
                 } else {
-                    this.playVideo(hardMode, data.video_path);
-                    this.fillButtons(data.options);
+                    this.playVideo(this.hardMode, this.playlist[this.currentPlaylistIndex][file_path]);
+                    this.fillButtons(options);
                 }
                 this.currentRound++;
                 this.preloadNextVideos()
@@ -815,7 +814,7 @@ class tsGame{
         const gameScreen = document.getElementById('game-screen');
         const landingScreen = document.getElementById('landing-screen');
         
-        alert(`Game over!\nFinal score: ${scores[this.playerName]}\nHighest Streak: ${highest_streak[this.playerName]}`)
+        alert(`Game over!\nFinal score: ${scores}\nHighest Streak: ${highest_streak}`)
 
         gameScreen.style.display = 'none';
         landingScreen.style.display = 'block';
