@@ -538,18 +538,18 @@ class tsGame{
 
         console.log('this.playlist: ', this.playlist);
         console.log('Video: ', video);
-        console.log('Video.filename: ', video.filename);
+        console.log('Video.filename: ', video.file_path);
 
 
         if(this.mobileMode){
-            const isCompatible = await this.checkVideoCompatibility(video_path);
+            const isCompatible = await this.checkVideoCompatibility(video.file_path);
             if(!isCompatible){
                 console.log('Video not compatible with mobile mode, skipping...');
                 this.handleVideoEnded();
                 return;
             }
         }
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.filename)}?token=${encodeURIComponent(this.token)}`
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`
 
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
@@ -757,10 +757,10 @@ class tsGame{
             if(this.currentPlaylistIndex + 1 < this.playlist.length){
                 const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
                 try{
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`;
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}`;
                     preload.src = videoUrl;
                     preload.load();
-                    console.log('Preloaded next video: ', nextVideo.filename);
+                    console.log('Preloaded next video: ', nextVideo.file_path);
                 } catch (error){
                     console.log('Failed to preload next video: ', error);
                 }
@@ -775,19 +775,19 @@ class tsGame{
         while(nextIndex < this.playlist.length && checkedCount < maxChecks){
             const nextVideo = this.playlist[nextIndex];
 
-            let isCompatible = player.codecCache.get(nextVideo.filename);
+            let isCompatible = player.codecCache.get(nextVideo.file_path);
 
             if(isCompatible === undefined){
-                isCompatible = await player.getVideoCodec(nextVideo.filename);
+                isCompatible = await player.getVideoCodec(nextVideo.file_path);
             }
 
             if(isCompatible){
                 try{
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}`;
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}`;
                     preload.src = videoUrl;
                     preload.load();
                     preload.dataset.preloadedIndex = nextIndex;
-                    console.log(`Preloaded video ${nextIndex + 1}/${this.playlist.length}: ${nextVideo.filename}`);
+                    console.log(`Preloaded video ${nextIndex + 1}/${this.playlist.length}: ${nextVideo.file_path}`);
 
                     break;
                 } catch (error) {
