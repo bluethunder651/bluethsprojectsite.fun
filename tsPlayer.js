@@ -799,6 +799,8 @@ class tsPlayer{
             videoPlayer.addEventListener('error', () => {
                 const err = videoPlayer.error;
 
+                player.mobileLog(err);
+
                 if(!err) return;
 
                 if(err.code === 4){
@@ -987,6 +989,22 @@ class tsPlayer{
         document.body.appendChild(video);
         video.play();
     }
+
+    mobileLog(message){
+        console.log(message);
+
+        let debugDiv = document.getElementById('mobile-debug-log');
+        if (!debugDiv) {
+            debugDiv = document.createElement('div');
+            debugDiv.id = 'mobile-debug-log';
+            debugDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:120px;background:rgba(0,0,0,0.7);color:lime;overflow-y:scroll;font-family:monospace;z-index:9999;font-size:12px;padding:5px;pointer-events:none;';        }
+            document.body.appendChild(debugDiv);
+
+        const time = new Date().toLocaleTimeString();
+        debugDiv.innerHTML = `<div>[${time}] ${message}</div>`
+        debugDiv.scrollTop = debugDiv.scrollHeight;
+    }
+
 
     async searchVideos(query){
         if(!this.token || query.length < 3) return [];
