@@ -411,6 +411,8 @@ class tsGame{
             return
         }
 
+        this.isGameActive = true;
+
         const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
