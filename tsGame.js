@@ -536,11 +536,6 @@ class tsGame{
 
         const video = this.playlist[this.currentPlaylistIndex]
 
-        console.log('this.playlist: ', this.playlist);
-        console.log('Video: ', video);
-        console.log('Video.filename: ', video.file_path);
-
-
         if(this.mobileMode){
             const isCompatible = await this.checkVideoCompatibility(video.file_path);
             if(!isCompatible){
@@ -764,7 +759,7 @@ class tsGame{
             if(this.currentPlaylistIndex + 1 < this.playlist.length){
                 const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
                 try{
-                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}`;
+                    const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${this.token}`;
                     preload.src = videoUrl;
                     preload.load();
                     console.log('Preloaded next video: ', nextVideo.file_path);
