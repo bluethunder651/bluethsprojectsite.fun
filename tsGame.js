@@ -36,7 +36,7 @@ class tsGame{
             const preloader = document.getElementById('video-preload');
             const mobileCheckbox = document.getElementById('mobile-mode');
 
-            await fetch(`${this.website}/api/local/build-cache`);
+            await fetch(`${player.website}/api/local/build-cache`);
 
             let filterMetadata = await player.getFilterMetadata();
 
