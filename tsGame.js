@@ -484,6 +484,8 @@ class tsGame{
             this.playVideo(this.hardMode);
             this.fillButtons(options);
 
+            this.currentPlaylistIndex++;
+
             this.preloadNextVideos();
         }
     }
@@ -707,8 +709,10 @@ class tsGame{
                     this.fillButtons(options);
                 }
                 this.currentRound++;
+                this.currentPlaylistIndex++;
                 this.preloadNextVideos()
             }
+
         }
 
 
