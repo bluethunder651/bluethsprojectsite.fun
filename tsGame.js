@@ -634,6 +634,7 @@ class tsGame{
         document.querySelectorAll('.answer-btn').forEach((button, index) => {
             button.textContent = options[index];
             button.disabled = false;
+            button.classList.remove('answered', 'correct', 'incorrect');
         });
     }
 

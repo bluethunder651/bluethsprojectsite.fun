@@ -128,11 +128,11 @@ body {
 }
 
 .answered.correct {
-    background-color: #4CAF50;
+    background-color: #4CAF50 !important;
 }
 
 .answered.incorrect{
-    background-color: #f44336;
+    background-color: #f44336 !important;
 }
 
 .filter-content {
