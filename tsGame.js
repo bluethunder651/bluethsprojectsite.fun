@@ -656,7 +656,7 @@ class tsGame{
             body: JSON.stringify({
                 playerName: this.playerName,
                 selectedOption: selectedOption,
-                correctOption: this.current_song,
+                correctOption: this.current_song.game_name,
                 answerTime: Date.now(),
                 videoStartTime: this.videoStartTime
             })
@@ -694,25 +694,29 @@ class tsGame{
 
         if(response.ok){
             const data = await response.json();
-            const options = await this.getOptions();
-            if (data.ended === true){
-                this.gameEnded(data.scores, data.highest_streak);
+    
+            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length){
+                this.gameEnded(data.scores || document.getElementById('scores').textContent, data.highest_streak || 0);
                 this.isGameActive = false;
-            } else {
-                if(this.playlist[this.currentPlaylistIndex]){
-                    this.usePreloadedVideo();
-                } else {
-                    this.playVideo(this.hardMode, this.playlist[this.currentPlaylistIndex].file_path);
-                    this.fillButtons(options);
-                }
-                this.currentRound++;
-                this.preloadNextVideos()
-                this.currentPlaylistIndex++;
+                return;
             }
 
+            this.current_song = this.playlist[this.currentPlaylistIndex];
+
+            const options = await this.getOptions();
+
+            const preload = document.getElementById('video-preload');
+
+            if(preload.src && preload.src.includes(encodeURIComponent(this.current_song.file_path))){
+                this.usePreloadedVideo(options);
+            } else {
+                this.playVideo(this.hardMode);
+                this.fillButtons(options);
+            }
+            this.currentRound++;
+            this.currentPlaylistIndex++;
+            this.preloadNextVideos();
         }
-
-
     }
 
     async usePreloadedVideo(){
@@ -720,6 +724,12 @@ class tsGame{
         const preloadPlayer = document.getElementById('video-preload');
 
         mainPlayer.pause();
+
+        if(this.hardMode){
+            preloadPlayer.classList.add('video-hidden');
+        } else {
+            preloadPlayer.classList.remove('video-hidden');
+        }
 
         mainPlayer.style.display = 'none';
         preloadPlayer.style.display = 'block';
@@ -731,8 +741,6 @@ class tsGame{
         this.videoStartTime = Date.now();
         preloadPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
 
-        this.current_song = this.playlist[this.currentPlaylistIndex + 1].game_name;
-        const options = await this.getOptions();
         this.fillButtons(options);
     }
 
