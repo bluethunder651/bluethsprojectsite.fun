@@ -675,7 +675,7 @@ class tsGame{
                 button.disabled = true;
             });
             document.querySelectorAll('.answered').forEach(el => {
-                el.classList.add(data.resulst[this.playerName] ? 'correct' : 'incorrect');
+                el.classList.add(data.results[this.playerName] ? 'correct' : 'incorrect');
             });
             document.getElementById('next-video').disabled = false;
         }
