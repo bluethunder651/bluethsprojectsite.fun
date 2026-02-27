@@ -674,7 +674,7 @@ class tsGame{
             document.querySelectorAll('.answer-btn').forEach(button => {
                 button.disabled = true;
             });
-            document.querySelectorAll('answered').forEach(el => {
+            document.querySelectorAll('.answered').forEach(el => {
                 el.classList.add(data.resulst[this.playerName] ? 'correct' : 'incorrect');
             });
             document.getElementById('next-video').disabled = false;
