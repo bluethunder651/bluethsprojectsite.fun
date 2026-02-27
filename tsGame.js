@@ -511,7 +511,7 @@ class tsGame{
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                currentSong: this.current_song,
+                currentSong: this.current_song['game_name'],
                 playlist: this.playlist
             })
         });
@@ -531,7 +531,7 @@ class tsGame{
 
         if(!this.playlist || this.currentPlaylistIndex > this.playlist.length){
             console.log('No more videos in queue');
-            this.gameEnded();
+            this.gameEnded(0, 0);
         }
 
         const video = this.playlist[this.currentPlaylistIndex]
@@ -698,7 +698,7 @@ class tsGame{
             const data = await response.json();
 
             if (data.ended){
-                gameEnded(data.scores, data.highest_streak);
+                this.gameEnded(data.scores, data.highest_streak);
                 this.isGameActive = false;
             } else {
                 if(this.nextVideoData && this.nextVideoData.video_path === data.video_path){
