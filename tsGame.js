@@ -640,6 +640,7 @@ class tsGame{
         const correct_button = document.getElementById('correct-button');
         if(correct_button){
             correct_button.id = '';
+            correct_button.style.setProperty('background-color', '#ffffff', 'important');
         }
         document.querySelectorAll('.answer-btn').forEach((button, index) => {
             button.textContent = options[index];
