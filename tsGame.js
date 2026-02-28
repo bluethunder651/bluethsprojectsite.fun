@@ -26,7 +26,6 @@ class tsGame{
         this.hardMode = true;
         this.scores = 0;
         this.highest_streak = 0;
-        this.gameOver = false;
 
         this.setupEventListeners();
     }
@@ -140,9 +139,26 @@ class tsGame{
                 }
             });
 
-            document.getElementById('go-home-btn').addEventListener('click', () => {
-                this.gameOver = true;
-                player.next_video();
+            document.getElementById('go-back-btn').addEventListener('click', async () => {
+                const response = await fetch(`${player.website}/api/local/game/single/next`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Auth-Token': player.token,
+                        'Referer': window.location.origin
+                    },
+                    body: {
+                        playerName: player.playerName
+                    }
+                });
+
+                if(response.ok){
+                    const data = await response.json();
+
+                    this.scores = data.scores;
+                    this.highest_streak = data.highest_streak;
+
+                    player.gameEnded(this.scores, this.highest_streak);
+                }
             })
         });
     }
@@ -450,7 +466,6 @@ class tsGame{
         }
 
         this.isGameActive = true;
-        this.gameOver = false;
 
         const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
@@ -759,7 +774,7 @@ class tsGame{
             this.scores = data.scores;
             this.highest_streak = data.highest_streak
 
-            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length || this.gameOver === true){
+            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length){
                 this.gameEnded(this.scores || document.getElementById('scores').textContent, this.highest_streak || 0);
                 this.isGameActive = false;
                 return;
