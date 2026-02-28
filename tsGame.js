@@ -638,7 +638,9 @@ class tsGame{
 
     fillButtons(options){
         const correct_button = document.getElementById('correct-button');
-        correct_button.id = '';
+        if(correct_button){
+            correct_button.id = '';
+        }
         document.querySelectorAll('.answer-btn').forEach((button, index) => {
             button.textContent = options[index];
             if (options[index] === this.current_song.game_name){
