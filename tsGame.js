@@ -684,7 +684,7 @@ class tsGame{
             document.querySelectorAll('.answered').forEach(el => {
                 el.classList.add(data.results[this.playerName] ? 'correct' : 'incorrect');
             });
-            document.getElementById('correct-button').style.backgroundColor('background-color: #4CAF50 !important;');
+            document.getElementById('correct-button').style.backgroundColor = '#4CAF50 !important;';
             document.getElementById('next-video').disabled = false;
         }
     }
