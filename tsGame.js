@@ -140,7 +140,7 @@ class tsGame{
             });
 
             document.getElementById('go-home-btn').addEventListener('click', () => {
-                player.gameEnded(this.scores, this.highest_streak);
+                player.gameEnded(player.scores, player.highest_streak);
             })
         });
     }

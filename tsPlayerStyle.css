@@ -151,6 +151,15 @@ body {
     background-color: #f44336 !important;
 }
 
+.filter-header {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
 .filter-content {
     display: none;
 }
