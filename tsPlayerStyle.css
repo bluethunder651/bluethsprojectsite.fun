@@ -158,6 +158,9 @@ body {
     padding: 5px 10px;
     border-radius: 2px;
     cursor: pointer;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
 }
 
 .filter-content {

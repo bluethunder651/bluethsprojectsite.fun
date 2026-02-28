@@ -759,7 +759,7 @@ class tsGame{
             this.scores = data.scores;
             this.highest_streak = data.highest_streak
 
-            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length || this.gameOver){
+            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length || this.gameOver === true){
                 this.gameEnded(this.scores || document.getElementById('scores').textContent, this.highest_streak || 0);
                 this.isGameActive = false;
                 return;
