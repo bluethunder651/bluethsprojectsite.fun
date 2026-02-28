@@ -81,13 +81,43 @@ class tsGame{
             });
 
             document.querySelectorAll('.answer-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    document.querySelectorAll('answer-btn').forEach(button => {
-                        button.disabled = true;
-                        button.classList.remove('answered');
+                let pressTimer;
+                let isLongPress = false;
+
+                button.addEventListener('touchstart', (e) => {
+                    isLongPress = false;
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        alert(button.dataset.fullTitle);
+                    }, 500);
+                }, {passive: true});
+
+                button.addEventListener('touchend', (e) => {
+                    clearTimeout(pressTimer);
+                    if (isLongPress){
+                        e.preventDefault();
+                    }
+                });
+
+                button.addEventListener('touchmove', () => {
+                    clearTimeout(pressTimer);
+                });
+
+                button.addEventListener('click', function(e) {
+                    if(isLongPress){
+                        e.preventDefault();
+                        return;
+                    }
+
+                    document.querySelectorAll('.answer-btn').forEach(btn => {
+                        btn.disabled = true;
+                        btn.classList.remove('answered');
                     });
+
                     this.classList.add('answered');
-                    const selectedOption = button.textContent;
+
+                    const selectedOption = this.dataset.fullTitle;
+
                     document.getElementById('video-player').classList.remove('video-hidden');
                     player.submit_answer(selectedOption);
                 });
@@ -642,7 +672,17 @@ class tsGame{
             correct_button.id = '';
         }
         document.querySelectorAll('.answer-btn').forEach((button, index) => {
-            button.textContent = options[index];
+            const buttonText = options[index];
+            if(buttonText.length > 27){
+                button.textContent = buttonText.substring(0,27) + '...'
+            } else {
+                button.textContent = buttonText;
+            }
+
+            button.title = buttonText;
+
+            button.dataset.fullTitle = buttonText;
+
             if (options[index] === this.current_song.game_name){
                 button.id = 'correct-button';
             }
