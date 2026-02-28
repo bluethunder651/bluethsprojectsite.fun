@@ -164,6 +164,13 @@ body {
   margin-bottom: 10px;
 }
 
+.score {
+    font-size: 20px;
+    text-align: center;
+    color: #333;
+    margin-bottom: 5px;
+}
+
 .video-container {
     position: relative;
     width: 100%;

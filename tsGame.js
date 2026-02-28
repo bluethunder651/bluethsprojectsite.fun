@@ -637,8 +637,13 @@ class tsGame{
     }
 
     fillButtons(options){
+        const correct_button = document.getElementById('correct-button');
+        correct_button.id = '';
         document.querySelectorAll('.answer-btn').forEach((button, index) => {
             button.textContent = options[index];
+            if (options[index] === this.current_song.game_name){
+                button.id = 'correct-button';
+            }
             button.disabled = false;
             button.classList.remove('answered', 'correct', 'incorrect');
         });
@@ -677,6 +682,7 @@ class tsGame{
             document.querySelectorAll('.answered').forEach(el => {
                 el.classList.add(data.results[this.playerName] ? 'correct' : 'incorrect');
             });
+            document.getElementById('correct-button').style.backgroundColor('background-color: #4CAF50 !important;');
             document.getElementById('next-video').disabled = false;
         }
     }
