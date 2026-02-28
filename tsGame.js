@@ -26,6 +26,7 @@ class tsGame{
         this.hardMode = true;
         this.scores = 0;
         this.highest_streak = 0;
+        this.gameEnded = false;
 
         this.setupEventListeners();
     }
@@ -140,7 +141,8 @@ class tsGame{
             });
 
             document.getElementById('go-home-btn').addEventListener('click', () => {
-                player.gameEnded(player.scores, player.highest_streak);
+                this.gameEnded = true;
+                this.next_video();
             })
         });
     }
@@ -448,6 +450,7 @@ class tsGame{
         }
 
         this.isGameActive = true;
+        this.gameEnded = false;
 
         const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
         const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
@@ -756,7 +759,7 @@ class tsGame{
             this.scores = data.scores;
             this.highest_streak = data.highest_streak
 
-            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length){
+            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length || this.gameEnded){
                 this.gameEnded(this.scores || document.getElementById('scores').textContent, this.highest_streak || 0);
                 this.isGameActive = false;
                 return;
