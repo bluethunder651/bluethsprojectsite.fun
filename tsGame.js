@@ -147,9 +147,9 @@ class tsGame{
                         'Referer': window.location.origin,
                         'Content-Type': 'application/json'
                     },
-                    body: {
+                    body: JSON.stringify({
                         playerName: player.playerName
-                    }
+                    })
                 });
 
                 if(response.ok){
