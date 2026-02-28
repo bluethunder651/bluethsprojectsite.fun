@@ -142,7 +142,7 @@ class tsGame{
 
             document.getElementById('go-home-btn').addEventListener('click', () => {
                 this.gameEnded = true;
-                this.next_video();
+                player.next_video();
             })
         });
     }
