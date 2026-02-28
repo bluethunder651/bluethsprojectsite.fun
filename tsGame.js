@@ -144,7 +144,8 @@ class tsGame{
                     method: 'POST',
                     headers: {
                         'X-Auth-Token': player.token,
-                        'Referer': window.location.origin
+                        'Referer': window.location.origin,
+                        'Content-Type': 'application/json'
                     },
                     body: {
                         playerName: player.playerName
