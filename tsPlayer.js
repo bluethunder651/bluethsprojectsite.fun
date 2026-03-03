@@ -1003,7 +1003,8 @@ class tsPlayer{
                 method: 'POST',
                 headers: {
                     'X-Auth-Token': this.token,
-                    'Referer': window.location.origin
+                    'Referer': window.location.origin,
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     tags: tags,
