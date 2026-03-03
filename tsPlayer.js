@@ -310,7 +310,7 @@ class tsPlayer{
         });
 
         // Apply tags filter
-        document.getElementById('apply-tags').addEventListener('click', async () => {
+        document.getElementById('apply-filters').addEventListener('click', async () => {
             await player.refreshToken();
             loadingIndicator.style.display = 'block';
             
