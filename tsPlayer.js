@@ -273,7 +273,12 @@ class tsPlayer{
                 console.log('Picture-in-Picture not supported in this browser.');
             }
 
-
+            document.querySelectorAll('.filter-header').forEach(id => {
+                id.addEventListener('click', function() {
+                    const header = this;
+                    player.toggleSection(header);
+                });
+            });               
             
             // Back to browser
             document.getElementById('back-to-browser').addEventListener('click', () => {
@@ -1238,6 +1243,13 @@ class tsPlayer{
             `;
             container.appendChild(div);
         });
+    }
+
+    toggleSection(header){
+        const content = header.nextElementSibling;
+        content.classList.toggle('active');
+        const arrow = header.querySelector('.arrow');
+        arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
     }
 
     async searchVideos(query){
