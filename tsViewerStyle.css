@@ -59,6 +59,26 @@ body {
   color: #ff9800;
 }
 
+.filter-header {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+}
+
+.filter-content {
+    display: none;
+}
+
+.filter-content.active {
+    display: block;
+}
+
 .mobile-checkbox {
     display: inline-flex;
     align-items: center;

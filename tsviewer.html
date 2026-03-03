@@ -37,19 +37,111 @@
             <input type="checkbox" id="mobile-mode"> Mobile Mode (H.264 Only)
         </label>
         </div>
+        <div id="filter-options" style="display: none;">
+            <div class="filter-section">
+                <div class="filter-header-non-dropdown">
+                    <label>
+                        <input type="checkbox" id="hard-mode" checked>
+                        Hard Mode
+                    </label>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header-non-dropdown">
+                    Rounds <input type="number" id="rounds-input" min="0" max="1000" value="500">
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Tags <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content" id="filter-content">
+                    <div id="tags-list"></div>
+                    <div>
+                        <label>
+                            <input type="checkbox" id="sfw-filter" value="sfw">
+                            SFW
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Language <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="languages-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Decade <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="decades-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Difficulty <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="difficulties-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Genre <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="genres-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Production Company <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="production-companies-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Network <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="networks-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Country <span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="countries-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-header">
+                    Special Openings<span class="arrow">▼</span>
+                </div>
+                <div class="filter-content">
+                    <div id="special"></div>
+                    <div>
+                        <label>
+                            <input type="checkbox" id="special-checkbox" value="true">
+                            Special Openings?
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button id="apply-filters">Apply Filters</button>
+        </div>
         <div id="video-browser" style="display: none;">
             <h2>Video Library</h2>
             <div class="search-container">
                 <input type="text" id="search-input" class="search-input" placeholder="Search videos..." autocomplete="off">
                 <button id="search-btn" class="nav-btn">Search</button>
-            </div>
-            <div id="tag-selector" style="display:none; margin: 20px 0;">
-                <h3>Filter by Tags</h3>
-                <div id="tag-list" class="tag-list"></div>
-                <div style="margin-top: 10px;">
-                    <button id="apply-tags" class="nav-btn">Apply Filters</button>
-                    <button id="clear-tags" class="nav-btn">Clear</button>
-                </div>
             </div>
             <div id="video-stats" class="stats"></div>
             <div id="loading-indicator" class="loading" style="display: none;">Loading videos...</div>

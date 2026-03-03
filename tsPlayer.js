@@ -171,7 +171,6 @@ class tsPlayer{
 
     setupEventListeners(){
 
-        let selectedTags = new Set();
         let allTags = [];
         let playlist = [];
         let currentPlaylistIndex = 0;
@@ -179,7 +178,7 @@ class tsPlayer{
         let retryCount = 0;
         const maxRetries = 3;
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
 
             const videoBrowser = document.getElementById('video-browser');
             const playerScreen = document.getElementById('player-screen');
@@ -204,6 +203,7 @@ class tsPlayer{
             document.querySelector('.nav-bar').appendChild(mobileIndicator);
 
             let allVideos = [];
+            let filterMetadata = await player.getFilterMetadata();
 
 
             player.startMonitoring(function(status) {
@@ -299,92 +299,53 @@ class tsPlayer{
             });
             
         document.getElementById('tag-select').addEventListener('click', async () => {
-            const tagSelector = document.getElementById('tag-selector');
-            const videoBrowser = document.getElementById('video-browser');
-            
-            if (tagSelector.style.display === 'none' || !tagSelector.style.display) {
-                // Show tag selector and load tags
-                tagSelector.style.display = 'block';
-                videoBrowser.style.display = 'block';
-                await loadTags();
+            const filters = document.getElementById('filter-options');
+
+            if(filters.style.display === 'none' || !filters.style.display){
+                filters.style.display = 'block';
+                await player.loadFilters(filterMetadata);
             } else {
-                // Hide tag selector
-                tagSelector.style.display = 'none';
+                filters.style.display = 'none';
             }
         });
 
-        async function loadTags() {
-            await player.refreshToken();
-            
-            try {
-                const response = await fetch(`${player.website}/api/local/tags`, {
-                    headers: {
-                        'X-Auth-Token': player.token,
-                        'Referer': window.location.origin
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    allTags = data.tags;
-                    displayTags();
-                }
-            } catch (error) {
-                console.error('Failed to load tags:', error);
-            }
-        }
-
-        function displayTags() {
-            const tagList = document.getElementById('tag-list');
-            tagList.innerHTML = '';
-            
-            allTags.forEach(tag => {
-                const tagEl = document.createElement('span');
-                tagEl.className = 'tag-item' + (selectedTags.has(tag) ? ' selected' : '');
-                tagEl.textContent = tag;
-                
-                tagEl.addEventListener('click', () => {
-                    if (selectedTags.has(tag)) {
-                        selectedTags.delete(tag);
-                        tagEl.classList.remove('selected');
-                    } else {
-                        selectedTags.add(tag);
-                        tagEl.classList.add('selected');
-                    }
-                });
-                
-                tagList.appendChild(tagEl);
-            });
-        }
-
         // Apply tags filter
         document.getElementById('apply-tags').addEventListener('click', async () => {
-            if (selectedTags.size === 0) {
-                loadVideos(); // Just load all videos if no tags selected
-                return;
-            }
-            
+            await player.refreshToken();
             loadingIndicator.style.display = 'block';
             
+            const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedDifficulties = Array.from(document.querySelectorAll('#difficulties-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedGenres = Array.from(document.querySelectorAll('#genres-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedProductionCompanies = Array.from(document.querySelectorAll('#production-companies-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedNetworks = Array.from(document.querySelectorAll('#networks-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const selectedCountries = Array.from(document.querySelectorAll('#countries-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
+            const enableSpecialOpenings = document.getElementById('special-checkbox').checked;
+            const sfwFilter = document.getElementById('sfw-filter').checked;
+
             try {
-                const response = await fetch(`${player.website}/api/local/videos/filter`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Auth-Token': player.token,
-                        'Referer': window.location.origin,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        tag: Array.from(selectedTags) // Send selected tags
-                    })
-                });
+                // Get all videos first
+                let videos = await player.getFilteredVideos(selectedTags, selectedLanguages, selectedDecades, selectedDifficulties, selectedGenres, selectedProductionCompanies, selectedNetworks, selectedCountries, enableSpecialOpenings, sfwFilter);
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    displayVideos(data.videos, `Found ${data.total} videos with selected tags`);
+                if (videos && videos.length > 0) {
+                    // Shuffle the array
+                    playlist = [...videos];
+                    shuffleArray(playlist);
+                    currentPlaylistIndex = 0;
+                    isPlayingPlaylist = true;
+
+                    videoBrowser.style.display = 'none';
+                    playerScreen.style.display = 'block';
+
+                    playPlaylistVideo(currentPlaylistIndex);
+                    
+                } else {
+                    showError('No videos to shuffle');
                 }
             } catch (error) {
-                showError('Failed to filter videos: ' + error.message);
+                showError('Failed to shuffle videos: ' + error.message);
             } finally {
                 loadingIndicator.style.display = 'none';
             }
@@ -419,13 +380,6 @@ class tsPlayer{
                     displayVideos(allVideos);
                 }
             }
-        });
-
-        // Clear tags
-        document.getElementById('clear-tags').addEventListener('click', () => {
-            selectedTags.clear();
-            displayTags(); // Refresh tag display to remove selected state
-            loadVideos(); // Reload all videos
         });
 
             // Search functionality
@@ -1033,6 +987,60 @@ class tsPlayer{
         return [];
     }
 
+    async getFilteredVideos(tags, languages, decades, difficulties, genres, production_companies, networks, countries, special_openings, sfw){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+        if(!this.token) return [];
+        try{
+            const response = await fetch(`${this.website}/api/local/videos/filter`, {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                },
+                body: JSON.stringify({
+                    tags: tags,
+                    languages: languages,
+                    decades: decades,
+                    difficulties: difficulties,
+                    genres: genres,
+                    production_companies: production_companies,
+                    networks: networks,
+                    countries: countries,
+                    special_openings: special_openings,
+                    sfw: sfw
+                })
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                let videos = [];
+
+                if(data.videos && Array.isArray(data.videos)){
+                    videos = data.videos;
+                } else if (Array.isArray(data)){
+                    videos = data;
+                }
+                videos.forEach(video => {
+                    if(video.filename && video.codec){
+                        const isH264 = this.isH264Codec(video.codec);
+                        this.codecCache.set(video.filename, isH264);
+                    }
+                });
+
+                return videos;
+            } else {
+                console.error('Failed to fetch videos, status: ', response.status);
+            }
+        } catch (error) {
+            console.error('Failed to fetch videos: ', error);
+        }
+
+        return [];
+    }
+
     isH264Codec(codec) {
         if (!codec) return false;
         const codecLower = codec.toLowerCase();
@@ -1111,6 +1119,126 @@ class tsPlayer{
         debugDiv.scrollTop = debugDiv.scrollHeight;
     }
 
+    async getFilterMetadata(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) return [];
+        }
+
+        if(!this.token) return [];
+
+        try{
+            const response = await fetch(`${this.website}/api/local/metadata/filters`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+            if(response.ok){
+                const data = await response.json();
+                return data;
+            } else {
+                console.error('Failed to fetch filter metadata, status: ', response.status);
+            }
+        } catch (error) {
+            console.error('Failed to fetch filter metadata: ', error);
+        }
+    }
+
+    loadFilters(filterMetadata){
+        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(id => {
+            document.getElementById(id).innerHTML = '';
+        });
+
+        filterMetadata.tags.slice(0,50).forEach(tag => {
+            const container = document.getElementById('tags-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${tag.trim().toLowerCase()}">
+                    ${tag}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.languages.slice(0,50).forEach(language => {
+            const container = document.getElementById('languages-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${language.trim().toLowerCase()}">
+                    ${language}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.decades.slice(0,50).forEach(decade => {
+            const container = document.getElementById('decades-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${decade.trim().toLowerCase()}">
+                    ${decade}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.difficulties.slice(0,50).forEach(difficulty => {
+            const container = document.getElementById('difficulties-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${difficulty.trim().toLowerCase()}">
+                    ${difficulty}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.genres.slice(0,50).forEach(genre => {
+            const container = document.getElementById('genres-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${genre.trim().toLowerCase()}">
+                    ${genre}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.production_companies.slice(0,50).forEach(production_company => {
+            const container = document.getElementById('prodution-companies-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${production_company.trim().toLowerCase()}">
+                    ${production_company}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.networks.slice(0,50).forEach(network => {
+            const container = document.getElementById('networks-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${network.trim().toLowerCase()}">
+                    ${network}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+        filterMetadata.countries.slice(0,50).forEach(country => {
+            const container = document.getElementById('countries-list');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" value="${country.trim().toLowerCase()}">
+                    ${country}
+                </label>
+            `;
+            container.appendChild(div);
+        });
+    }
 
     async searchVideos(query){
         if(!this.token || query.length < 3) return [];
