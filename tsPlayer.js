@@ -1035,7 +1035,7 @@ class tsPlayer{
                         this.codecCache.set(video.filename, isH264);
                     }
                 });
-
+                console.log(videos);
                 return videos;
             } else {
                 console.error('Failed to fetch videos, status: ', response.status);
