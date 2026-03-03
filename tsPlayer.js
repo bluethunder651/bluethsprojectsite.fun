@@ -1206,7 +1206,7 @@ class tsPlayer{
             container.appendChild(div);
         });
         filterMetadata.production_companies.slice(0,50).forEach(production_company => {
-            const container = document.getElementById('prodution-companies-list');
+            const container = document.getElementById('production-companies-list');
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
