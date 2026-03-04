@@ -1161,7 +1161,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" class="tristate">
+                    <input type="checkbox" class="tristate" value="${tag.trim().toLowerCase()}">
                     ${tag}
                 </label>
             `;
@@ -1245,7 +1245,11 @@ class tsPlayer{
             container.appendChild(div);
         });
 
-        document.querySelector('.tristate').onclick = this.tristateHandler;
+        document.querySelectorAll('.tristate').forEach(id => {
+            id.addEventListener('click', function() {
+                tristateHandler();
+            });
+        })
     }
 
     toggleSection(header){
