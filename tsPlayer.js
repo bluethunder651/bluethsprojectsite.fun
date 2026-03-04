@@ -1141,7 +1141,7 @@ class tsPlayer{
         });
 
         const metadataMap = [
-            {key: 'tags', section: 'tagslist'},
+            {key: 'tags', section: 'tags-list'},
             { key: 'languages', section: 'languages-list' },
             { key: 'decades', section: 'decades-list' },
             { key: 'difficulties', section: 'difficulties-list' },
@@ -1316,5 +1316,6 @@ class tsPlayer{
     
 
 }
+
 
 const player = new tsPlayer();
