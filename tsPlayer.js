@@ -1190,15 +1190,6 @@ class tsPlayer{
             });
         });
 
-        const sfwCheckbox = document.getElementById('sfw-filter');
-        if(sfwCheckbox){
-            sfwCheckbox.dataset.tristate = 'include';
-            sfwCheckbox.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.cycleTristate(sfwCheckbox);
-            });
-        }
-        
         const specialCheckbox = document.getElementById('special-checkbox');
         if(specialCheckbox){
             specialCheckbox.dataset.tristate = 'include';
@@ -1256,7 +1247,6 @@ class tsPlayer{
             networks: { include: [], exclude: [] },
             countries: { include: [], exclude: [] },
             special_openings: document.getElementById('special-checkbox')?.checked || false,
-            sfw: document.getElementById('sfw-filter')?.checked || false
         };
 
         const listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
