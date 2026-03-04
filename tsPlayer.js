@@ -1245,7 +1245,7 @@ class tsPlayer{
             container.appendChild(div);
         });
 
-        document.querySelectorAll('.tristate').onclick = this.tristateHandler;
+        document.querySelector('.tristate').onclick = this.tristateHandler;
     }
 
     toggleSection(header){
