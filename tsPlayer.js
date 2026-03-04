@@ -1287,13 +1287,12 @@ class tsPlayer{
         const special_openings = document.getElementById('special-checkbox');
         if(!special_openings) return;
         
-        const value = special_openings.value;
         const state = special_openings.dataset.tristate || 'null';
 
         if (state === 'include'){
-            selections[special_openings].include.push(value);
+            selections[special_openings].include.push(true);
         } else if (state === 'exclude'){
-            selections[special_openings].exclude.push(value);
+            selections[special_openings].exclude.push(true);
         }
 
         return selections
