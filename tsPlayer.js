@@ -1257,9 +1257,11 @@ class tsPlayer{
             countries: { include: [], exclude: [] },
             special_openings: document.getElementById('special-checkbox')?.checked || false,
             sfw: document.getElementById('sfw-filter')?.checked || false
-        }
+        };
 
-        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(listId => {
+        listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
+        
+        listIds.forEach(listId => {
             const section = listId.split('-')[0]
             let target;
 
