@@ -1161,7 +1161,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${tag.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${tag.trim().toLowerCase()}">
                     ${tag}
                 </label>
             `;
@@ -1172,7 +1172,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${language.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${language.trim().toLowerCase()}">
                     ${language}
                 </label>
             `;
@@ -1183,7 +1183,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${decade.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${decade.trim().toLowerCase()}">
                     ${decade}
                 </label>
             `;
@@ -1194,7 +1194,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${difficulty.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${difficulty.trim().toLowerCase()}">
                     ${difficulty}
                 </label>
             `;
@@ -1205,7 +1205,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${genre.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${genre.trim().toLowerCase()}">
                     ${genre}
                 </label>
             `;
@@ -1216,7 +1216,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${production_company.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${production_company.trim().toLowerCase()}">
                     ${production_company}
                 </label>
             `;
@@ -1227,7 +1227,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${network.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${network.trim().toLowerCase()}">
                     ${network}
                 </label>
             `;
@@ -1238,12 +1238,14 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" value="${country.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate" value="${country.trim().toLowerCase()}">
                     ${country}
                 </label>
             `;
             container.appendChild(div);
         });
+
+        document.querySelectorAll('.tristate').onclick = this.tristateHandler;
     }
 
     toggleSection(header){
@@ -1251,6 +1253,21 @@ class tsPlayer{
         content.classList.toggle('active');
         const arrow = header.querySelector('.arrow');
         arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
+    }
+
+    tristateHandler(e){
+        const states = ['include', 'exclude', 'null'];
+
+        const i = states.indexOf(e.target.value) + 1;
+        e.target.value = i < states.length ? states[i] : states[0];
+        switch(e.target.value){
+            case states[0]:
+                e.target.checked = true;
+            case states[1]:
+                e.target.indeterminate = true;
+            default:
+                e.target.checked = false;
+        }
     }
 
     async searchVideos(query){

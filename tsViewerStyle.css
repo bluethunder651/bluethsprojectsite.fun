@@ -79,6 +79,12 @@ body {
     display: block;
 }
 
+.checkbox {
+    padding: 2px;    
+}
+
+
+
 .mobile-checkbox {
     display: inline-flex;
     align-items: center;
