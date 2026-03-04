@@ -1247,7 +1247,7 @@ class tsPlayer{
 
         document.querySelectorAll('.tristate').forEach(id => {
             id.addEventListener('click', function() {
-                tristateHandler();
+                this.tristateHandler();
             });
         })
     }
