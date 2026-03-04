@@ -192,6 +192,7 @@ class tsPlayer{
             const preloader = document.getElementById('video-preload');
             const currentVideoTitle = document.getElementById('current-video-title');
             const progressFill = document.getElementById('progress-fill');
+            const filters = document.getElementById('filter-options');
             const currentTimeSpan = document.getElementById('current-time');
             const durationSpan = document.getElementById('duration');
             const mobileCheckbox = document.getElementById('mobile-mode');
@@ -304,8 +305,6 @@ class tsPlayer{
             });
             
         document.getElementById('tag-select').addEventListener('click', async () => {
-            const filters = document.getElementById('filter-options');
-
             if(filters.style.display === 'none' || !filters.style.display){
                 filters.style.display = 'block';
                 await player.loadFilters(filterMetadata);
@@ -334,6 +333,7 @@ class tsPlayer{
 
                     videoBrowser.style.display = 'none';
                     playerScreen.style.display = 'block';
+                    filters.style.display = 'none';
 
                     playPlaylistVideo(currentPlaylistIndex);
                     
