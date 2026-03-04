@@ -1259,7 +1259,7 @@ class tsPlayer{
             sfw: document.getElementById('sfw-filter')?.checked || false
         }
 
-        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(listId => {
+    ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(listId => {
             const section = listId.split('-')[0]
             let target;
 
@@ -1316,6 +1316,5 @@ class tsPlayer{
     
 
 }
-
 
 const player = new tsPlayer();
