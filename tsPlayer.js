@@ -1161,7 +1161,7 @@ class tsPlayer{
             const div = document.createElement('div');
             div.innerHTML = `
                 <label>
-                    <input type="checkbox" class="tristate" value="${tag.trim().toLowerCase()}">
+                    <input type="checkbox" class="tristate">
                     ${tag}
                 </label>
             `;
