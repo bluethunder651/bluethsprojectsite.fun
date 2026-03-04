@@ -97,7 +97,7 @@ body {
     transition: background-color 0.2s;
 }
 
-.tristate-item:hover{
+.tristate-item:hover {
     background: #e3f2fd;
 }
 
@@ -122,13 +122,13 @@ body {
     transition: all 0.2s;
 }
 
-.tristate-checkbox:checked{
+.tristate-checkbox:checked {
     background-color: #4CAF50;
     border-color: #4CAF50;
     position: relative;
 }
 
-.tristate-checkbox:checked::after{
+.tristate-checkbox:checked::after {
     content: '✓';
     color: white;
     position: absolute;
@@ -137,13 +137,13 @@ body {
     font-size: 14px;
 }
 
-.tristate-checkbox.intermediate {
+.tristate-checkbox.indeterminate {
     background-color: #ff9800;
     border-color: #ff9800;
     position: relative;
 }
 
-.tristate-checkbox.intermediate::after{
+.tristate-checkbox.indeterminate::after {
     content: '−';
     color: white;
     position: absolute;
