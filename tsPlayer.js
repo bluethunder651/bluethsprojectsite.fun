@@ -1259,12 +1259,11 @@ class tsPlayer{
             sfw: document.getElementById('sfw-filter')?.checked || false
         }
 
-    ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(listId => {
+        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(listId => {
             const section = listId.split('-')[0]
             let target;
 
-            if(section === 'production') taget = 'production_companies'
-            else if (section === 'networks') target = 'networks'
+            if(section === 'production') target = 'production_companies'
             else target = section
 
             const list = document.getElementById(listId);
