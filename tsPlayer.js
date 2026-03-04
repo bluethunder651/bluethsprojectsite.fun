@@ -1215,11 +1215,11 @@ class tsPlayer{
         checkbox.checked = false;
 
         if(state === 'include'){
-            checkbox.checked = true;
+            checkbox.classList.add('checked');
         } else if (state === 'exclude'){
+            checkbox.classList.remove('checked');
             checkbox.classList.add('indeterminate');
         } else {
-            checkbox.checked = false;
             checkbox.classList.remove('indeterminate');
         }
     }
