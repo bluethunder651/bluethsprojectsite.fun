@@ -138,8 +138,8 @@ body {
 }
 
 .tristate-checkbox.indeterminate {
-    background-color: #ff9800;
-    border-color: #ff9800;
+    background-color: #f44336;
+    border-color: #f44336;
     position: relative;
 }
 
