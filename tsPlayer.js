@@ -1164,8 +1164,8 @@ class tsPlayer{
                 div.innerHTML = `
                     <label class="tristate-container">
                         <input type="checkbox" class="tristate-checkbox" value="${value}" data-tristate="null">
-                        <span class="tristate-label>${item}</span>
-                        <span class="tristate-state>(null)</span>
+                        <span class="tristate-label">${item}</span>
+                        <span class="tristate-state">(null)</span>
                     </label>
                 `;
 
