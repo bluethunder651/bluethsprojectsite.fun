@@ -319,21 +319,12 @@ class tsPlayer{
             await player.refreshToken();
             loadingIndicator.style.display = 'block';
             
-            const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedDifficulties = Array.from(document.querySelectorAll('#difficulties-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedGenres = Array.from(document.querySelectorAll('#genres-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedProductionCompanies = Array.from(document.querySelectorAll('#production-companies-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedNetworks = Array.from(document.querySelectorAll('#networks-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const selectedCountries = Array.from(document.querySelectorAll('#countries-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-            const enableSpecialOpenings = document.getElementById('special-checkbox').checked;
-            const sfwFilter = document.getElementById('sfw-filter').checked;
+            const selections = player.collectFilterSelections();
 
             try {
                 // Get all videos first
-                let videos = await player.getFilteredVideos(selectedTags, selectedLanguages, selectedDecades, selectedDifficulties, selectedGenres, selectedProductionCompanies, selectedNetworks, selectedCountries, enableSpecialOpenings, sfwFilter);
-                
+                let videos = await player.getFilteredVideos(selections);
+                                
                 if (videos && videos.length > 0) {
                     // Shuffle the array
                     playlist = [...videos];
@@ -992,7 +983,7 @@ class tsPlayer{
         return [];
     }
 
-    async getFilteredVideos(tags, languages, decades, difficulties, genres, production_companies, networks, countries, special_openings, sfw){
+    async getFilteredVideos(selections){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
@@ -1007,16 +998,7 @@ class tsPlayer{
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    tags: tags,
-                    languages: languages,
-                    decades: decades,
-                    difficulties: difficulties,
-                    genres: genres,
-                    production_companies: production_companies,
-                    networks: networks,
-                    countries: countries,
-                    special_openings: special_openings,
-                    sfw: sfw
+                    filter_rules: selections
                 })
             });
 
@@ -1152,104 +1134,155 @@ class tsPlayer{
     }
 
     loadFilters(filterMetadata){
-        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(id => {
+        const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
+
+        filterSelections.forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
 
-        filterMetadata.tags.slice(0,50).forEach(tag => {
-            const container = document.getElementById('tags-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${tag.trim().toLowerCase()}">
-                    ${tag}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.languages.slice(0,50).forEach(language => {
-            const container = document.getElementById('languages-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${language.trim().toLowerCase()}">
-                    ${language}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.decades.slice(0,50).forEach(decade => {
-            const container = document.getElementById('decades-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${decade.trim().toLowerCase()}">
-                    ${decade}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.difficulties.slice(0,50).forEach(difficulty => {
-            const container = document.getElementById('difficulties-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${difficulty.trim().toLowerCase()}">
-                    ${difficulty}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.genres.slice(0,50).forEach(genre => {
-            const container = document.getElementById('genres-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${genre.trim().toLowerCase()}">
-                    ${genre}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.production_companies.slice(0,50).forEach(production_company => {
-            const container = document.getElementById('production-companies-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${production_company.trim().toLowerCase()}">
-                    ${production_company}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.networks.slice(0,50).forEach(network => {
-            const container = document.getElementById('networks-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${network.trim().toLowerCase()}">
-                    ${network}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.countries.slice(0,50).forEach(country => {
-            const container = document.getElementById('countries-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" class="tristate" value="${country.trim().toLowerCase()}">
-                    ${country}
-                </label>
-            `;
-            container.appendChild(div);
+        const metadataMap = [
+            {key: 'tags', section: 'tagslist'},
+            { key: 'languages', section: 'languages-list' },
+            { key: 'decades', section: 'decades-list' },
+            { key: 'difficulties', section: 'difficulties-list' },
+            { key: 'genres', section: 'genres-list' },
+            { key: 'production_companies', section: 'production-companies-list' },
+            { key: 'networks', section: 'networks-list' },
+            { key: 'countries', section: 'countries-list' }           
+        ]
+
+        metadataMap.forEach(({key, section}) => {
+            const container = document.getElementById(section);
+            if(!container || !filterMetadata[key]) return;
+
+            filterMetadata[key].slice(0,50).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'tristate-item';
+
+                const value = item.trim().toLowerCase();
+
+                div.innerHTML = `
+                    <label class="tristate-container">
+                        <input type="checkbox" class="tristate-checkbox" value="${value}" data-tristate="null">
+                        <span class="tristate-label>${item}</span>
+                        <span class="tristate-state>(null)</span>
+                    </label>
+                `;
+
+                container.appendChild(div);
+
+                const checkbox = div.querySelector('.tristate-checkbox');
+                const stateSpan = div.querySelector('.tristate-state');
+
+                checkbox.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.cycleTristate(checkbox);
+
+                    const state = checkbox.dataset.tristate || 'null';
+                    if (state === 'include'){
+                        stateSpan.textContent = '(include)';
+                    } else if (state === 'exclude'){
+                        stateSpan.textContent = '(exclude)';
+                    } else {
+                        stateSpan.textContent = '(null)';
+                    }
+                });
+            });
         });
 
-        document.querySelectorAll('.tristate').forEach(id => {
-            id.addEventListener('click', function() {
-                this.tristateHandler;
+        const sfwCheckbox = document.getElementById('sfw-filter');
+        if(sfwCheckbox){
+            sfwCheckbox.dataset.tristate = 'include';
+            sfwCheckbox.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.cycleTristate(sfwCheckbox);
             });
-        })
+        }
+        
+        const specialCheckbox = document.getElementById('special-checkbox');
+        if(specialCheckbox){
+            specialCheckbox.dataset.tristate = 'include';
+            specialCheckbox.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.cycleTristate(specialCheckbox);
+            });
+        }
+    }
+
+    setTristateState(checkbox, state){
+        checkbox.dataset.tristate = state;
+        checkbox.classList.remove('indeterminate');
+        checkbox.checked = false;
+
+        if(state === 'include'){
+            checkbox.checked = true;
+        } else if (state === 'exclude'){
+            checkbox.classList.add('indeterminate');
+        } else {
+            checkbox.checked = false;
+            checkbox.classList.remove('indeterminate');
+        }
+    }
+
+    cycleTristate(checkbox){
+        const currentState = checkbox.dataset.tristate || 'null';
+        let newState;
+
+        switch(currentState){
+            case 'null':
+                newState = 'include';
+                break;
+            case 'include':
+                newState = 'exclude';
+                break;
+            case 'exclude':
+                newState = 'null';
+                break;
+            default:
+                newState = 'include';
+        }
+
+        this.setTristateState(checkbox, newState);
+    }
+
+    collectFilterSelections(){
+        const selections = {
+            tags: {include: [], exclude: []},
+            languages: { include: [], exclude: [] },
+            decades: { include: [], exclude: [] },
+            difficulties: { include: [], exclude: [] },
+            genres: { include: [], exclude: [] },
+            production_companies: { include: [], exclude: [] },
+            networks: { include: [], exclude: [] },
+            countries: { include: [], exclude: [] },
+            special_openings: document.getElementById('special-checkbox')?.checked || false,
+            sfw: document.getElementById('sfw-filter')?.checked || false
+        }
+
+        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(listId => {
+            const section = listId.split('-')[0]
+            let target;
+
+            if(section === 'production') taget = 'production_companies'
+            else if (section === 'networks') target = 'networks'
+            else target = section
+
+            const list = document.getElementById(listId);
+            if (!list) return;
+
+            list.querySelectorAll('.tristate-checkbox').forEach(checkbox => {
+                const value = checkbox.value;
+                const state = checkbox.dataset.tristate || 'null';
+
+                if (state === 'include'){
+                    selections[target].include.push(value);
+                } else if (state === 'exclude') {
+                    selections[target].exclude.push(value);
+                }
+            });
+        });
+
+        return selections
     }
 
     toggleSection(header){
@@ -1257,21 +1290,6 @@ class tsPlayer{
         content.classList.toggle('active');
         const arrow = header.querySelector('.arrow');
         arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
-    }
-
-    tristateHandler(e){
-        const states = ['include', 'exclude', 'null'];
-
-        const i = states.indexOf(e.target.value) + 1;
-        e.target.value = i < states.length ? states[i] : states[0];
-        switch(e.target.value){
-            case states[0]:
-                e.target.checked = true;
-            case states[1]:
-                e.target.indeterminate = true;
-            default:
-                e.target.checked = false;
-        }
     }
 
     async searchVideos(query){
