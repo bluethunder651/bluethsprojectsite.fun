@@ -1196,6 +1196,17 @@ class tsPlayer{
             specialCheckbox.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.cycleTristate(specialCheckbox);
+
+                specialCheckboxState = document.getElementById('special-checkbox-state');
+
+                const state = specialCheckbox.dataset.tristate || 'null';
+                if (state === 'include'){
+                    specialCheckboxState.textContent = '(include)';
+                } else if (state === 'exclude'){
+                    specialCheckboxState.textContent = '(exclude)';
+                } else {
+                    specialCheckboxState.textContent = '(null)';
+                }
             });
         }
     }
@@ -1246,7 +1257,7 @@ class tsPlayer{
             production_companies: { include: [], exclude: [] },
             networks: { include: [], exclude: [] },
             countries: { include: [], exclude: [] },
-            special_openings: document.getElementById('special-checkbox')?.checked || false,
+            special_openings: {include: [], exclude: []},
         };
 
         const listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
@@ -1272,6 +1283,18 @@ class tsPlayer{
                 }
             });
         });
+
+        const special_openings = document.getElementById('special-checkbox');
+        if(!special_openings) return;
+        
+        const value = special_openings.value;
+        const state = special_openings.dataset.tristate || 'null';
+
+        if (state === 'include'){
+            selections[special_openings].include.push(value);
+        } else if (state === 'exclude'){
+            selections[special_openings].exclude.push(value);
+        }
 
         return selections
     }
