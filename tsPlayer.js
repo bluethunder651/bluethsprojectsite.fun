@@ -600,7 +600,7 @@ class tsPlayer{
             function handleVideoEnded() {
                 if (isPlayingPlaylist) {
                     const nextIndex = currentPlaylistIndex + 1;
-                    
+
                     // Check if we have a preloaded video and it's the correct one
                     if (preloader.src && preloader.dataset.preloadedIndex == nextIndex) {
                         // Use the preloaded video
@@ -612,6 +612,8 @@ class tsPlayer{
                         const progressText = `(${nextIndex + 1}/${playlist.length}) `;
                         currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
                         
+                        videoPlayer.currentTime = 0;
+
                         // Start preloading the next one
                         preloadNextVideos(nextIndex);
 
