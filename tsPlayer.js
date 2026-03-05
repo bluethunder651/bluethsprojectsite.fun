@@ -1194,7 +1194,7 @@ class tsPlayer{
 
         const specialCheckbox = document.getElementById('special-checkbox');
         if(specialCheckbox){
-            specialCheckbox.dataset.tristate = 'include';
+            specialCheckbox.dataset.tristate = 'null';
             specialCheckbox.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.cycleTristate(specialCheckbox);
