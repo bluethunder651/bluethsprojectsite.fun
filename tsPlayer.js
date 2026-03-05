@@ -1157,7 +1157,7 @@ class tsPlayer{
             const container = document.getElementById(section);
             if(!container || !filterMetadata[key]) return;
 
-            filterMetadata[key].slice(0,50).forEach(item => {
+            filterMetadata[key].forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'tristate-item';
 
