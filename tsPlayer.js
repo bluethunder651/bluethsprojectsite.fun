@@ -597,59 +597,66 @@ class tsPlayer{
                 }
             }
 
-            function handleVideoEnded() {
+            function handleVideoEnded() {              
                 if (isPlayingPlaylist) {
+
                     const nextIndex = currentPlaylistIndex + 1;
+                    
+                    if(player.token && Date.now() < player.tokenExpiry){    
+                        // Check if we have a preloaded video and it's the correct one
+                        if (preloader.src && preloader.dataset.preloadedIndex == nextIndex) {
+                            // Use the preloaded video
+                            videoPlayer.src = preloader.src;
+                            preloader.src = '';
+                            
+                            // Update title
+                            const nextVideo = playlist[nextIndex];
+                            const progressText = `(${nextIndex + 1}/${playlist.length}) `;
+                            currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+                            
+                            videoPlayer.currentTime = 0;
 
-                    // Check if we have a preloaded video and it's the correct one
-                    if (preloader.src && preloader.dataset.preloadedIndex == nextIndex) {
-                        // Use the preloaded video
-                        videoPlayer.src = preloader.src;
-                        preloader.src = '';
-                        
-                        // Update title
-                        const nextVideo = playlist[nextIndex];
-                        const progressText = `(${nextIndex + 1}/${playlist.length}) `;
-                        currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
-                        
-                        videoPlayer.currentTime = 0;
+                            // Start preloading the next one
+                            preloadNextVideos(nextIndex);
 
-                        // Start preloading the next one
-                        preloadNextVideos(nextIndex);
+                            if('mediaSession' in navigator){
+                                navigator.mediaSession.metadata = new MediaMetadata({
+                                    title: nextVideo.opening_name || nextVideo.filename,
+                                    artist: 'Theme Song Player',
+                                    album: 'Playlist Mode'
+                                });
+                            }
 
-                        if('mediaSession' in navigator){
-                            navigator.mediaSession.metadata = new MediaMetadata({
-                                title: nextVideo.opening_name || nextVideo.filename,
-                                artist: 'Theme Song Player',
-                                album: 'Playlist Mode'
-                            });
+                            videoPlayer.play()
+                                .then(() => {
+                                    if('mediaSession' in navigator){
+                                        navigator.mediaSession.playbackState = 'playing';
+
+                                        navigator.mediaSession.metadata = new MediaMetadata({
+                                            title: nextVideo.opening_name || nextVideo.filename,
+                                            artist: 'Theme Song Player',
+                                            album: 'Playlist Mode'
+                                        });
+
+                                        navigator.mediaSession.setActionHandler('play', () => videoPlayer.play());
+                                        navigator.mediaSession.setActionHandler('pause', () => videoPlayer.pause());
+                                        navigator.mediaSession.setActionHandler('previoustrack', () => {
+                                            if(currentPlaylistIndex > 0) playPlaylistVideo(currentPlaylistIndex - 1);
+                                        });
+                                        navigator.mediaSession.setActionHandler('nexttrack', () => {
+                                            handleVideoEnded();
+                                        });
+                                    }
+                                })
+                                .catch(e => {console.log('Autoplay prevented: ', e); if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'});                        currentPlaylistIndex = nextIndex;
+                        } else {
+                            // Fall back to normal playback (will check compatibility)
+                            playPlaylistVideo(nextIndex);
                         }
-
-                        videoPlayer.play()
-                            .then(() => {
-                                if('mediaSession' in navigator){
-                                    navigator.mediaSession.playbackState = 'playing';
-
-                                    navigator.mediaSession.metadata = new MediaMetadata({
-                                        title: nextVideo.opening_name || nextVideo.filename,
-                                        artist: 'Theme Song Player',
-                                        album: 'Playlist Mode'
-                                    });
-
-                                    navigator.mediaSession.setActionHandler('play', () => videoPlayer.play());
-                                    navigator.mediaSession.setActionHandler('pause', () => videoPlayer.pause());
-                                    navigator.mediaSession.setActionHandler('previoustrack', () => {
-                                        if(currentPlaylistIndex > 0) playPlaylistVideo(currentPlaylistIndex - 1);
-                                    });
-                                    navigator.mediaSession.setActionHandler('nexttrack', () => {
-                                        handleVideoEnded();
-                                    });
-                                }
-                            })
-                            .catch(e => {console.log('Autoplay prevented: ', e); if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'});                        currentPlaylistIndex = nextIndex;
                     } else {
-                        // Fall back to normal playback (will check compatibility)
-                        playPlaylistVideo(nextIndex);
+                        player.refreshToken().then(() => {
+                            playPlaylistVideo(nextIndex);
+                        });
                     }
                 }
             }
@@ -851,7 +858,7 @@ class tsPlayer{
             videoPlayer.addEventListener('timeupdate', updateProgress);
             videoPlayer.addEventListener('loadedmetadata', updateDuration);
 
-            videoPlayer.addEventListener('error', () => {
+            videoPlayer.addEventListener('error', async () => {
                 const err = videoPlayer.error;
 
                 //player.mobileLog(err);
@@ -859,30 +866,47 @@ class tsPlayer{
 
                 if(!err) return;
 
-                if(err.code === 4){
-                    console.log("Unsupported video format detected. Auto-skipping.");
-                    //player.mobileLog('Unsupported video format.')
-                    handleVideoEnded();
-                }
+                if (err.code === 2 || err.code === 3 || err.message?.includes('401')){
+                    console.log('Possible authentication error, refreshing token.');
 
-                if (err && (err.code === 2 || err.code === 3) && retryCount < maxRetries){
-                    retryCount++;
-                    console.log('Stream interrupted. Retrying video...');
-
-                    const currentSrc = videoPlayer.src;
                     const currentTime = videoPlayer.currentTime;
+                    const currentSrc = videoPlayer.src;
 
-                    videoPlayer.src = currentSrc;
-                    videoPlayer.load();
+                    const tokenRefreshed = await this.refreshToken();
 
-                    videoPlayer.addEventListener('loadedmetadata', function resumePlayback(){
-                        videoPlayer.currentTime = currentTime;
-                        videoPlayer.play().catch(e => 'Autoplay prevented on retry: ', e);
-                        videoPlayer.removeEventListener('loadedmetadata', resumePlayback);
-                    }); 
-                } else if(retryCount >= maxRetries){
-                    console.log('Max retries hit. The video stream has failed.');
-                    //player.mobileLog('Max retries hit.')
+                    if(tokenRefreshed && this.token){
+                        console.log('Token refreshed, retrying video');
+
+                        const urlParts = currentSrc.split('/api/local/videos');
+                        if (urlParts.length > 1){
+                            const filenamePart = urlParts[1].split('?')[0];
+                            const filename = decodeURIComponent(filenamePart);
+
+                            const newVideoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filename)}?token=${encodeURIComponent(this.token)}`;
+
+                            if (retryCount < maxRetries){
+                                retryCount++;
+
+                                videoPlayer.src = newVideoUrl;
+                                videoPlayer.load();
+
+                                videoPlayer.addEventListener('loadedmetadata', function resumePlayback() {
+                                    videoPlayer.currentTime = currentTime;
+                                    videoPlayer.play().catch(e => console.log('Autoplay prevented on retry: ', e));
+
+                                    videoPlayer.removeEventListener('loadedmetadata', resumePlayback);
+                                }, {once: true});
+                            } else {
+                                console.log('Max retries reached, skipping to next video.');
+                                handleVideoEnded();
+                            }
+                        }
+                    } else {
+                        console.log('Failed to refresh token, skipping video');
+                        handleVideoEnded();
+                    }
+                } else if (err.code === 4){
+                    console.log('Unsupported video format detected. Auto-skipping.');
                     handleVideoEnded();
                 }
             });
