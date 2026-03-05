@@ -74,13 +74,11 @@ body {
 
 .filter-content {
     display: none;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 .filter-content.active {
     display: block;
-    height: 400px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
