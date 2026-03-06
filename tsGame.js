@@ -440,6 +440,93 @@ class tsGame{
         }
     }
 
+    setTristateState(checkbox, state){
+        checkbox.dataset.tristate = state;
+        checkbox.classList.remove('indeterminate');
+        checkbox.checked = false;
+
+        if(state === 'include'){
+            checkbox.classList.add('checked');
+        } else if (state === 'exclude') {
+            checkbox.classList.remove('checked');
+            checkbox.classList.add('indeterminate');
+        } else {
+            checkbox.classList.remove('indeterminate');
+        }
+    }
+
+    cycleTristate(checkbox){
+        const currentState = checkbox.dataset.tristate || 'null';
+        let newState;
+
+        switch(currentState){
+            case 'null':
+                newState = 'include';
+                break;
+            case 'include':
+                newState = 'exclude';
+                break;
+            case 'exclude':
+                newState = 'null';
+                break;
+            default:
+                newState = 'include';
+        }
+
+        this.setTristateState(checkbox, newState);
+    }
+
+    collectFilterSelections(){
+        const selections = {
+            tags: {include: [], exclude: []},
+            languages: { include: [], exclude: [] },
+            decades: { include: [], exclude: [] },
+            difficulties: { include: [], exclude: [] },
+            genres: { include: [], exclude: [] },
+            production_companies: { include: [], exclude: [] },
+            networks: { include: [], exclude: [] },
+            countries: { include: [], exclude: [] },
+            special_openings: {include: [], exclude: []},            
+        }
+
+        const listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
+
+        listIds.forEach(listId => {
+            const section = listId.split('-')[0];
+            let target;
+
+            if(section === 'production') target = 'production_companies';
+            else target = section
+
+            const list = document.getElementById(listId);
+            if (!list) return;
+
+            list.querySelectorAll('.tristate-checkbox').forEach(checkbox => {
+                const value = checkbox.value;
+                const state = checkbox.dataset.tristate || 'null';
+
+                if(state === 'include'){
+                    selections[target].include.push(value);
+                } else if (state === 'exclude'){
+                    selections[target].exclude.push(value);
+                }
+            });
+        });
+
+        const special_openings = document.getElementById('special-checkbox');
+        if(!special_openings) return;
+        const value = special_openings.value;
+        const state = special_openings.dataset.tristate || 'null';
+
+        if(state === 'include') {
+            selections['special_openings'].include.push(value);
+        } else if (state === 'exclude'){
+            selections['special_openings'].exclude.push(value);
+        }
+
+        return selections
+    }
+
     async start_game(singleplayer){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -456,15 +543,8 @@ class tsGame{
 
         this.isGameActive = true;
 
-        const selectedTags = Array.from(document.querySelectorAll('#tags-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedLanguages = Array.from(document.querySelectorAll('#languages-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedDecades = Array.from(document.querySelectorAll('#decades-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedDifficulties = Array.from(document.querySelectorAll('#difficulties-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedGenres = Array.from(document.querySelectorAll('#genres-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedProductionCompanies = Array.from(document.querySelectorAll('#production-companies-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedNetworks = Array.from(document.querySelectorAll('#networks-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const selectedCountries = Array.from(document.querySelectorAll('#countries-list input:checked')).map(checkbox => checkbox.value.toLowerCase().trim());
-        const enableSpecialOpenings = document.getElementById('special-checkbox').checked;
+        const selections = this.collectFilterSelections();
+
         const enableRandomStartTime = document.getElementById('enable-random-start').checked;
         const startMin = enableRandomStartTime ? (document.getElementById('start-min').value) || 0 : 0;
         const startMax = enableRandomStartTime ? (document.getElementById('start-max').value) || 90 : 0;
@@ -483,19 +563,11 @@ class tsGame{
             },
             body: JSON.stringify({
                 playerName: this.playerName,
-                tags: selectedTags,
-                languages: selectedLanguages,
-                decades: selectedDecades,
-                difficulties: selectedDifficulties,
-                genres: selectedGenres,
-                production_companies: selectedProductionCompanies,
-                networks: selectedNetworks,
-                countries: selectedCountries,
+                selections: selections,
                 sfw: sfwFilter,
                 rounds: this.totalRounds,
                 startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
                 hintPercent: enableHintMode ? hintPercent : 25,
-                specialOpenings: enableSpecialOpenings,
                 singleplayer: singleplayer,
                 hardMode: this.hardMode
             })
