@@ -548,7 +548,6 @@ class tsGame{
         const enableRandomStartTime = document.getElementById('enable-random-start').checked;
         const startMin = enableRandomStartTime ? (document.getElementById('start-min').value) || 0 : 0;
         const startMax = enableRandomStartTime ? (document.getElementById('start-max').value) || 90 : 0;
-        const sfwFilter = document.getElementById('sfw-filter').checked;
         const enableHintMode = document.getElementById('enable-hint-mode').checked;
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
         this.totalRounds = parseInt(document.getElementById('rounds-input').value) || 10;
@@ -564,7 +563,6 @@ class tsGame{
             body: JSON.stringify({
                 playerName: this.playerName,
                 selections: selections,
-                sfw: sfwFilter,
                 rounds: this.totalRounds,
                 startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
                 hintPercent: enableHintMode ? hintPercent : 25,
