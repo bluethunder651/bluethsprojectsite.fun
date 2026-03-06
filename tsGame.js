@@ -363,7 +363,6 @@ class tsGame{
     }
 
     loadFilters(filterMetadata){
-
         const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
 
         filterSelections.forEach(id => {
@@ -378,7 +377,7 @@ class tsGame{
             { key: 'genres', section: 'genres-list' },
             { key: 'production_companies', section: 'production-companies-list' },
             { key: 'networks', section: 'networks-list' },
-            { key: 'countries', section: 'countries-list' }            
+            { key: 'countries', section: 'countries-list' }           
         ]
 
         metadataMap.forEach(({key, section}) => {
@@ -394,12 +393,13 @@ class tsGame{
                 div.innerHTML = `
                     <label class="tristate-container">
                         <input type="checkbox" class="tristate-checkbox" value="${value}" data-tristate="null">
-                        <span class="tristate-label>${item}</span>
-                        <span class="tristate-state>(null)</span
+                        <span class="tristate-label">${item}</span>
+                        <span class="tristate-state">(null)</span>
                     </label>
                 `;
 
                 container.appendChild(div);
+
                 const checkbox = div.querySelector('.tristate-checkbox');
                 const stateSpan = div.querySelector('.tristate-state');
 
@@ -408,7 +408,7 @@ class tsGame{
                     this.cycleTristate(checkbox);
 
                     const state = checkbox.dataset.tristate || 'null';
-                    if(state === 'include'){
+                    if (state === 'include'){
                         stateSpan.textContent = '(include)';
                     } else if (state === 'exclude'){
                         stateSpan.textContent = '(exclude)';
@@ -429,7 +429,7 @@ class tsGame{
                 const specialCheckboxState = document.getElementById('special-checkbox-state');
 
                 const state = specialCheckbox.dataset.tristate || 'null';
-                if(state === 'include'){
+                if (state === 'include'){
                     specialCheckboxState.textContent = '(include)';
                 } else if (state === 'exclude'){
                     specialCheckboxState.textContent = '(exclude)';
