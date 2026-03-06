@@ -639,7 +639,7 @@ class tsGame{
                 tempVideo.preload = 'auto';
                 tempVideo.src = videoUrl;
 
-                await new Promise ((reoslve) => {
+                await new Promise ((resolve) => {
                     tempVideo.addEventListener('loadedmetadata', () => {
                         this.preloadedVideos.set(nextToPreload.index, tempVideo);
                         console.log(`Preloaded video ${nextToPreload.index + 1}/${this.playlist.length}`);
@@ -937,6 +937,7 @@ class tsGame{
 
         if(this.preloadedVideos.has(this.currentPlaylistIndex)){
             const preloadedVideo = this.preloadedVideos.get(this.currentPlaylistIndex);
+            console.log(`preloadedVideo.src: ${preloadedVideo.src}`);
             mainPlayer.src = preloadedVideo.src;
             this.preloadedVideos.delete(this.currentPlaylistIndex);
             console.log(`Using preloaded video for index ${this.currentPlaylistIndex}`);
