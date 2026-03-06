@@ -358,7 +358,7 @@ class tsGame{
     }
 
     loadFilters(filterMetadata){
-        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list'].forEach(id => {
+        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
         
@@ -515,6 +515,7 @@ class tsGame{
 
         if(response.ok){
             const landing_screen = document.getElementById('landing-screen');
+            const loading_screen = document.getElementById('loading-screen');
             const game_screen = document.getElementById('game-screen');
             const filterOptions = document.getElementById('filter-options');
 
@@ -527,17 +528,44 @@ class tsGame{
 
 
             landing_screen.style.display = 'none';
-            game_screen.style.display = 'block';
+            loading_screen.style.display = 'block';
             filterOptions.style.display = 'none';
 
             landing_screen.classList.remove('active');
-            game_screen.classList.add('active');
+            loading_screen.classList.add('active');
 
             this.current_song = this.playlist[this.currentPlaylistIndex];
 
             const options = await this.getOptions();
 
-            this.playVideo(this.hardMode);
+            await new Promise((resolve) => {
+                const videoPlayer = document.getElementById('video-player');
+
+                const onCanPlay = () => {
+                    videoPlayer.removeEventListener('canplay', onCanPlay);
+                    videoPlayer.removeEventListener('error', onError);
+                    resolve();
+                }
+
+                const onError = (e) => {
+                    videoPlayer.removeEventListener('canplay', onCanPlay);
+                    videoPlayer.removeEventListener('error', onError);
+                    console.error('Video failed to load: ', e);
+                    resolve();
+                }
+
+                videoPlayer.addEventListener('canplay', onCanPlay);
+                videoPlayer.addEventListener('error', onError);
+
+                this.playVideo(this.hardMode);
+            });
+
+            loading_screen.style.display = 'none';
+            game_screen.style.display = 'block';
+
+            loading_screen.classList.remove('active');
+            game_screen.classList.add('active');
+
             this.fillButtons(options);
             this.preloadNextVideos();
 
@@ -611,7 +639,13 @@ class tsGame{
         
         videoPlayer.src = videoUrl;
         this.videoStartTime = Date.now();
-        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+
+        return new Promise((resolve, reject) => {
+            videoPlayer.play().then(() => resolve()).catch(e => {
+                console.log('Autoplay prevented: ', e);
+                resolve();
+            });
+        });
     }
 
     async handleVideoEnded(){
