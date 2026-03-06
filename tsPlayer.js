@@ -230,7 +230,6 @@ class tsPlayer{
                 }
             });
             
-            // Browse videos
             document.getElementById('browse-videos').addEventListener('click', () => {
                 videoBrowser.style.display = 'block';
                 loadVideos();
@@ -281,7 +280,6 @@ class tsPlayer{
                 });
             });               
             
-            // Back to browser
             document.getElementById('back-to-browser').addEventListener('click', () => {
                 playerScreen.style.display = 'none';
                 videoBrowser.style.display = 'block';
@@ -290,7 +288,6 @@ class tsPlayer{
                 playlist = [];
             });
             
-            // Refresh status
             document.getElementById('refresh-status').addEventListener('click', function() {
                 const btn = this;
                 btn.disabled = true;
@@ -313,7 +310,6 @@ class tsPlayer{
             }
         });
 
-        // Apply tags filter
         document.getElementById('apply-filters').addEventListener('click', async () => {
             await player.refreshToken();
             loadingIndicator.style.display = 'block';
@@ -321,11 +317,9 @@ class tsPlayer{
             const selections = player.collectFilterSelections();
 
             try {
-                // Get all videos first
                 let videos = await player.getFilteredVideos(selections);
                                 
                 if (videos && videos.length > 0) {
-                    // Shuffle the array
                     playlist = [...videos];
                     shuffleArray(playlist);
                     currentPlaylistIndex = 0;
@@ -378,7 +372,6 @@ class tsPlayer{
             }
         });
 
-            // Search functionality
             async function performSearch() {
                 const query = searchInput.value.trim();
                 if (query.length < 3) {
@@ -404,11 +397,9 @@ class tsPlayer{
                 loadingIndicator.style.display = 'block';
                 
                 try {
-                    // Get all videos first
                     let videos = await player.getVideos();
                     
                     if (videos && videos.length > 0) {
-                        // Shuffle the array
                         playlist = [...videos];
                         shuffleArray(playlist);
                         currentPlaylistIndex = 0;
@@ -535,7 +526,6 @@ class tsPlayer{
 
             async function preloadNextVideos(currentIndex) {
                 if (!player.mobileMode) {
-                    // If not in mobile mode, just preload the next video without checking
                     if (currentIndex + 1 < playlist.length) {
                         const nextVideo = playlist[currentIndex + 1];
                         try {
@@ -552,25 +542,21 @@ class tsPlayer{
                     return;
                 }
                 
-                // Mobile mode: check and preload next compatible video
                 let nextIndex = currentIndex + 1;
                 let checkedCount = 0;
-                const maxChecks = 5; // Don't check too far ahead to avoid performance issues
+                const maxChecks = 5; 
                 
                 while (nextIndex < playlist.length && checkedCount < maxChecks) {
                     const nextVideo = playlist[nextIndex];
                     
-                    // Check if we already know this video's compatibility
                     let isCompatible = player.codecCache.get(nextVideo.filename);
                     
                     if (isCompatible === undefined) {
-                        // Not in cache, need to check
                         console.log(`Checking compatibility for next video: ${nextVideo.filename}`);
                         isCompatible = await player.getVideoCodec(nextVideo.filename);
                     }
                     
                     if (isCompatible) {
-                        // Found a compatible video, preload it
                         console.log(`Found compatible next video at index ${nextIndex}: ${nextVideo.filename}`);
                         try {
 
@@ -580,7 +566,7 @@ class tsPlayer{
                             preloader.dataset.preloadedIndex = nextIndex;
                             console.log(`Preloaded video ${nextIndex + 1}/${playlist.length}: ${nextVideo.filename}`);
 
-                            break; // Stop after preloading one video
+                            break;
                         } catch (error) {
                             console.log('Failed to preload next video:', error);
                         }
@@ -603,20 +589,16 @@ class tsPlayer{
                     const nextIndex = currentPlaylistIndex + 1;
                     
                     if(player.token && Date.now() < player.tokenExpiry){    
-                        // Check if we have a preloaded video and it's the correct one
                         if (preloader.src && preloader.dataset.preloadedIndex == nextIndex) {
-                            // Use the preloaded video
                             videoPlayer.src = preloader.src;
                             preloader.src = '';
                             
-                            // Update title
                             const nextVideo = playlist[nextIndex];
                             const progressText = `(${nextIndex + 1}/${playlist.length}) `;
                             currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
                             
                             videoPlayer.currentTime = 0;
 
-                            // Start preloading the next one
                             preloadNextVideos(nextIndex);
 
                             if('mediaSession' in navigator){
@@ -650,7 +632,6 @@ class tsPlayer{
                                 })
                                 .catch(e => {console.log('Autoplay prevented: ', e); if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'});                        currentPlaylistIndex = nextIndex;
                         } else {
-                            // Fall back to normal playback (will check compatibility)
                             playPlaylistVideo(nextIndex);
                         }
                     } else {
@@ -706,11 +687,9 @@ class tsPlayer{
                 navDiv.appendChild(nextBtn);
                 navDiv.appendChild(shuffleAgainBtn);
                 
-                // Insert after video container
                 videoContainer.parentNode.insertBefore(navDiv, videoContainer.nextSibling);
             }
 
-            // Call this when setting up
             addPlaylistControls();
 
             searchBtn.addEventListener('click', performSearch);
@@ -718,7 +697,6 @@ class tsPlayer{
                 if (e.key === 'Enter') performSearch();
             });
             
-            // Load videos
             async function loadVideos() {
                 await player.refreshToken();
                 console.log("Loading videos...")
@@ -741,9 +719,8 @@ class tsPlayer{
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 try{
-                    // Changed to POST and added count parameter in body
                     const response = await fetch(`${player.website}/api/local/videos/random?count=1`, {
-                        method: 'POST',  // Specify POST method
+                        method: 'POST', 
                         headers: {
                             'X-Auth-Token': player.token,
                             'Referer': window.location.origin,
@@ -757,7 +734,6 @@ class tsPlayer{
                         
                         if (data.videos && data.videos.length > 0) {
                             const randomVideo = data.videos[0];
-                            // Play the video using filename
                             console.log("random video filename: "+randomVideo.filename);
                             playVideo(randomVideo.filename);
                         } else {
@@ -782,7 +758,6 @@ class tsPlayer{
                 return;
             }
 
-            // Simply display all videos regardless of mobile mode
             videos.forEach(video => {
                 const card = createVideoCard(video);
                 videoGrid.appendChild(card);
@@ -807,11 +782,9 @@ class tsPlayer{
             
             card.addEventListener('click', () => {
                 if (player.mobileMode) {
-                    // Check compatibility using cache (fast, no API call)
                     const isCompatible = player.codecCache.get(filename);
                     
                     if (isCompatible === undefined) {
-                        // If not in cache, do quick extension check
                         const h264Extensions = ['.mp4', '.m4v', '.mov'];
                         const isCompatible = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
                         player.codecCache.set(filename, isCompatible);
@@ -836,7 +809,6 @@ class tsPlayer{
                 return;
             }
             
-            // Remove the check here since we already checked in the click handler
             videoBrowser.style.display = 'none';
             playerScreen.style.display = 'block';
             currentVideoTitle.textContent = filename;
@@ -854,7 +826,6 @@ class tsPlayer{
             }
         }
 
-            // Video player event listeners
             videoPlayer.addEventListener('timeupdate', updateProgress);
             videoPlayer.addEventListener('loadedmetadata', updateDuration);
 
@@ -872,7 +843,7 @@ class tsPlayer{
                     const currentTime = videoPlayer.currentTime;
                     const currentSrc = videoPlayer.src;
 
-                    const tokenRefreshed = await this.refreshToken();
+                    const tokenRefreshed = await player.refreshToken();
 
                     if(tokenRefreshed && this.token){
                         console.log('Token refreshed, retrying video');
@@ -921,14 +892,12 @@ class tsPlayer{
                 durationSpan.textContent = formatTime(videoPlayer.duration);
             }
             
-            // Progress bar click seeking
             document.getElementById('progress-bar').addEventListener('click', (e) => {
                 const rect = e.target.getBoundingClientRect();
                 const percent = (e.clientX - rect.left) / rect.width;
                 videoPlayer.currentTime = percent * videoPlayer.duration;
             });
             
-            // Utility functions
             function formatTime(seconds) {
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
