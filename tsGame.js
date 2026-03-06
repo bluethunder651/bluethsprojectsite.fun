@@ -363,98 +363,81 @@ class tsGame{
     }
 
     loadFilters(filterMetadata){
-        ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'].forEach(id => {
+
+        const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
+
+        filterSelections.forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
-        
-        filterMetadata.tags.slice(0,50).forEach(tag => {
-            const container = document.getElementById('tags-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${tag.trim().toLowerCase()}">
-                    ${tag}
-                </label>
-            `;
-            container.appendChild(div);
+
+        const metadataMap = [
+            {key: 'tags', section: 'tags-list'},
+            { key: 'languages', section: 'languages-list' },
+            { key: 'decades', section: 'decades-list' },
+            { key: 'difficulties', section: 'difficulties-list' },
+            { key: 'genres', section: 'genres-list' },
+            { key: 'production_companies', section: 'production-companies-list' },
+            { key: 'networks', section: 'networks-list' },
+            { key: 'countries', section: 'countries-list' }            
+        ]
+
+        metadataMap.forEach(({key, section}) => {
+            const container = document.getElementById(section);
+            if(!container || !filterMetadata[key]) return;
+
+            filterMetadata[key].forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'tristate-item';
+
+                const value = item.trim().toLowerCase();
+
+                div.innerHTML = `
+                    <label class="tristate-container">
+                        <input type="checkbox" class="tristate-checkbox" value="${value}" data-tristate="null">
+                        <span class="tristate-label>${item}</span>
+                        <span class="tristate-state>(null)</span
+                    </label>
+                `;
+
+                container.appendChild(div);
+                const checkbox = div.querySelector('.tristate-checkbox');
+                const stateSpan = div.querySelector('.tristate-state');
+
+                checkbox.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.cycleTristate(checkbox);
+
+                    const state = checkbox.dataset.tristate || 'null';
+                    if(state === 'include'){
+                        stateSpan.textContent = '(include)';
+                    } else if (state === 'exclude'){
+                        stateSpan.textContent = '(exclude)';
+                    } else {
+                        stateSpan.textContent = '(null)';
+                    }
+                });
+            });
         });
-        filterMetadata.languages.slice(0,50).forEach(language => {
-            const container = document.getElementById('languages-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${language.trim().toLowerCase()}">
-                    ${language}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.decades.slice(0,50).forEach(decade => {
-            const container = document.getElementById('decades-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${decade.trim().toLowerCase()}">
-                    ${decade}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.difficulties.slice(0,50).forEach(difficulty => {
-            const container = document.getElementById('difficulties-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${difficulty.trim().toLowerCase()}">
-                    ${difficulty}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.genres.slice(0,50).forEach(genre => {
-            const container = document.getElementById('genres-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${genre.trim().toLowerCase()}">
-                    ${genre}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.production_companies.slice(0,50).forEach(production_company => {
-            const container = document.getElementById('production-companies-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${production_company.trim().toLowerCase()}">
-                    ${production_company}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.networks.slice(0,50).forEach(network => {
-            const container = document.getElementById('networks-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${network.trim().toLowerCase()}">
-                    ${network}
-                </label>
-            `;
-            container.appendChild(div);
-        });
-        filterMetadata.countries.slice(0,50).forEach(country => {
-            const container = document.getElementById('countries-list');
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" value="${country.trim().toLowerCase()}">
-                    ${country}
-                </label>
-            `;
-            container.appendChild(div);
-        });
+
+        const specialCheckbox = document.getElementById('special-checkbox');
+        if(specialCheckbox){
+            specialCheckbox.dataset.tristate = 'null';
+            specialCheckbox.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.cycleTristate(specialCheckbox);
+
+                const specialCheckboxState = document.getElementById('special-checkbox-state');
+
+                const state = specialCheckbox.dataset.tristate || 'null';
+                if(state === 'include'){
+                    specialCheckboxState.textContent = '(include)';
+                } else if (state === 'exclude'){
+                    specialCheckboxState.textContent = '(exclude)';
+                } else {
+                    specialCheckboxState.textContent = '(null)';
+                }
+            });
+        }
     }
 
     async start_game(singleplayer){
