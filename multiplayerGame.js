@@ -21,6 +21,7 @@ class MultiplayerGame{
         this.hasAnswered = false;
         this.answerSubmitted = false;
         this.isLoading = false;
+        this.playbackStarted = false;
 
         this.gameStatePollInterval = null;
         this.videoReady = false;
@@ -136,6 +137,7 @@ class MultiplayerGame{
                 if(state.currentRound !== this.currentRound){
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
+                    this.playbackStarted = false;
                     this.showLoadingScreen('Loading video...');
                     console.log(`State.currentSong: ${state.currentSong}`)
                     this.loadAndPlayVideo(state.currentSong);
@@ -143,9 +145,9 @@ class MultiplayerGame{
                 break;
             case 'playing':
                 console.log(`State.currentSong: ${state.currentSong}`)
-                if(this.videoReady){
+                if(this.videoReady && !this.playbackStarted && !this.isLoading){
                     this.startPlayback();
-                } else if(!this.isLoading){
+                } else if(!this.isLoading && !this.videoReady){
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
                     this.loadAndPlayVideo(state.currentSong);
@@ -197,6 +199,7 @@ class MultiplayerGame{
 
         this.videoReady = false;
         this.hasAnswered = false;
+        this.playbackStarted = false;
         this.answerSubmitted = false;
 
         const loading_screen = document.getElementById('loading-screen');
@@ -283,6 +286,9 @@ class MultiplayerGame{
     }
 
     async startPlayback() {
+        if(this.playbackStarted) return;
+        this.playbackStarted = true;
+
         const loading_screen = document.getElementById('loading-screen');
         const game_screen = document.getElementById('game-screen');
         const videoPlayer = document.getElementById('video-player');
