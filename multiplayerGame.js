@@ -10,7 +10,7 @@ class MultiplayerGame{
         this.playerName = null;
         this.players = [];
         this.isHost = false;
-        this.currentRound = 0;
+        this.currentRound = -1;
         this.hardMode = false;
         this.timeLimit = 0;
 
@@ -88,7 +88,7 @@ class MultiplayerGame{
             if(response.ok){
                 const data = await response.json();
                 this.playlist = data.playlist;
-                this.currentRound = 0;
+                this.currentRound = -1;
                 this.showLoadingScreen('Waiting for host to start...');
             }
         } catch (error) {
