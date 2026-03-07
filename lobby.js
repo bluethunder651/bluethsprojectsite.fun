@@ -24,6 +24,7 @@ class MultiplayerLobby{
         this.setupEventListeners();
         this.loadSavedName();
         this.loadFilterMetadata();
+        this.startPolling();
     }
 
     setupEventListeners(){
