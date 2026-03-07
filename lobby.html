@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lobby</title>
+        <link rel="stylesheet" href="lobby.css">
+    </head>
+    <body>
+        <div id="app">
+            <div id="lobby-screen" class="screen active">
+                <div class="name-input-container">
+                    <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+                    <button id="set-name-btn" class="btn btn-primary">Set Name</button>
+                </div>
+                <div id="main-menu" class="menu-section">
+                    <div class="button-group">
+                        <button id="host-game-btn" class="btn btn-primary" disabled>Host a Game</button>
+                        <button id="join-game-btn" class="btn btn-primary" disabled>Join a Game</button>
+                    </div>
+                    <div id="active-games-section" class="game-section">
+                        <h3>Active Games</h3>
+                        <div id="games-list" class="games-list">
+                            <div class="loading-message">Loading active games...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="host-screen" class="menu-section" style="display: none;">
+                <h2>Host a New Game</h2>
+                <div class="settings-section">
+                    <h3>Game Settings</h3>
+                    <div class="setting-item">
+                        <label>Game Name:</label>
+                        <input type="text" id="game-name" placeholder="My Game" maxlength="30">
+                    </div>
+                    <div class="settings-item">
+                        <label>Max Players:</label>
+                        <select id="max-players">
+                            <option value="2">2 Players</option>
+                            <option value="4" selected>4 Players</option>
+                            <option value="6">6 Players</option>
+                            <option value="8">8 Players</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Rounds:</label>
+                        <input type="number" id="game-rounds" placeholder="20" maxlength="6">
+                    </div>
+                    <div class="setting-item">
+                        <label>Hard Mode:</label>
+                        <input type="checkbox" id="host-hard-mode" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Time Limit (seconds):</label>
+                        <input type="number" id="time-limit" placeholder="20" maxlength="3">
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <div class="filter-header" onclick="toggleFilters()">
+                        Advanced Filters <span class="arrow">▼</span>
+                    </div>
+                    <div id="host-filters" class="filter-content" style="display: none;">
+                        <div id="host-filters-loading">Loading filters...</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button id="create-game-btn" class="btn btn-primary">Create Game</button>
+                    <button id="back-to-menu-from-host" class="btn btn-secondary">Back</button>
+                </div>
+            </div>
+            <div id="game-lobby-screen" class="menu-section" style="display: none;">
+                <h2 id="lobby-game-name">Game Lobby</h2>
+                <div class="lobby-info">
+                    <p>Game Code: <span id="game-code" class="highlight"></span></p>
+                    <p>Host: <span id="game-host"></span></p>
+                </div>
+                <div class="players-section">
+                    <h3>Players (<span id="player-count">0</span>/<span id="max-players-display">4</span>)</h3>
+                    <div id="players-list" class="players-list">
+
+                    </div>
+                </div>
+                <div class="chat-section">
+                    <h3>Lobby Chat</h3>
+                    <div id="chat-messages" class="chat-messages"></div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Type a message..." maxlength="255">
+                        <button id="send-chat-btn" class="btn btn-small">Send</button>
+                    </div>
+                </div>
+                <div class="ready-section">
+                    <label>
+                        <input type="checkbox" id="ready-checkbox">Ready to Start
+                    </label>
+                </div>
+                <div class="button-group">
+                    <button id="start-game-btn" class="btn btn-primary" style="display: none;">Start Game</button>
+                    <button id="leave-game-btn" class="btn btn-secondary">Leave Game</button>
+                </div>
+            </div>
+            <div id="game-redirect-screen" class="screen" style="display: none;">
+                <h2>Starting game...</h2>
+                <p>Redirecting to game screen...</p>
+            </div>
+        </div>
+
+        <script defer src="lobby.js"></script>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+        <script defer src="controller.js"></script>
+    </body>
+</html>
