@@ -12,7 +12,6 @@ class MultiplayerLobby{
         this.website = 'https://julia.bluethsprojectsite.fun';
 
         this.init = this.init.bind(this);
-        this.loadFilters = this.loadFilters.bind(this);
 
         if(document.readyState === 'loading'){
             document.addEventListener('DOMContentLoaded', this.init);
