@@ -138,6 +138,7 @@ class MultiplayerGame{
                 }
                 break;
             case 'playing':
+                console.log(`State.currentSong: ${state.currentSong}`)
                 if(this.videoReady){
                     this.startPlayback();
                 } else if(!this.isLoading){
