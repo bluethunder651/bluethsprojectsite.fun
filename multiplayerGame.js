@@ -141,6 +141,8 @@ class MultiplayerGame{
                     this.playbackStarted = false;
                     this.showLoadingScreen('Loading video...');
                     this.loadAndPlayVideo(state.currentSong);
+                } else {
+                    console.log('state.currentRound === this.currentRound');
                 }
                 break;
             case 'playing':
