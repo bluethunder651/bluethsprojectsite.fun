@@ -369,6 +369,7 @@ class MultiplayerGame{
             if(timeLeft <= 0){
                 clearInterval(timer);
                 timerDisplay.remove();
+                this.submitAnswer(null);
             }
         }, 1000);
     }
