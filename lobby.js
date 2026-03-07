@@ -530,7 +530,8 @@ class MultiplayerLobby{
                 },
                 body: JSON.stringify({
                     gameCode: gameCode,
-                    playerName: this.playerName
+                    playerName: this.playerName,
+                    sessionId: this.sessionId
                 })
             });
             if(response.ok){
@@ -774,7 +775,8 @@ class MultiplayerLobby{
                 },
                 body: JSON.stringify({
                     gameCode: this.currentGame.code,
-                    playerName: this.playerName
+                    playerName: this.playerName,
+                    sessionId: this.sessionId
                 })
             });
 
