@@ -23,6 +23,11 @@ class MultiplayerGame{
         this.isLoading = false;
         this.playbackStarted = false;
 
+        this.preloadedVideos = new Map();
+        this.maxPreloadCount = 3;
+        this.isPreloading = false;
+        this.preloadedIndices = new Set();
+
         this.gameStatePollInterval = null;
         this.videoReady = false;
 
@@ -142,6 +147,10 @@ class MultiplayerGame{
                     this.playbackStarted = false;
                     this.showLoadingScreen('Loading video...');
                     this.loadAndPlayVideo(state.currentSong);
+
+                    if(this.currentRound >= 0){
+                        this.preloadNextVideos();
+                    }
                 } else {
                     console.log('state.currentRound === this.currentRound');
                 }
@@ -154,7 +163,6 @@ class MultiplayerGame{
                     this.currentSong = state.currentSong;
                     this.loadAndPlayVideo(state.currentSong);
                 }
-
                 if(state.timeRemaining){
                     this.updateTimer(state.timeRemaining);
                 }
@@ -163,6 +171,7 @@ class MultiplayerGame{
                 this.showAnswerReveal(state);
                 break;
             case 'round_end':
+                this.preloadedIndices.delete(this.currentRound);
                 setTimeout(() => {
                     const nextBtn = document.getElementById('next-video');
                     if(this.isHost){
@@ -224,6 +233,30 @@ class MultiplayerGame{
         });
 
         this.fillButtons(songData.options);
+
+        if(this.preloadedVideos.has(this.currentRound)){
+            const preloadedVideo = this.preloadedVideos.get(this.currentRound);
+            if(preloadedVideo.readyState >= 1){
+                console.log(`Using preloaded video for round ${this.currentRound}`);
+                videoPlayer.src = preloadedVideo.src;
+                this.preloadedVideos.delete(this.currentRound);
+                this.preloadedIndices.delete(this.currentRound);
+
+                await new Promise((resolve) => {
+                    const onCanPlay = () => {
+                        videoPlayer.removeEventListener('canplay', onCanPlay);
+                        resolve();
+                    };
+                    videoPlayer.addEventListener('canplay', onCanPlay);
+                    videoPlayer.load();
+                });
+
+                this.videoReady = true;
+                this.isLoading = false;
+                loading_screen.innerHTML = '<h3>Waiting for other players...</h3>';
+                return;
+            }
+        }
 
         const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(songData.file_path)}?token=${encodeURIComponent(this.token)}`;
 
@@ -937,10 +970,91 @@ class MultiplayerGame{
     }
 
     async preloadNextVideos(){
-        if(!this.isGameActive || this.currentRound >= this.totalRounds) return;
-        this.startAggressivePreloading();
+        if(!this.playlist || this.playlist.length === 0) return;
+        if (this.currentRound < 0) return;
+        if (this.isPreloading) return;
+
+        this.isPreloading = true;
+
+        const videosToPreload = [];
+        const nextRoundIndex = this.currentRound + 1;
+
+        for (let i = 0; i < this.maxPreloadCount; i++){
+            const roundToPreload = nextRoundIndex + i;
+            if(roundToPreload >= this.playlist.length) break;
+
+            if(!this.preloadedIndices.has(roundToPreload)){
+                videosToPreload.push({
+                    round: roundToPreload,
+                    video: this.playlist[roundToPreload]
+                });
+            }
+        }
+
+        console.log(`Preloading ${videosToPreload.length} videos for rounds: `, videosToPreload.map(v => v.round));
+
+        for (const item of videosToPreload) {
+            try {
+                if(this.mobileMode){
+                    const isCompatible = await this.checkVideoCompatibility(item.video.file_path);
+                    if(!isCompatible){
+                        console.log(`Video at round ${item.round} not compatible with mobile mode, skipping preload.`);
+                        continue;
+                    }
+                }
+
+                const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(item.video.file_path)}?token=${encodeURIComponent(this.token)}`
+
+                const tempVideo = document.createElement('video');
+                tempVideo.preload = 'auto';
+                tempVideo.src = videoUrl;
+                tempVideo.style.display = 'none';
+                document.body.appendChild(tempVideo);
+
+                await new Promise((resolve) => {
+                    const timeout = setTimeout(() => {
+                        console.log(`Preload timeout for round ${item.round}`);
+                        resolve();
+                    }, 15000);
+
+                    tempVideo.addEventListener('loadedmetadata', () => {
+                        clearTimeout(timeout);
+                        this.preloadedVideos.set(item.round, tempVideo);
+                        this.preloadedIndices.add(item.round);
+                        console.log(`Preloaded video for round ${item.round}`);
+                        resolve();
+                    }, {once: true});
+
+                    tempVideo.addEventListener('error', (e) => {
+                        clearTimeout(timeout);
+                        console.log(`Failed to preload video for round ${item.round}: `, e);
+                        document.body.removeChild(tempVideo);
+                        resolve();
+                    }, {once: true});
+
+                    tempVideo.load();
+                });
+            } catch (error){
+                console.error(`Error preloading video for round ${item.round}: `, error);
+            }
+        }
+
+        this.isPreloading = false;
     }    
 
+    clearPreloadedVideos() {
+        for (const [round, videoElement] of this.preloadNextVideos){
+            if(videoElement.parentNode){
+                videoElement.parentNode.removeChild(videoElement);
+            }
+        }
+
+        this.preloadedVideos.clear();
+        this.preloadedIndices.clear();
+        this.isPreloading = false;
+        console.log('Cleared all preloaded videos.');
+    }
+    
     gameEnded(scores, highest_streak){
         const main = document.getElementById('video-player');
         main.pause();
