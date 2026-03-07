@@ -115,6 +115,7 @@ class MultiplayerGame{
             });
             if(response.ok){
                 const state = await response.json();
+                console.log(`State: ${state}`)
                 this.handleGameState(state);
             }
         } catch (error) {
@@ -132,6 +133,7 @@ class MultiplayerGame{
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
                     this.showLoadingScreen('Loading video...');
+                    console.log(`State.currentSong: ${state.currentSong}`)
                     this.loadAndPlayVideo(state.currentSong);
                 }
                 break;
