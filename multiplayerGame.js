@@ -833,6 +833,12 @@ class MultiplayerGame{
                     'Content-Type': 'application/json'
                 }
             });
+            if(response.ok){
+                const currentSong = await response.json();
+            }
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.pause();
+            videoPlayer.src = ''
         } catch (error) {
             console.error('Failed to advance round: ', error);
         }
