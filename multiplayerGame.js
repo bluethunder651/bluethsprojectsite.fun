@@ -38,7 +38,7 @@ class MultiplayerGame{
 
             document.getElementById('video-player').addEventListener('ended', () => {
                 if(this.gameStatePollInterval && !this.answerSubmitted){
-                    this.submitAnswer(null);
+                    game.submitAnswer(null);
                 }
             });
 
@@ -47,6 +47,10 @@ class MultiplayerGame{
                     game.leaveGame();
                 }
             });
+
+            document.getElementById('next-video').addEventListener('click', () => {
+                game.nextRound();
+            })
 
             document.getElementById('next-video').style.display = 'none';
         });
@@ -303,6 +307,7 @@ class MultiplayerGame{
     }
 
     startTimer(seconds){
+        console.log('making one timer. this should only run once.')
         const timerDisplay = document.createElement('div');
         timerDisplay.id = 'timer';
         timerDisplay.className = 'timer';
@@ -325,6 +330,7 @@ class MultiplayerGame{
     updateTimer(timeRemaining){
         let timerDisplay = document.getElementById('timer');
         if(!timerDisplay){
+            console.log('Making new timer display.')
             timerDisplay = document.createElement('div');
             timerDisplay.id = 'timer';
             document.getElementById('video-screen').appendChild(timerDisplay);
@@ -394,6 +400,11 @@ class MultiplayerGame{
         });
 
         this.updateScoreboard();
+
+        document.getElementById('video-player').classList.remove('video-hidden')
+        const next_btn = document.getElementById('next-video');
+        next_btn.style.display = 'block';
+        next_btn.disabled = false;
 
         const timer = document.getElementById('timer');
         if (timer) timer.remove();
@@ -871,89 +882,6 @@ class MultiplayerGame{
         localStorage.removeItem('multiplayerGame');
         localStorage.removeItem('mutliplayerGameCode');
         window.location.href = 'lobby.html';
-    }
-
-    async submit_answer(selectedOption){
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if (!this.token) return [];
-        }
-
-        if(!this.token) return [];
-
-        const response = await fetch(`${this.website}/api/local/game/single/submit`, {
-            method: 'POST',
-            headers: {
-                'X-Auth-Token': this.token,
-                'Referer': window.location.origin,
-                'Content-Type': 'application/json'
-            }, 
-            body: JSON.stringify({
-                playerName: this.playerName,
-                selectedOption: selectedOption,
-                correctOption: this.current_song.game_name,
-                answerTime: Date.now(),
-                videoStartTime: this.videoStartTime
-            })
-        });
-
-        if(response.ok){
-            const data = await response.json();
-            document.getElementById('scores').textContent = `${this.playerName}: ${data.scores[this.playerName]}, Streak: ${data.streaks[this.playerName]}`;
-            document.querySelectorAll('.answer-btn').forEach(button => {
-                button.disabled = true;
-            });
-            document.querySelectorAll('.answered').forEach(el => {
-                el.classList.add(data.results[this.playerName] ? 'correct' : 'incorrect');
-            });
-            document.getElementById('correct-button').style.setProperty('background-color', '#4CAF50', 'important');
-            document.getElementById('next-video').disabled = false;
-        }
-    }
-
-    async next_video(){
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if (!this.token) return [];
-        }
-
-        if(!this.token) return [];
-
-        const response = await fetch(`${this.website}/api/local/game/single/next`, {
-            method: 'POST',
-            headers: {
-                'X-Auth-Token': this.token,
-                'Referer': window.location.origin,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                playerName: this.playerName
-            })
-        });
-
-        if(response.ok){
-            const data = await response.json();
-    
-            this.scores = data.scores;
-            this.highest_streak = data.highest_streak
-
-            if (data.ended === true || this.currentPlaylistIndex >= this.playlist.length){
-                this.gameEnded(this.scores || document.getElementById('scores').textContent, this.highest_streak || 0);
-                this.isGameActive = false;
-                return;
-            }
-
-            this.current_song = this.playlist[this.currentPlaylistIndex];
-
-            const options = await this.getOptions();
-
-            this.usePreloadedVideo(options);
-
-            this.startAggressivePreloading();
-
-            this.currentRound++;
-            this.currentPlaylistIndex++;
-        }
     }
 
     async usePreloadedVideo(options){
