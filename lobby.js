@@ -692,7 +692,9 @@ class MultiplayerLobby{
 
         if(!message || !this.currentGame) return;
 
-        
+        this.addChatMessage(this.playerName, message);
+
+        input.value = '';
     }
 
     addChatMessage(sender, message){
