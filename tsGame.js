@@ -78,11 +78,11 @@ class tsGame{
 
             document.getElementById('singleplayer').addEventListener('click', () => {
                 this.currentPlaylistIndex = 0;
-                player.start_game(true)
+                player.start_singleplayer_game();
             });
 
             document.getElementById('multiplayer').addEventListener('click', () => {
-                player.start_game(false)
+                window.location.href = 'lobby.html'
             });
 
             document.querySelectorAll('.answer-btn').forEach(button => {
@@ -527,7 +527,7 @@ class tsGame{
         return selections
     }
 
-    async start_game(singleplayer){
+    async start_singleplayer_game(){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if(!this.token) return [];
@@ -566,7 +566,6 @@ class tsGame{
                 rounds: this.totalRounds,
                 startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
                 hintPercent: enableHintMode ? hintPercent : 25,
-                singleplayer: singleplayer,
                 hardMode: this.hardMode
             })
         });
