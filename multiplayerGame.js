@@ -120,7 +120,6 @@ class MultiplayerGame{
             });
             if(response.ok){
                 const state = await response.json();
-                console.log(`State: ${state}`)
                 this.handleGameState(state);
             }
         } catch (error) {
@@ -132,6 +131,8 @@ class MultiplayerGame{
         this.players = state.players
         this.updateScoreboard();
 
+        console.log('State.Phase: ', state.phase)
+
         switch(state.phase){
             case 'loading':
                 if(state.currentRound !== this.currentRound){
@@ -139,12 +140,10 @@ class MultiplayerGame{
                     this.currentSong = state.currentSong;
                     this.playbackStarted = false;
                     this.showLoadingScreen('Loading video...');
-                    console.log(`State.currentSong: ${state.currentSong}`)
                     this.loadAndPlayVideo(state.currentSong);
                 }
                 break;
             case 'playing':
-                console.log(`State.currentSong: ${state.currentSong}`)
                 if(this.videoReady && !this.playbackStarted && !this.isLoading){
                     this.startPlayback();
                 } else if(!this.isLoading && !this.videoReady){
@@ -222,8 +221,6 @@ class MultiplayerGame{
         });
 
         this.fillButtons(songData.options);
-
-        console.log(`songData.file_path: ${songData.file_path}, songData.filename: ${songData.filename}`)
 
         const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(songData.file_path)}?token=${encodeURIComponent(this.token)}`;
 
@@ -320,7 +317,6 @@ class MultiplayerGame{
     }
 
     startTimer(seconds){
-        console.log('making one timer. this should only run once.')
         const timerDisplay = document.createElement('div');
         timerDisplay.id = 'timer';
         timerDisplay.className = 'timer';
@@ -343,7 +339,6 @@ class MultiplayerGame{
     updateTimer(timeRemaining){
         let timerDisplay = document.getElementById('timer');
         if(!timerDisplay){
-            console.log('Making new timer display.')
             timerDisplay = document.createElement('div');
             timerDisplay.id = 'timer';
             document.getElementById('video-screen').appendChild(timerDisplay);
