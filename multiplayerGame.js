@@ -22,6 +22,7 @@ class MultiplayerGame{
         this.answerSubmitted = false;
         this.isLoading = false;
         this.playbackStarted = false;
+        this.leaderboardShown = false;
 
         this.preloadedVideos = new Map();
         this.maxPreloadCount = 3;
@@ -186,8 +187,10 @@ class MultiplayerGame{
                 }, 3000);
                 break;
             case 'game_end':
-                this.showLeaderboard(state);
-                break;
+                if(!this.leaderboardShown){
+                    this.showLeaderboard(state);
+                    break;
+                }
         }
     }
 
@@ -230,6 +233,7 @@ class MultiplayerGame{
         document.querySelectorAll('.answer-btn').forEach(btn => {
             btn.disabled = false;
             btn.classList.remove('answered', 'correct', 'incorrect');
+            btn.style.removeProperty('background-color');
         });
 
         this.fillButtons(songData.options);
@@ -373,13 +377,7 @@ class MultiplayerGame{
     }
 
     updateTimer(timeRemaining){
-        let timerDisplay = document.getElementById('timer');
-        if(!timerDisplay){
-            timerDisplay = document.createElement('div');
-            timerDisplay.id = 'timer';
-            document.getElementById('video-screen').appendChild(timerDisplay);
-        }
-        timerDisplay.textContent = `Time left: ${Math.round(timeRemaining)}`;
+        document.getElementById('timer').textContent = `Time left: ${Math.round(timeRemaining)}`;
     }
 
     handleAnswerClick(event){
@@ -890,6 +888,7 @@ class MultiplayerGame{
                 document.querySelectorAll('.answer-btn').forEach(btn => {
                     btn.disabled = false;
                     btn.classList.remove('answered', 'correct', 'incorrect');
+                    btn.style.removeProperty('background-color');
                 });
 
                 const timer = document.getElementById('timer');
@@ -913,6 +912,7 @@ class MultiplayerGame{
     }
 
     showLeaderboard(state){
+        this.leaderboardShown = true;
         document.getElementById('game-screen').style.display = 'none';
 
         const leaderboardDiv = document.createElement('div');
