@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Theme Song Game</title>
+        <link rel="stylesheet" href="multiplayerGame.css">
+    </head>
+    <body>
+        <div id="app">
+            <div id="landing-screen" class="screen active">
+                <h1 class="main-title">Theme Song Game</h1>
+                <div class="status-row">
+                    <span class="status-label">Status:</span>
+                    <span id="server-status-indicator" class="status-badge status-offline">●</span>
+                    <span id="server-status-text">Checking...</span>
+                </div>
+                <div class="auth-buttons" style="position: absolute; top: 20px; right: 20px;">
+                    <button id="login-btn" class="btn btn-secondary">Login</button>
+                    <button id="register-btn" class="btn btn-secondary">Sign Up</button>
+                    <button id="logout-btn" class="btn btn-secondary" style="display: none;">Logout</button>
+                    <span id="username-display" style="color: white; margin-left: 10px;"></span>
+                </div>
+                <div class="nav-bar">
+                    <button id="refresh-status" class="nav-btn">↻ Status</button>
+                    <button id="go-home" class="nav-btn">Home</button>
+                    <button id="options" class="nav-btn">Options</button>
+                    <button id="singleplayer" class="nav-btn">Single Player</button>
+                    <button id="multiplayer" class="nav-btn">Multiplayer</button>
+                    <label class="mobile-checkbox">
+                        <input type="checkbox" id="mobile-mode"> Mobile Mode (H.264 Only)
+                    </label>
+                    <label class="player-name">
+                        <input type="text" id="player-name-input" placeholder="Input Name">
+                    </label>
+                </div>
+                <div id="filter-options" style="display: none;">
+                    <div class="filter-section">
+                        <div class="filter-header-non-dropdown">
+                            <label>
+                                <input type="checkbox" id="hard-mode" checked>
+                                Hard Mode
+                            </label>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header-non-dropdown">
+                            Rounds <input type="number" id="rounds-input" min="0" max="1000" value="500">
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Tags <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content" id="filter-content">
+                            <div id="tags-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Language <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="languages-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Decade <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="decades-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Difficulty <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="difficulties-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Genre <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="genres-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Production Company <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="production-companies-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Network <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="networks-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Country <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div id="countries-list"></div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Special Openings<span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                        <div id="special"></div>
+                        <div class="tristate-item">
+                            <label class="tristate-container">
+                                <input type="checkbox" class="tristate-checkbox" id="special-checkbox" value="special-openings" data-tristate="null">
+                                <span class="tristate-label">Special Openings</span>
+                                <span class="tristate-state" id="special-checkbox-state">(null)</span>
+                            </label>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Random Start Time <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div>
+                                <label>
+                                    <input type="checkbox" id="enable-random-start">
+                                    Enable Random Start Time
+                                </label>
+                                <div id="random-start-fields" style="display: none;">
+                                    <label>
+                                        Min: <input type="number" id="start-min" min="0" max="95" value="0">%
+                                    </label>
+                                    <label>
+                                        Max: <input type="number" id="start-max" min="5" max="100" value="100">%
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            Hint Mode <span class="arrow">▼</span>
+                        </div>
+                        <div class="filter-content">
+                            <div>
+                                <label>
+                                    <input type="checkbox" id="enable-hint-mode">
+                                    Enable Hint Mode
+                                </label>
+                                <div id="hint-percent-field" style="display: none;">
+                                    <label>
+                                        Reveal Percent: <input type="number" id="reveal-percent" min="0" max="100" value="25">%
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="loading-screen" class="screen">
+                <h3>Loading...</h3>
+            </div>
+            <div id="game-screen" class="screen">
+            <h3 id="scores" class="score"></h3>
+            <div id="video-screen">
+                <div id="answer-title" class="video-title"></div> 
+                <div class="video-container">
+                    <video id="video-player" controls playsinline></video>
+                    <video id="video-preload" preload="auto" style="display: none;"></video>
+                </div>
+            </div>
+            <div id="answer-buttons" class="answer-buttons">
+                <button data-option="1" class="answer-btn"></button>
+                <button data-option="2" class="answer-btn"></button>
+                <button data-option="3" class="answer-btn"></button>
+                <button data-option="4" class="answer-btn"></button>
+            </div>
+            <div id="nav-bar">
+                <button id="go-back-btn" class="nav-btn">Main Menu</button>
+                <button id="next-video" class="nav-btn" disabled>Next</button>
+            </div>
+        </div>
+        </div> 
+        <script defer src="multiplayerGame.js"></script>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+        <script defer src="controller.js"></script>
+    </body>
+</html>
