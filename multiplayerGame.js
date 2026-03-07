@@ -169,7 +169,7 @@ class MultiplayerGame{
             await this.refreshToken();
             if (!this.token) return [];
         }
-        
+
         console.log('loadandplay')
 
         await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/player-ready`, {
@@ -211,14 +211,57 @@ class MultiplayerGame{
         videoPlayer.src = videoUrl;
         videoPlayer.preload = 'auto';
 
-        await new Promise((resolve) => {
-            const onCanPlay = () => {
-                videoPlayer.removeEventListener('canplay', onCanPlay);
-                resolve();
-            };
-            videoPlayer.addEventListener('canplay', onCanPlay);
-            videoPlayer.load();
-        });
+        try{
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('Video loading timeout'));
+                }, 60000);
+
+                const onCanPlay = () => {
+                    cleanup();
+                    resolve();
+                };
+
+                const onError = (e) => {
+                    cleanup();
+                    reject(new Error(`Video error: ${e.target.error?.message || 'Unknown Error'}`));
+                };
+
+                const onStalled = () => {
+                    console.log('Video stalled, trying to recover...');
+                    videoPlayer.load();
+                };
+
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    videoPlayer.removeEventListener('canplay', onCanPlay);
+                    videoPlayer.removeEventListener('error', onError);
+                    videoPlayer.removeEventListener('stalled', onStalled);
+                };
+
+                videoPlayer.addEventListener('canplay', onCanPlay);
+                videoPlayer.addEventListener('error', onError);
+                videoPlayer.addEventListener('stalled', onStalled);
+
+                videoPlayer.load();
+            });
+
+            console.log('Video loaded successfully');
+            this.videoReady = true;
+            this.isLoading = false;
+            loading_screen.innerHTML = '<h3>Waiting for other players...</h3>';
+
+        } catch (error) {
+            console.error('Failed to load video: ', error);
+            this.isLoading = false;
+
+            loading_screen.innerHTML = `
+                <h3>Failed to load video</h3>
+                <p>${error.message}</p>
+                <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+            `;
+        }
 
         console.log('resolved promise')
 
