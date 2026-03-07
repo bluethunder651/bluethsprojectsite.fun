@@ -1258,7 +1258,7 @@ class tsPlayer{
         const listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
         
         listIds.forEach(listId => {
-            const section = listId.split('-')[0]
+            const section = listId.split('-')[0];
             let target;
 
             if(section === 'production') target = 'production_companies'
