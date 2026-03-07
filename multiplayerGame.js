@@ -162,8 +162,15 @@ class MultiplayerGame{
                 break;
             case 'round_end':
                 setTimeout(() => {
+                    const nextBtn = document.getElementById('next-video');
                     if(this.isHost){
-                        this.nextRound();
+                        nextBtn.style.display = 'block';
+                        nextBtn.disabled = false;
+                    } else {
+                        const loading_screen = document.getElementById('loading-screen');
+                        loading_screen.style.display = 'block';
+                        loading_screen.innerHTML = '<h3>Waiting for host to start new round...</h3>';
+                        document.getElementById('game-screen').style.display = 'none';
                     }
                 }, 3000);
                 break;
@@ -825,22 +832,52 @@ class MultiplayerGame{
         }        
         
         try{
+            const nextBtn = document.getElementById('next-video');
+            nextBtn.style.display = 'none';
+
             const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/next-round`, {
                 method: 'POST',
                 headers: {
                     'X-Auth-Token': this.token,
                     'Referer': window.location.origin,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    playerName: this.playerName
+                })
             });
             if(response.ok){
-                const currentSong = await response.json();
+                const data = await response.json();
+                if (data.ended) {
+                    return;
+                }
+                const videoPlayer = document.getElementById('video-player');
+                videoPlayer.pause();
+                videoPlayer.src = ''
+                videoPlayer.classList.remove('video-hidden');
+
+                document.querySelectorAll('.answer-btn').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('answered', 'correct', 'incorrect');
+                });
+
+                const timer = document.getElementById('timer');
+                if(timer) timer.remove();
+
+                this.hasAnswered = false;
+                this.answerSubmitted = false;
+                this.playbackStarted = false;
+                this.videoReady = false;
+
+                this.showLoadingScreen('Loading next video...');
+            } else {
+                console.error('Failed to advance round');
+                document.getElementById('next-video').style.display = 'block';
             }
-            const videoPlayer = document.getElementById('video-player');
-            videoPlayer.pause();
-            videoPlayer.src = ''
+
         } catch (error) {
             console.error('Failed to advance round: ', error);
+            document.getElementById('next-video').style.display = 'block';
         }
     }
 
