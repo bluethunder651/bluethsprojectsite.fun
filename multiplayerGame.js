@@ -825,7 +825,7 @@ class MultiplayerGame{
         }        
         
         try{
-            await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/next-round`, {
+            const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/next-round`, {
                 method: 'POST',
                 headers: {
                     'X-Auth-Token': this.token,
