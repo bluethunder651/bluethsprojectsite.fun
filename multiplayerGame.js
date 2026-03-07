@@ -209,6 +209,8 @@ class MultiplayerGame{
 
         this.fillButtons(songData.options);
 
+        console.log(`songData.file_path: ${songData.file_path}, songData.filename: ${songData.filename}`)
+
         const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(songData.file_path)}?token=${encodeURIComponent(this.token)}`;
 
         videoPlayer.src = videoUrl;
