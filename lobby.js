@@ -430,19 +430,19 @@ class MultiplayerLobby{
     showMainMenu() {
         document.getElementById('host-screen').style.display = 'none';
         document.getElementById('game-lobby-screen').style.display = 'none';
-        document.getElementById('main-menu').style.display = 'block';
+        document.getElementById('lobby-screen').style.display = 'block';
         this.currentScreen = 'main-menu';
     }
 
     showHostScreen(){
-        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('lobby-screen').style.display = 'none';
         document.getElementById('host-screen').style.display = 'block';
         this.currentScreen = 'host';
     }
 
     showGameLobby(gameData){
         document.getElementById('host-screen').style.display = 'none';
-        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('lobby-screen').style.display = 'none';
         document.getElementById('game-lobby-screen').style.display = 'block';
 
         document.getElementById('lobby-game-name').textContent = gameData.name;
