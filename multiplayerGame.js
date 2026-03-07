@@ -170,6 +170,8 @@ class MultiplayerGame{
             if (!this.token) return [];
         }
 
+        console.log('loadandplay')
+
         if(this.videoReady || this.isLoading) return;
         this.isLoading = true;
 
@@ -204,6 +206,8 @@ class MultiplayerGame{
             videoPlayer.addEventListener('canplay', onCanPlay);
             videoPlayer.load();
         });
+
+        console.log('resolved promise')
 
         await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/player-ready`, {
             method: 'POST',
