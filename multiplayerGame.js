@@ -20,6 +20,7 @@ class MultiplayerGame{
         this.videoStartTime = null;
         this.hasAnswered = false;
         this.answerSubmitted = false;
+        this.isLoading = false;
 
         this.gameStatePollInterval = null;
         this.videoReady = false;
@@ -131,10 +132,13 @@ class MultiplayerGame{
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
                     this.showLoadingScreen('Loading video...');
+                    this.loadAndPlayVideo(state.currentSong);
                 }
                 break;
             case 'playing':
-                if(state.currentRound !== this.currentRound || !this.videoReady){
+                if(this.videoReady){
+                    this.startPlayback();
+                } else if(!this.isLoading){
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
                     this.loadAndPlayVideo(state.currentSong);
@@ -165,6 +169,9 @@ class MultiplayerGame{
             await this.refreshToken();
             if (!this.token) return [];
         }
+
+        if(this.videoReady || this.isLoading) return;
+        this.isLoading = true;
 
         this.videoReady = false;
         this.hasAnswered = false;
@@ -211,9 +218,17 @@ class MultiplayerGame{
         });
 
         this.videoReady = true;
-        this.videoStartTime = Date.now();
+        this.isLoading = false;
 
-        loading_screen.style.display = 'none';
+        loading_screen.innerHTML = '<h3>Waiting for other players...</h3>'       
+    }
+
+    async startPlayback() {
+        const loading_screen = document.getElementById('loading-screen');
+        const game_screen = document.getElementById('game-screen');
+        const videoPlayer = document.getElementById('video-player');
+        
+        loading_screen.style.display = 'none';  
         game_screen.style.display = 'block';
 
         if(this.hardMode){
@@ -222,9 +237,14 @@ class MultiplayerGame{
             videoPlayer.classList.remove('video-hidden');
         }
 
-        videoPlayer.play().catch(e => console.log('Autoplay prevented: ', e));
+        this.videoStartTime = Date.now()
 
-        this.startTimer(this.timeLimit);
+        try{
+            await videoPlayer.play();
+            this.startTimer(this.timeLimit);
+        } catch (error) {
+            console.log("Autoplay prevented: ", error);
+        }
     }
 
     startTimer(seconds){
@@ -459,190 +479,6 @@ class MultiplayerGame{
         }
     }
 
-    async getVideos() {
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if(!this.token) return [];
-        }
-        if(!this.token) return [];
-
-        try{
-            const response = await fetch(`${this.website}/api/local/videos`, {
-                headers:{
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin
-                }
-            });
-
-            if (response.ok){
-                const data = await response.json();
-
-                let videos = [];
-                if(data.videos && Array.isArray(data.videos)){
-                    videos = data.videos;
-                } else if (Array.isArray(data)){
-                    videos = data;
-                }
-
-                videos.forEach(video => {
-                    if(video.filename && video.codec) {
-                        const isH264 = this.isH264Codec(video.codec);
-                        this.codecCache.set(video.filename, isH264);
-                    }
-                });
-
-                return videos;
-            } else {
-                console.error('Failed to fetch videos, status: ', response.status);
-            }
-        } catch (error){
-            console.error('Failed to fetch videos: ', error);
-        }
-
-        return [];
-    }
-
-    async getFilterMetadata(){
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if (!this.token) return [];
-        }
-
-        if(!this.token) return [];
-
-        try{
-            const response = await fetch(`${this.website}/api/local/metadata/filters`, {
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin
-                }
-            });
-
-            if (response.ok){
-                const data = await response.json();
-                return data;
-            } else {
-                console.error('Failed to fetch filter metadata, status: ', response.status);
-            }
-        } catch (error){
-            console.error('Failed to fetch filter metadata: ', error);
-        }
-    }
-
-    loadFilters(filterMetadata){
-        const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
-
-        filterSelections.forEach(id => {
-            document.getElementById(id).innerHTML = '';
-        });
-
-        const metadataMap = [
-            {key: 'tags', section: 'tags-list'},
-            { key: 'languages', section: 'languages-list' },
-            { key: 'decades', section: 'decades-list' },
-            { key: 'difficulties', section: 'difficulties-list' },
-            { key: 'genres', section: 'genres-list' },
-            { key: 'production_companies', section: 'production-companies-list' },
-            { key: 'networks', section: 'networks-list' },
-            { key: 'countries', section: 'countries-list' }           
-        ]
-
-        metadataMap.forEach(({key, section}) => {
-            const container = document.getElementById(section);
-            if(!container || !filterMetadata[key]) return;
-
-            filterMetadata[key].forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'tristate-item';
-
-                const value = item.trim().toLowerCase();
-
-                div.innerHTML = `
-                    <label class="tristate-container">
-                        <input type="checkbox" class="tristate-checkbox" value="${value}" data-tristate="null">
-                        <span class="tristate-label">${item}</span>
-                        <span class="tristate-state">(null)</span>
-                    </label>
-                `;
-
-                container.appendChild(div);
-
-                const checkbox = div.querySelector('.tristate-checkbox');
-                const stateSpan = div.querySelector('.tristate-state');
-
-                checkbox.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.cycleTristate(checkbox);
-
-                    const state = checkbox.dataset.tristate || 'null';
-                    if (state === 'include'){
-                        stateSpan.textContent = '(include)';
-                    } else if (state === 'exclude'){
-                        stateSpan.textContent = '(exclude)';
-                    } else {
-                        stateSpan.textContent = '(null)';
-                    }
-                });
-            });
-        });
-
-        const specialCheckbox = document.getElementById('special-checkbox');
-        if(specialCheckbox){
-            specialCheckbox.dataset.tristate = 'null';
-            specialCheckbox.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.cycleTristate(specialCheckbox);
-
-                const specialCheckboxState = document.getElementById('special-checkbox-state');
-
-                const state = specialCheckbox.dataset.tristate || 'null';
-                if (state === 'include'){
-                    specialCheckboxState.textContent = '(include)';
-                } else if (state === 'exclude'){
-                    specialCheckboxState.textContent = '(exclude)';
-                } else {
-                    specialCheckboxState.textContent = '(null)';
-                }
-            });
-        }
-    }
-
-    setTristateState(checkbox, state){
-        checkbox.dataset.tristate = state;
-        checkbox.classList.remove('indeterminate');
-        checkbox.checked = false;
-
-        if(state === 'include'){
-            checkbox.classList.add('checked');
-        } else if (state === 'exclude') {
-            checkbox.classList.remove('checked');
-            checkbox.classList.add('indeterminate');
-        } else {
-            checkbox.classList.remove('indeterminate');
-        }
-    }
-
-    cycleTristate(checkbox){
-        const currentState = checkbox.dataset.tristate || 'null';
-        let newState;
-
-        switch(currentState){
-            case 'null':
-                newState = 'include';
-                break;
-            case 'include':
-                newState = 'exclude';
-                break;
-            case 'exclude':
-                newState = 'null';
-                break;
-            default:
-                newState = 'include';
-        }
-
-        this.setTristateState(checkbox, newState);
-    }
-
     collectFilterSelections(){
         const selections = {
             tags: {include: [], exclude: []},
@@ -692,219 +528,6 @@ class MultiplayerGame{
         }
 
         return selections
-    }
-
-    async start_singleplayer_game(){
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if(!this.token) return [];
-        }
-        if(!this.token) return [];
-
-        const input = document.getElementById('player-name-input');
-        this.playerName = input.value; 
-
-        if(this.playerName == '' || this.playerName == null){
-            return
-        }
-
-        this.isGameActive = true;
-
-        const selections = this.collectFilterSelections();
-
-        const enableRandomStartTime = document.getElementById('enable-random-start').checked;
-        const startMin = enableRandomStartTime ? (document.getElementById('start-min').value) || 0 : 0;
-        const startMax = enableRandomStartTime ? (document.getElementById('start-max').value) || 90 : 0;
-        const enableHintMode = document.getElementById('enable-hint-mode').checked;
-        const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
-        this.totalRounds = parseInt(document.getElementById('rounds-input').value) || 10;
-        this.hardMode = document.getElementById('hard-mode').checked;
-        
-        const response = await fetch(`${this.website}/api/local/game/single/start`, {
-            method: "POST",
-            headers: {
-                'X-Auth-Token': this.token,
-                'Referer': window.location.origin,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                playerName: this.playerName,
-                selections: selections,
-                rounds: this.totalRounds,
-                startRange: enableRandomStartTime ? [startMin, startMax] : [0, 0],
-                hintPercent: enableHintMode ? hintPercent : 25,
-                hardMode: this.hardMode
-            })
-        });
-
-        if(response.ok){
-            const landing_screen = document.getElementById('landing-screen');
-            const loading_screen = document.getElementById('loading-screen');
-            const game_screen = document.getElementById('game-screen');
-            const filterOptions = document.getElementById('filter-options');
-
-            const data = await response.json();
-
-            this.playlist = data.playlist;
-
-            this.shuffleArray(this.playlist);
-            this.currentPlaylistIndex = 0;
-
-            this.clearPreloadedVideos();
-
-            landing_screen.style.display = 'none';
-            loading_screen.style.display = 'block';
-            filterOptions.style.display = 'none';
-
-            landing_screen.classList.remove('active');
-            loading_screen.classList.add('active');
-
-            this.current_song = this.playlist[this.currentPlaylistIndex];
-
-            const options = await this.getOptions();
-
-            const videoPlayer = document.getElementById('video-player');
-
-            let loadStartTime = Date.now();
-            let progressInterval = setInterval(() => {
-                if(videoPlayer.buffered.length > 0){
-                    let bufferedEnd = videoPlayer.buffered.end(videoPlayer.buffered.length - 1);
-                    let duration = videoPlayer.duration;
-                    if (duration > 0){
-                        let percentLoaded = (bufferedEnd/duration * 100);
-                        console.log(`Loading video: ${Math.round(percentLoaded)}`);
-
-                        if(loading_screen.style.display === 'block'){
-                            loading_screen.innerHTML = `<h3>Loading... ${Math.round(percentLoaded)}%</h3>`;
-                        }
-                    }
-                }
-            }, 100);
-
-            await new Promise((resolve) => {
-                const onCanPlay = () => {
-                    clearInterval(progressInterval);
-                    videoPlayer.removeEventListener('canplay', onCanPlay);
-                    videoPlayer.removeEventListener('error', onError);
-
-                    let loadTime = (Date.now() - loadStartTime) / 1000;
-                    console.log(`Video loaded in ${loadTime}`);
-                    resolve();
-                }
-
-                const onError = (e) => {
-                    clearInterval(progressInterval);
-                    videoPlayer.removeEventListener('canplay', onCanPlay);
-                    videoPlayer.removeEventListener('error', onError);
-                    console.error('Video failed to load: ', e);
-                    resolve();
-                }
-
-                videoPlayer.addEventListener('canplay', onCanPlay);
-                videoPlayer.addEventListener('error', onError);
-
-                this.playVideo(this.hardMode);
-            });
-
-            loading_screen.innerHTML = '<h3>Loading...</h3>';
-
-            loading_screen.style.display = 'none';
-            game_screen.style.display = 'block';
-
-            loading_screen.classList.remove('active');
-            game_screen.classList.add('active');
-
-            this.fillButtons(options);
-            this.preloadNextVideos();
-
-            this.currentPlaylistIndex++;
-        }
-    }
-
-    clearPreloadedVideos() {
-        this.preloadedVideos.clear();
-        this.preloadedIndices.clear();
-        this.preloadQueue = [];
-        this.isPreloading = false;
-        const preloadPlayer = document.getElementById('video-preload');
-        preloadPlayer.src = '';
-        preloadPlayer.load();
-    }
-
-    async startAggressivePreloading() {
-        if(this.isPreloading || !this.isGameActive) return;
-        this.isPreloading = true;
-
-        const preloadPlayer = document.getElementById('video-preload');
-
-        const videosToPreload = [];
-        for (let i = 1; i <= this.maxPreloadCount; i++){
-            let nextIndex = this.currentPlaylistIndex + i;
-            
-            if (nextIndex >= this.playlist.length) break;
-
-            if(!this.preloadedIndices.has(nextIndex)){
-                videosToPreload.push({
-                    index: nextIndex,
-                    video: this.playlist[nextIndex]
-                });
-            }
-        }
-
-        for(const item of videosToPreload){
-            if(!this.isGameActive) break;
-
-            try {
-                if(this.mobileMode) {
-                    const isCompatible = await this.checkVideoCompatibility(item.video.file_path);
-                    if(!isCompatible){
-                        console.log(`Video at index ${item.index} not compatible, skipping preload.`);
-                        continue;
-                    }
-                }
-
-                const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(item.video.file_path)}?token=${encodeURIComponent(this.token)}`;
-            
-                const tempVideo = document.createElement('video');
-                tempVideo.preload = 'auto';
-                tempVideo.src = videoUrl;
-
-                await new Promise((resolve) => {
-                    const timeout = setTimeout(() => {
-                        console.log(`Preload timeout for video ${item.index + 1}`);
-                        resolve();
-                    }, 10000);
-
-                    tempVideo.addEventListener('loadedmetadata', () => {
-                        clearTimeout(timeout);
-                        this.preloadedVideos.set(item.index, tempVideo);
-                        this.preloadedIndices.add(item.index);
-                        console.log(`Preloaded video ${item.index + 1}/${this.playlist.length}`);
-                        resolve();
-                    }, {once: true});
-
-                    tempVideo.addEventListener('error', (e) => {
-                        clearTimeout(timeout);
-                        console.log(`Failed to preload video ${item.index + 1}: `, e);
-                        resolve();
-                    }, {once: true});
-
-                    tempVideo.load();
-                });
-
-            } catch (error) {
-                console.log('Error during preloading: ', error);
-            }
-        }
-
-        this.isPreloading = false;
-    }
-
-    shuffleArray(array){
-        for (let i = array.length - 1; i > 0; i--){
-            const j = Math.floor(Math.random()*(i+1));
-            [array[i], array[j]] = [array[j], array[i]]
-        }
     }
 
     async getOptions(){
