@@ -339,6 +339,7 @@ body {
 }
 
 .players-list {
+  background-color: white;  
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 10px;
@@ -395,6 +396,12 @@ body {
   margin-bottom: 20px;
 }
 
+.chat-time {
+    color: #999;
+    font-size: 11px;
+    margin-right: 5px;
+}
+
 .chat-messages {
   height: 150px;
   overflow-y: auto;
@@ -405,11 +412,22 @@ body {
   background: #fafafa;
 }
 
+#chat-messages {
+    height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fafafa;
+}
+
 .chat-message {
   margin-bottom: 8px;
   padding: 5px;
   border-radius: 4px;
   word-wrap: break-word;
+  font-size: 14px;
 }
 
 .chat-message.system {

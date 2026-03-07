@@ -11,6 +11,8 @@ class MultiplayerLobby{
         this.token = null;
         this.website = 'https://julia.bluethsprojectsite.fun';
         this.sessionId = this.generateSessionId();
+        this.lastChatTimestamp = 0;
+        this.chatPollInterval = null;
 
         this.init = this.init.bind(this);
 
@@ -241,6 +243,10 @@ class MultiplayerLobby{
             clearInterval(this.gamePollInterval);
             this.gamePollInterval = setInterval(() => this.fetchGameStatus(this.currentGame.code), 5000);
         }
+        if(this.chatPollInterval){
+            clearInterval(this.chatPollInterval);
+            this.chatPollInterval = setInterval(() => this.fetchChatMessages(this.currentGame.code), 5000);
+        }
     }
 
     restorePolling(){
@@ -251,6 +257,10 @@ class MultiplayerLobby{
         if(this.gamePollInterval && this.currentGame){
             clearInterval(this.gamePollInterval);
             this.gamePollInterval = setInterval(() => this.fetchGameStatus(this.currentGame.code), 2000);
+        }
+        if(this.chatPollInterval){
+            clearInterval(this.chatPollInterval);
+            this.chatPollInterval = setInterval(() => this.fetchChatMessages(this.currentGame.code), 1000);
         }
     }
 
@@ -326,6 +336,7 @@ class MultiplayerLobby{
         alert('You have been removed from the game or the game has ended.');
         this.stopGamePolling();
         this.stopHeartbeat();
+        this.stopChatPolling();
         this.currentGame = null;
         this.isHost = false;
         localStorage.removeItem('lastGame');
@@ -453,6 +464,10 @@ class MultiplayerLobby{
         document.getElementById('start-game-btn').style.display = this.isHost ? 'block' : 'none';
 
         this.updatePlayersList(gameData.players);
+        this.startChatPolling(gameData.code);
+
+        document.getElementById('chat-messages').innerHTML = '';
+        this.addChatMessage('system', `Welcome to ${gameData.name}`);
 
         document.getElementById('ready-checkbox').checked = false;
         this.isReady = false;
@@ -686,22 +701,53 @@ class MultiplayerLobby{
         }
     } 
 
-    sendChatMessage() {
+    async sendChatMessage() {
         const input = document.getElementById('chat-input');
         const message = input.value.trim();
 
         if(!message || !this.currentGame) return;
 
-        this.addChatMessage(this.playerName, message);
+        if(!this.token || Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return;
+        }
+        try{
+            const response = await fetch(`${this.website}/api/local/multiplayer/chat/send`, {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    gameCode: this.currentGame.code,
+                    playerName: this.playerName,
+                    message: message
+                })
+            });
 
-        input.value = '';
+            if(response.ok){
+                input.value = "";
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Failed to send message');
+            }
+        } catch (error) {
+            console.error('Failed to send chat message: ', error);
+            alert('Failed to send message');
+        }
     }
 
-    addChatMessage(sender, message){
+    addChatMessage(sender, message, timestamp = null){
         const chatMessages = document.getElementById('chat-messages');
         const messageElement = document.createElement('div');
         messageElement.className = 'chat-message';
 
+        let timeString = '';
+        if(timestamp){
+            const date = new Date(timestamp * 1000);
+            timeString = `<span class="chat-time">[${date.toLocaleTimeString()}]</span>`;
+        }
         if(sender === 'system'){
             messageElement.classList.add('system');
             messageElement.innerHTML = message;
@@ -760,6 +806,30 @@ class MultiplayerLobby{
         }
     }
 
+    async fetchChatMessages(gameCode){
+        if(!this.token || Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return;
+        }
+        try{
+            const response = await fetch(`${this.website}/api/local/multiplayer/chat/messages?gameCode=${gameCode}&since=${this.lastChatTimestamp}`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+            if(response.ok){
+                const data = await response.json();
+                this.lastChatTimestamp = data.timestamp || Date.now() / 1000;
+                data.messages.forEach(msg => {
+                    this.addChatMessage(msg.player, msg.message);
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch chat messages: ', error);
+        }        
+    }
+
     async leaveGame() {
         if(!this.token || Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -792,6 +862,7 @@ class MultiplayerLobby{
     cleanupGameSession(){
         this.stopGamePolling();
         this.stopHeartbeat();
+        this.stopChatPolling();
         this.currentGame = null;
         this.isHost = false;
         localStorage.removeItem('lastGame');
@@ -801,6 +872,18 @@ class MultiplayerLobby{
     startPolling(){
         this.pollInterval = setInterval(() => this.fetchGames(), 3000);
         this.fetchGames();
+    }
+
+    startChatPolling(gameCode){
+        this.lastChatTimestamp = 0;
+        this.chatPollInterval = setInterval(() => this.fetchChatMessages(gameCode), 1000);
+    }
+
+    stopChatPolling(){
+        if(this.chatPollInterval){
+            clearInterval(this.chatPollInterval);
+            this.chatPollInterval = null;
+        }
     }
 
     startGamePolling(gameCode){
