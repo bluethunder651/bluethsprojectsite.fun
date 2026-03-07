@@ -10,6 +10,7 @@ class MultiplayerLobby{
         this.filterMetadata = null;
         this.token = null;
         this.website = 'https://julia.bluethsprojectsite.fun';
+        this.sessionId = this.generateSessionId();
 
         this.init = this.init.bind(this);
 
@@ -25,6 +26,12 @@ class MultiplayerLobby{
         this.loadSavedName();
         this.loadFilterMetadata();
         this.startPolling();
+
+        this.recoverSession();
+
+        window.addEventListener('beforeunload', () => this.handlePageUnload());
+
+        document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
     }
 
     setupEventListeners(){
@@ -33,7 +40,7 @@ class MultiplayerLobby{
             if (e.key === 'Enter') this.setPlayerName();
         });
         document.getElementById('host-game-btn').addEventListener('click', () => this.showHostScreen());
-        document.getElementById('refresh-games').addEventListener('click', () => this.requestGamesList());
+        document.getElementById('refresh-games').addEventListener('click', () => this.fetchGames());
         document.getElementById('back-to-menu-from-host').addEventListener('click', () => this.showMainMenu());
         document.getElementById('create-game-btn').addEventListener('click', () => this.createGame());
         document.getElementById('leave-game-btn').addEventListener('click', () => this.leaveGame());
@@ -78,6 +85,14 @@ class MultiplayerLobby{
 
     enableGameButtons(enable){
         document.getElementById('host-game-btn').disabled = !enable
+    }
+
+    generateSessionId(){
+        let sessionId = localStorage.getItem('sessionId');
+        if(!sessionId){
+            sessionId = 'session_' + Math.random().toString(36).substr(2,9);
+            localStorage.setItem('sessionId', sessionId);
+        }
     }
 
     async loadFilterMetadata() {
@@ -186,6 +201,170 @@ class MultiplayerLobby{
             }
         } catch(error) {
             console.error('Failed to fetch games: ', error);
+        }
+    }
+
+    async handlePageUnload() {
+        if(!this.token || Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }        
+        if (this.currentGame){
+            const data = JSON.stringify({
+                gameCode: this.currentGame.code,
+                playerName: this.playerName,
+                sessionId: this.sessionId
+            });
+
+            navigator.sendBeacon('https://julia.bluethsprojectsite.fun/api/local/multiplayer/leave', new Blob([data], {type: 'application/json'}));
+        }
+    }
+
+    handleVisibilityChange() {
+        if(document.hidden){
+            this.throttlePolling();
+        } else {
+            this.restorePolling();
+
+            if(this.currentGame){
+                this.verifyGameMembership();
+            }
+        }
+    }
+
+    throttlePolling() {
+        if(this.pollInterval){
+            clearInterval(this.pollInterval);
+            this.pollInterval = setInterval(() => this.fetchGames(), 10000);
+        }
+        if(this.gamePollInterval){
+            clearInterval(this.gamePollInterval);
+            this.gamePollInterval = setInterval(() => this.fetchGameStatus(this.currentGame.code), 5000);
+        }
+    }
+
+    restorePolling(){
+        if(this.pollInterval){
+            clearInterval(this.pollInterval);
+            this.pollInterval = setInterval(() => this.fetchGames(), 3000);
+        } 
+        if(this.gamePollInterval && this.currentGame){
+            clearInterval(this.gamePollInterval);
+            this.gamePollInterval = setInterval(() => this.fetchGameStatus(this.currentGame.code), 2000);
+        }
+    }
+
+    async recoverSession(){
+        if(!this.token || Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }   
+        
+        const lastGame = localStorage.getItem('lastGame');
+
+        if(lastGame){
+            try{
+                const gameData = JSON.parse(lastGame);
+                
+                const response = await fetch(`${this.website}/api/local/multiplayer/game/${gameData.code}?player=${encodeURIComponent(this.playerName)}&session=${this.sessionId}`, {
+                    headers: {
+                        'X-Auth-Token': this.token,
+                        'Referer': window.location.origin
+                    }
+                });
+
+                if(response.ok){
+                    const game = await response.json();
+                    if(game && game.players.some(p => p.name === this.playerName)){
+                        this.currentGame = game;
+                        this.isHost = (game.host === this.playerName);
+                        this.showGameLobby(gameData);
+                        this.startGamePolling(game.code);
+                        this.startHeartbeat();
+                    } else {
+                        localStorage.removeItem('lastGame');
+                    }
+                } else {
+                    localStorage.removeItem('lastGame');
+                }
+
+            } catch (error) {
+                console.error('Failed to recover session: ', error);
+                localStorage.removeItem('lastGame');
+            }
+        }
+    }
+
+    async verifyGameMembership(){
+        if(!this.currentGame) return;
+
+        if(!this.token || Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }   
+
+        try{
+            const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.currentGame.code}?player=${encodeURIComponent(this.playerName)}&verify=true`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                if(!data.isMember){
+                    this.handleForcedLeave();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to verify membership: ', error);
+        }
+    }
+
+    handleForcedLeave(){
+        alert('You have been removed from the game or the game has ended.');
+        this.stopGamePolling();
+        this.stopHeartbeat();
+        this.currentGame = null;
+        this.isHost = false;
+        localStorage.removeItem('lastGame');
+    }
+
+    startHeartbeat() {
+        this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), 30000);
+    }
+
+    stopHeartbeat() {
+        if (this.heartbeatInterval){
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+    }
+
+    async sendHeartbeat() {
+        if(!this.currentGame) return;
+        if(!this.token || Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }   
+        
+        try{
+            await fetch(`${this.website}/api/local/multiplayer/heartbeat`, {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin,
+                    'Content-Type': 'application/json'
+                }, 
+                body: JSON.stringify({
+                    gameCode: this.currentGame.code,
+                    playerName: this.playerName,
+                    sessionId: this.sessionId
+                })
+            });
+        } catch (error) {
+            console.error('Heartbeat failed: ', error);
         }
     }
 
@@ -358,6 +537,12 @@ class MultiplayerLobby{
                 const gameData = await response.json();
                 this.currentGame = gameData;
                 this.isHost = (gameData.host === this.playerName);
+
+                localStorage.setItem('lastGame', JSON.stringify({
+                    code: gameData.code,
+                    name: gameData.name,
+                    players: gameData.players
+                }));
                 this.showGameLobby(gameData);
                 this.startGamePolling(gameCode);
             } else {
@@ -407,6 +592,12 @@ class MultiplayerLobby{
                 const gameData = await response.json();
                 this.currentGame = gameData;
                 this.isHost = true;
+
+                localStorage.setItem('lastGame', JSON.stringify({
+                    code: gameData.code,
+                    name: gameData.name
+                }));
+
                 this.showGameLobby(gameData);
                 this.startGamePolling(gameData.code);
             } else {
@@ -587,13 +778,20 @@ class MultiplayerLobby{
                 })
             });
 
-            this.stopGamePolling();
-            this.currentGame = null;
-            this.isHost = false;
-            this.showMainMenu();
+            this.cleanupGameSession();
         } catch (error) {
             console.error('Failed to leave game: ', error);
+            this.cleanupGameSession();
         }
+    }
+
+    cleanupGameSession(){
+        this.stopGamePolling();
+        this.stopHeartbeat();
+        this.currentGame = null;
+        this.isHost = false;
+        localStorage.removeItem('lastGame');
+        this.showMainMenu();
     }
 
     startPolling(){
