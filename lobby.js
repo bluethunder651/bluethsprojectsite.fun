@@ -584,6 +584,8 @@ class MultiplayerLobby{
         const hardMode = document.getElementById('host-hard-mode').checked;
         const timeLimit = parseInt(document.getElementById('time-limit').value);
 
+        console.log(`Max Players: ${maxPlayers}, Rounds: ${rounds}, Hard Mode: ${hardMode}, Time Limit: ${timeLimit}`);
+
         const filters = this.gatherFilters();
 
         try {
