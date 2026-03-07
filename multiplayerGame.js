@@ -169,8 +169,21 @@ class MultiplayerGame{
             await this.refreshToken();
             if (!this.token) return [];
         }
-
+        
         console.log('loadandplay')
+
+        await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/player-ready`, {
+            method: 'POST',
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                playerName: this.playerName
+            })
+        });
+
 
         if(this.videoReady || this.isLoading) return;
         this.isLoading = true;
@@ -208,18 +221,6 @@ class MultiplayerGame{
         });
 
         console.log('resolved promise')
-
-        await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/player-ready`, {
-            method: 'POST',
-            headers: {
-                'X-Auth-Token': this.token,
-                'Referer': window.location.origin,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                playerName: this.playerName
-            })
-        });
 
         this.videoReady = true;
         this.isLoading = false;
