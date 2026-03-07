@@ -357,7 +357,7 @@ class MultiplayerLobby{
                 const gameData = await response.json();
                 this.currentGame = gameData;
                 this.isHost = (gameData.host === this.playerName);
-                this.showGameLobby();
+                this.showGameLobby(gameData);
                 this.startGamePolling(gameCode);
             } else {
                 const error = await response.json();
@@ -406,7 +406,7 @@ class MultiplayerLobby{
                 const gameData = await response.json();
                 this.currentGame = gameData;
                 this.isHost = true;
-                this.showGameLobby();
+                this.showGameLobby(gameData);
                 this.startGamePolling(gameData.code);
             } else {
                 const error = await response.json();
