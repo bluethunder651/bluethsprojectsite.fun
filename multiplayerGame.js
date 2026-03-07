@@ -164,9 +164,6 @@ class MultiplayerGame{
                     this.currentSong = state.currentSong;
                     this.loadAndPlayVideo(state.currentSong);
                 }
-                if(state.timeRemaining){
-                    this.updateTimer(state.timeRemaining);
-                }
                 break;
             case 'reveal':
                 this.showAnswerReveal(state);
@@ -374,10 +371,6 @@ class MultiplayerGame{
                 timerDisplay.remove();
             }
         }, 1000);
-    }
-
-    updateTimer(timeRemaining){
-        document.getElementById('timer').textContent = `Time left: ${Math.round(timeRemaining)}`;
     }
 
     handleAnswerClick(event){
