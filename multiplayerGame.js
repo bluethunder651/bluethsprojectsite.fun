@@ -33,7 +33,7 @@ class MultiplayerGame{
         
         document.addEventListener('DOMContentLoaded', async function() {
             document.querySelectorAll('.answer-btn').forEach(button => {
-                button.addEventListener('click', (e) => this.handleAnswerClick(e));
+                button.addEventListener('click', (e) => game.handleAnswerClick(e));
             });
 
             document.getElementById('video-player').addEventListener('ended', () => {
@@ -44,7 +44,7 @@ class MultiplayerGame{
 
             document.getElementById('go-back-btn').addEventListener('click', () => {
                 if(confirm('Leave the game?')){
-                    this.leaveGame();
+                    game.leaveGame();
                 }
             });
 
@@ -210,6 +210,8 @@ class MultiplayerGame{
 
         videoPlayer.src = videoUrl;
         videoPlayer.preload = 'auto';
+
+        console.log(`Video URL: ${videoUrl}, videoPlayer.src: ${videoPlayer.src}`);
 
         try{
             await new Promise((resolve, reject) => {
