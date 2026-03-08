@@ -28,7 +28,7 @@ class tsGame{
         this.highest_streak = 0;
         this.preloadQueue = [];
         this.preloadedVideos = new Map();
-        this.maxPreloadCount = 3;
+        this.maxPreloadCount = 1;
         this.isPreloading = false;
         this.preloadedIndices = new Set();
 
@@ -552,7 +552,17 @@ class tsGame{
         const hintPercent = enableHintMode ? (document.getElementById('hint-percent-field').value) || 25 : 0;
         this.totalRounds = parseInt(document.getElementById('rounds-input').value) || 10;
         this.hardMode = document.getElementById('hard-mode').checked;
-        
+        const landing_screen = document.getElementById('landing-screen');
+        const loading_screen = document.getElementById('loading-screen');
+        const filterOptions = document.getElementById('filter-options');    
+
+        landing_screen.style.display = 'none';
+        loading_screen.style.display = 'block';
+        filterOptions.style.display = 'none';
+
+        landing_screen.classList.remove('active');
+        loading_screen.classList.add('active');
+
         const response = await fetch(`${this.website}/api/local/game/single/start`, {
             method: "POST",
             headers: {
@@ -571,73 +581,25 @@ class tsGame{
         });
 
         if(response.ok){
-            const landing_screen = document.getElementById('landing-screen');
             const loading_screen = document.getElementById('loading-screen');
             const game_screen = document.getElementById('game-screen');
-            const filterOptions = document.getElementById('filter-options');
 
             const data = await response.json();
 
             this.playlist = data.playlist;
 
             this.shuffleArray(this.playlist);
+
             this.currentPlaylistIndex = 0;
 
             this.clearPreloadedVideos();
 
-            landing_screen.style.display = 'none';
-            loading_screen.style.display = 'block';
-            filterOptions.style.display = 'none';
+            const song = this.playlist[0];
+            this.current_song = song;
 
-            landing_screen.classList.remove('active');
-            loading_screen.classList.add('active');
+            const options = await this.getOptions(song.game_name);
 
-            this.current_song = this.playlist[this.currentPlaylistIndex];
-
-            const options = await this.getOptions();
-
-            const videoPlayer = document.getElementById('video-player');
-
-            let loadStartTime = Date.now();
-            let progressInterval = setInterval(() => {
-                if(videoPlayer.buffered.length > 0){
-                    let bufferedEnd = videoPlayer.buffered.end(videoPlayer.buffered.length - 1);
-                    let duration = videoPlayer.duration;
-                    if (duration > 0){
-                        let percentLoaded = (bufferedEnd/duration * 100);
-                        console.log(`Loading video: ${Math.round(percentLoaded)}`);
-
-                        if(loading_screen.style.display === 'block'){
-                            loading_screen.innerHTML = `<h3>Loading... ${Math.round(percentLoaded)}%</h3>`;
-                        }
-                    }
-                }
-            }, 100);
-
-            await new Promise((resolve) => {
-                const onCanPlay = () => {
-                    clearInterval(progressInterval);
-                    videoPlayer.removeEventListener('canplay', onCanPlay);
-                    videoPlayer.removeEventListener('error', onError);
-
-                    let loadTime = (Date.now() - loadStartTime) / 1000;
-                    console.log(`Video loaded in ${loadTime}`);
-                    resolve();
-                }
-
-                const onError = (e) => {
-                    clearInterval(progressInterval);
-                    videoPlayer.removeEventListener('canplay', onCanPlay);
-                    videoPlayer.removeEventListener('error', onError);
-                    console.error('Video failed to load: ', e);
-                    resolve();
-                }
-
-                videoPlayer.addEventListener('canplay', onCanPlay);
-                videoPlayer.addEventListener('error', onError);
-
-                this.playVideo(this.hardMode);
-            });
+            await this.playVideo(this.hardMode);
 
             loading_screen.innerHTML = '<h3>Loading...</h3>';
 
@@ -648,7 +610,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
-            this.preloadNextVideos();
+            this.preloadNextVideo();
 
             this.currentPlaylistIndex++;
         }
@@ -713,7 +675,7 @@ class tsGame{
                     const timeout = setTimeout(() => {
                         console.log(`Preload timeout for video ${item.index + 1}`);
                         resolve();
-                    }, 10000);
+                    }, 20000);
 
                     tempVideo.addEventListener('loadedmetadata', () => {
                         clearTimeout(timeout);
@@ -747,7 +709,7 @@ class tsGame{
         }
     }
 
-    async getOptions(){
+    async getOptions(gameName){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
@@ -763,7 +725,7 @@ class tsGame{
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                currentSong: this.current_song['game_name'],
+                currentSong: gameName,
             })
         });
 
@@ -818,21 +780,32 @@ class tsGame{
     }
 
     async handleVideoEnded(){
-        if(this.currentPlaylistIndex < this.playlist.length){
-            this.preloadedIndices.delete(this.currentPlaylistIndex);
-            await this.loadVideoWithFallback();
-            this.current_song = this.playlist[this.currentPlaylistIndex];
+        this.currentPlaylistIndex++;
 
-            const options = await this.getOptions();
-            this.fillButtons(options);
-
-            this.startAggressivePreloading();
-
-            this.currentRound++;
-            this.currentPlaylistIndex++;
-        } else {
-            this.next_video();
+        if(this.currentPlaylistIndex >= this.playlist.length){
+            this.gameEnded(this.scores, this.highest_streak);
+            return;
         }
+
+        const player = document.getElementById('video-player');
+        const preloader = document.getElementById('video-preload');
+
+        player.src = preloader.src;
+        player.currentTime = 0;
+
+        try{
+            await player.play();
+        } catch(e){
+            console.log('Play failed: ', e);
+        }
+
+        const song = this.playlist[this.currentPlaylistIndex];
+        this.current_song = song;
+
+        const options = await this.getOptions(song.game_name);
+        this.fillButtons(options);
+
+        this.preloadNextVideo();
     }
     
     async loadVideoWithFallback() {
@@ -1083,9 +1056,10 @@ class tsGame{
                 return;
             }
 
-            this.current_song = this.playlist[this.currentPlaylistIndex];
+            const song = this.playlist[this.currentPlaylistIndex];
+            this.current_song = song;
 
-            const options = await this.getOptions();
+            const options = await this.getOptions(song.game_name);
 
             this.usePreloadedVideo(options);
 
@@ -1094,6 +1068,33 @@ class tsGame{
             this.currentRound++;
             this.currentPlaylistIndex++;
         }
+    }
+
+    async preloadNextVideo() {
+        if(this.currentPlaylistIndex + 1 >= this.playlist.length) return;
+
+        const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+
+        const preloader = document.getElementById('video-preload');
+
+        return new Promise((resolve) => {
+            const onReady = () => {
+                preloader.removeEventListener('loadedmetadata', onReady);
+                resolve();
+            }
+            const onError = () => {
+                preloader.removeEventListener('error', onError);
+                resolve();
+            }
+
+            preloader.addEventListener('loadedmetadata', onReady, {once:true});
+            preloader.addEventListener('error', onError, {once: true});
+
+            preloader.src = videoUrl;
+            preloader.preload = 'auto';
+            preloader.load();
+        });
     }
 
     async loadVideoWithRetry(mainPlayer, video, retryCount = 0){
@@ -1139,7 +1140,7 @@ class tsGame{
                 } else {
                     console.log('Loading timeout, max retries reached.');
                     this.handleVideoEnded();
-                    resolve;
+                    resolve();
                 }
             }, 15000);
 
