@@ -857,11 +857,11 @@ class tsGame{
             } else {
                 console.log(`Preloaded video for index ${this.currentPlaylistIndex} not ready, falling back.`);
                 this.preloadedVideos.delete(this.currentPlaylistIndex);
-                await this.loadVideoWithRetry(mainPlayer, video);
+                await this.loadVideoNormally(mainPlayer, video);
             }
         } else {
             console.log(`No preloaded video for index ${this.currentPlaylistIndex}, loading normally.`);
-            await this.loadVideoWithRetry(mainPlayer, video);
+            await this.loadVideoNormally(mainPlayer, video);
         }
 
         if(this.hardMode){
