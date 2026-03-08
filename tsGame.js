@@ -1091,7 +1091,10 @@ class tsGame{
             preloader.src = videoUrl;
             preloader.preload = 'auto';
             preloader.load();
+            console.log('Preloaded next Video')      
         });
+
+
     }
 
     async loadVideoWithRetry(mainPlayer, video, retryCount = 0){
