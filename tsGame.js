@@ -805,8 +805,8 @@ class tsGame{
 
         this.preloadNextVideo();
 
-        //this.currentRound++;
-        //this.currentPlaylistIndex++;
+        this.currentRound++;
+        this.currentPlaylistIndex++;
     }
     
     async loadVideoWithFallback() {
