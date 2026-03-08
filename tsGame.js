@@ -778,33 +778,24 @@ class tsGame{
     }
 
     async handleVideoEnded(){
-        if(this.currentPlaylistIndex >= this.playlist.length){
+        if(this.currentPlaylistIndex < this.playlist.length){
+            this.currentPlaylistIndex++;
+            this.currentRound++;
+
+            this.preloadedIndices.delete(this.currentPlaylistIndex);
+
+            await this.loadVideoWithFallback();
+
+            const song = this.playlist[this.currentPlaylistIndex];
+            this.current_song = song;
+
+            const options = await this.getOptions(song.game_name);
+            this.fillButtons(options);
+
+            this.preloadNextVideo();
+        } else {
             this.gameEnded(this.scores, this.highest_streak);
-            return;
         }
-
-        const player = document.getElementById('video-player');
-        const preloader = document.getElementById('video-preload');
-
-        player.src = preloader.src;
-        player.currentTime = 0;
-
-        try{
-            await player.play();
-        } catch(e){
-            console.log('Play failed: ', e);
-        }
-
-        const song = this.playlist[this.currentPlaylistIndex];
-        this.current_song = song;
-
-        const options = await this.getOptions(song.game_name);
-        this.fillButtons(options);
-
-        this.preloadNextVideo();
-
-        this.currentRound++;
-        this.currentPlaylistIndex++;
     }
     
     async loadVideoWithFallback() {
