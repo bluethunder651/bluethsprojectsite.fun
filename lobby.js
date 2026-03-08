@@ -620,10 +620,10 @@ class MultiplayerLobby{
                 body: JSON.stringify({
                     name: gameName,
                     maxPlayers: maxPlayers,
-                    maxRounds: maxRounds,
+                    maxRounds: this.maxRounds,
                     rounds: rounds,
                     hardMode: hardMode,
-                    timeLimitCheck: timeLimitCheck,
+                    timeLimitCheck: this.timeLimitCheck,
                     timeLimit: timeLimit,
                     filters: filters,
                     host: this.playerName
