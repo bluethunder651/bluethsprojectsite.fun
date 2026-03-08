@@ -157,7 +157,7 @@ class MultiplayerGame{
                 }
                 break;
             case 'playing':
-                console.log(`State.game_settings: ${state.game_settings}, state.game_settings.time_limit_check: ${state.game_settings.time_limit_check}, state.game_settings['time_limit_check']: ${state.game_settings['time_limit_check']}`);
+                console.log(`State.game_settings: ${state.game_settings}, state.game_settings.time_limit_check: ${state.game_settings.time_limit_check}, state.game_settings.get('time_limit_check'): ${state.game_settings.get('time_limit_check')}`);
                 if(this.videoReady && !this.playbackStarted && !this.isLoading){
                     this.startPlayback(state.game_settings);
                 } else if(!this.isLoading && !this.videoReady){
