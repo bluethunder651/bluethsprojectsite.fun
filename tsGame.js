@@ -668,8 +668,6 @@ class tsGame{
         if(this.isPreloading || !this.isGameActive) return;
         this.isPreloading = true;
 
-        const preloadPlayer = document.getElementById('video-preload');
-
         const videosToPreload = [];
         for (let i = 1; i <= this.maxPreloadCount; i++){
             let nextIndex = this.currentPlaylistIndex + i;
@@ -677,6 +675,15 @@ class tsGame{
             if (nextIndex >= this.playlist.length) break;
 
             if(!this.preloadedIndices.has(nextIndex)){
+                const video = this.playlist[nextIndex];
+                const canPlay = await this.checkVideoPlayability(video.file_path);
+
+                if(!canPlay){
+                    console.log(`Video at index ${nextIndex} may not be playable, skipping preload.`);
+                    this.preloadedIndices.add(nextIndex);
+                    continue;
+                }
+
                 videosToPreload.push({
                     index: nextIndex,
                     video: this.playlist[nextIndex]
@@ -830,22 +837,31 @@ class tsGame{
     
     async loadVideoWithFallback() {
         const mainPlayer = document.getElementById('video-player');
+        const video = this.playlist[this.currentPlaylistIndex];
+
+        const canPlay = await this.checkVideoPlayability(video.file_path);
+
+        if (!canPlay){
+            console.log(`Video at index ${this.currentPlaylistIndex} cannot be played, skipping...`);
+            this.handleVideoEnded();
+            return;
+        }
 
         if(this.preloadedVideos.has(this.currentPlaylistIndex)){
             const preloadedVideo = this.preloadedVideos.get(this.currentPlaylistIndex);
 
-            if(preloadedVideo.readyState >= 1){
+            if(preloadedVideo.readyState >= 2){
                 mainPlayer.src = preloadedVideo.src;
                 this.preloadedVideos.delete(this.currentPlaylistIndex);
                 console.log(`Using preloaded video for index ${this.currentPlaylistIndex}`);
             } else {
                 console.log(`Preloaded video for index ${this.currentPlaylistIndex} not ready, falling back.`);
                 this.preloadedVideos.delete(this.currentPlaylistIndex);
-                await this.loadVideoNormally(mainPlayer);
+                await this.loadVideoWithRetry(mainPlayer, video);
             }
         } else {
             console.log(`No preloaded video for index ${this.currentPlaylistIndex}, loading normally.`);
-            await this.loadVideoNormally(mainPlayer);
+            await this.loadVideoWithRetry(mainPlayer, video);
         }
 
         if(this.hardMode){
@@ -858,10 +874,48 @@ class tsGame{
         this.videoStartTime = Date.now();
 
         try{
-            await mainPlayer.play();
+            const playPromise = mainPlayer.play();
+            if(playPromise !== undefined){
+                playPromise.catch(e => {
+                    console.log('Play failed: ', e);
+                    mainPlayer.load();
+                    setTimeout(() => {
+                        mainPlayer.play().catch(e2 => {
+                            console.log('Retry play failed: ', e2);
+                            this.handleVideoEnded();
+                        })
+                    }, 100);
+                }); 
+            }
         } catch (e) {
             console.log('Autoplay prevented: ', e);
         }
+    }
+
+    async checkVideoPlayability(videoPath){
+        const video = document.createElement('video');
+        const extension = videoPath.split('.').pop().toLowerCase();
+
+        const canPlayMap = {
+            'mp4': video.canPlayType('video/mp4'),
+            'webm': video.canPlayType('video/webm'),
+            'ogg': video.canPlayType('video/ogg'),
+            'mov': video.canPlayType('video/quicktime'),
+            'avi': video.canPlayType('video/x-msvideo'),
+            'mkv': video.canPlayType('video/x-matroska')            
+        }
+
+        const canPlay = canPlayMap[extension];
+
+        if(canPlay === 'probably' || canPlay === 'maybe'){
+            return true;
+        }
+
+        if(extension === 'mp4' || extension === 'm4v'){
+            return true;
+        }
+
+        return false;
     }
 
     async loadVideoNormally(videoPlayer){
@@ -1040,6 +1094,58 @@ class tsGame{
             this.currentRound++;
             this.currentPlaylistIndex++;
         }
+    }
+
+    async loadVideoWithRetry(mainPlayer, video, retryCount = 0){
+        const maxRetries = 2;
+
+        return new Promise((resolve) => {
+            const videoUrl =  `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
+
+            mainPlayer.removeAttribute('src');
+            mainPlayer.load();
+
+            const errorHandler = (e) => {
+                console.log(`Error loading video (attempt ${retryCount + 1}): `, e);
+
+                if(retryCount < maxRetries){
+                    setTimeout(() => {
+                        this.loadVideoWithRetry(mainPlayer, video, retryCount + 1).then(resolve);
+                    }, 500);
+                } else {
+                    console.log('Max retries reached, skipping video.');
+                    mainPlayer.removeEventListener('error', errorHandler);
+                    mainPlayer.removeEventListener('loadedmetadata', metadataHandler);
+                    this.handleVideoEnded();
+                    resolve();
+                }
+            };
+
+            const metadataHandler = () => {
+                mainPlayer.removeEventListener('error', errorHandler);
+                resolve();
+            }
+
+            mainPlayer.addEventListener('error', errorHandler, {once:true});
+            mainPlayer.addEventListener('loadedmetadata', metadataHandler, {once: true});
+
+            const timeout = setTimeout(() => {
+                mainPlayer.removeEventListener('error', errorHandler);
+                mainPlayer.removeEventListener('loadedmetadata', metadataHandler);
+
+                if(retryCount < maxRetries){
+                    console.log('Loading timeout, retrying...');
+                    this.loadVideoWithRetry(mainPlayer, video, retryCount + 1).then(resolve);
+                } else {
+                    console.log('Loading timeout, max retries reached.');
+                    this.handleVideoEnded();
+                    resolve;
+                }
+            }, 15000);
+
+            mainPlayer.src = videoUrl;
+            mainPlayer.load();
+        });
     }
 
     async usePreloadedVideo(options){
