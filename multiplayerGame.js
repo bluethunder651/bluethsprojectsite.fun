@@ -345,11 +345,11 @@ class MultiplayerGame{
 
         this.videoStartTime = Date.now()
 
-        const maxRounds = game_settings['max_rounds'];
         const time_limit_check = game_settings['time_limit_check'];
 
         try{
             await videoPlayer.play();
+            console.log("Time Limit Check: ", time_limit_check)
             if(time_limit_check){
                 this.startTimer(this.timeLimit);
             }
