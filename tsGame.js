@@ -611,8 +611,6 @@ class tsGame{
 
             this.fillButtons(options);
             this.preloadNextVideo();
-
-            this.currentPlaylistIndex++;
         }
     }
 
