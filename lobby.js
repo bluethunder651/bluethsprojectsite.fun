@@ -13,6 +13,8 @@ class MultiplayerLobby{
         this.sessionId = this.generateSessionId();
         this.lastChatTimestamp = 0;
         this.chatPollInterval = null;
+        this.maxRounds = false;
+        this.timeLimitCheck = false;
 
         this.init = this.init.bind(this);
 
@@ -53,6 +55,23 @@ class MultiplayerLobby{
             if (e.key === 'Enter') this.sendChatMessage();
         });
         document.querySelector('.filter-header').addEventListener('click', () => this.toggleFilters());
+        document.getElementById('max-rounds').addEventListener('click', () => {
+            this.maxRounds = document.getElementById('max-rounds').checked;
+            if(this.maxRounds){
+                document.getElementById('game-rounds-div').style.display = 'block';
+            } else {
+                document.getElementById('game-rounds-div').style.display = 'none';
+            }
+        });
+
+        document.getElementById('time-limit-checkbox').addEventListener('click', () => {
+            this.timeLimitCheck = document.getElementById('time-limit-checkbox').checked;
+            if(this.timeLimitCheck){
+                document.getElementById('time-limit-div').style.display = 'block';
+            } else {
+                document.getElementById('time-limit-div').style.display = 'none';
+            }
+        });
 
     }
 
@@ -580,8 +599,10 @@ class MultiplayerLobby{
         const gameName = document.getElementById('game-name').value.trim() || `${this.playerName}'s Game`;
 
         const maxPlayers = parseInt(document.getElementById('max-players').value);
+        this.maxRounds = document.getElementById('max-rounds').checked;
         const rounds = parseInt(document.getElementById('game-rounds').value);
         const hardMode = document.getElementById('host-hard-mode').checked;
+        this.timeLimitCheck = document.getElementById('time-limit-checkbox').checked;
         const timeLimit = parseInt(document.getElementById('time-limit').value);
 
         console.log(`Max Players: ${maxPlayers}, Rounds: ${rounds}, Hard Mode: ${hardMode}, Time Limit: ${timeLimit}`);
@@ -599,8 +620,10 @@ class MultiplayerLobby{
                 body: JSON.stringify({
                     name: gameName,
                     maxPlayers: maxPlayers,
+                    maxRounds: maxRounds,
                     rounds: rounds,
                     hardMode: hardMode,
+                    timeLimitCheck: timeLimitCheck,
                     timeLimit: timeLimit,
                     filters: filters,
                     host: this.playerName

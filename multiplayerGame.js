@@ -158,7 +158,7 @@ class MultiplayerGame{
                 break;
             case 'playing':
                 if(this.videoReady && !this.playbackStarted && !this.isLoading){
-                    this.startPlayback();
+                    this.startPlayback(state.game_settings);
                 } else if(!this.isLoading && !this.videoReady){
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
@@ -326,7 +326,7 @@ class MultiplayerGame{
         loading_screen.innerHTML = '<h3>Waiting for other players...</h3>'       
     }
 
-    async startPlayback() {
+    async startPlayback(game_settings) {
         if(this.playbackStarted) return;
         this.playbackStarted = true;
 
@@ -345,9 +345,14 @@ class MultiplayerGame{
 
         this.videoStartTime = Date.now()
 
+        const maxRounds = game_settings['max_rounds'];
+        const time_limit_check = game_settings['time_limit_check'];
+
         try{
             await videoPlayer.play();
-            this.startTimer(this.timeLimit);
+            if(time_limit_check){
+                this.startTimer(this.timeLimit);
+            }
         } catch (error) {
             console.log("Autoplay prevented: ", error);
         }
