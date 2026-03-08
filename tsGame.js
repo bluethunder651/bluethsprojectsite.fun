@@ -1064,8 +1064,6 @@ class tsGame{
 
             this.usePreloadedVideo(options);
 
-            this.startAggressivePreloading();
-
             this.currentRound++;
             this.currentPlaylistIndex++;
         }
@@ -1154,11 +1152,6 @@ class tsGame{
         await this.loadVideoWithFallback();
         this.fillButtons(options);
     }
-
-    async preloadNextVideos(){
-        if(!this.isGameActive || this.currentRound >= this.totalRounds) return;
-        this.startAggressivePreloading();
-    }    
 
     gameEnded(scores, highest_streak){
         const main = document.getElementById('video-player');
