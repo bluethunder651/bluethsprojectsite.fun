@@ -780,8 +780,6 @@ class tsGame{
     }
 
     async handleVideoEnded(){
-        this.currentPlaylistIndex++;
-
         if(this.currentPlaylistIndex >= this.playlist.length){
             this.gameEnded(this.scores, this.highest_streak);
             return;
@@ -806,6 +804,9 @@ class tsGame{
         this.fillButtons(options);
 
         this.preloadNextVideo();
+
+        //this.currentRound++;
+        //this.currentPlaylistIndex++;
     }
     
     async loadVideoWithFallback() {
