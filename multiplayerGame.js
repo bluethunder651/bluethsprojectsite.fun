@@ -345,7 +345,7 @@ class MultiplayerGame{
 
         this.videoStartTime = Date.now()
 
-        const time_limit_check = game_settings['time_limit_check'];
+        const time_limit_check = game_settings.time_limit_check;
 
         try{
             await videoPlayer.play();
