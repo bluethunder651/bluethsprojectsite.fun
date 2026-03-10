@@ -627,83 +627,13 @@ class tsGame{
         preloadPlayer.load();
     }
 
-    async startAggressivePreloading() {
-        if(this.isPreloading || !this.isGameActive) return;
-        this.isPreloading = true;
-
-        const videosToPreload = [];
-        for (let i = 1; i <= this.maxPreloadCount; i++){
-            let nextIndex = this.currentPlaylistIndex + i;
-            
-            if (nextIndex >= this.playlist.length) break;
-
-            if(!this.preloadedIndices.has(nextIndex)){
-                const video = this.playlist[nextIndex];
-                const canPlay = await this.checkVideoPlayability(video.file_path);
-
-                if(!canPlay){
-                    console.log(`Video at index ${nextIndex} may not be playable, skipping preload.`);
-                    this.preloadedIndices.add(nextIndex);
-                    continue;
-                }
-
-                videosToPreload.push({
-                    index: nextIndex,
-                    video: this.playlist[nextIndex]
-                });
-            }
-        }
-
-        for(const item of videosToPreload){
-            if(!this.isGameActive) break;
-
-            try {
-                if(this.mobileMode) {
-                    const isCompatible = await this.checkVideoCompatibility(item.video.file_path);
-                    if(!isCompatible){
-                        console.log(`Video at index ${item.index} not compatible, skipping preload.`);
-                        continue;
-                    }
-                }
-
-                const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(item.video.file_path)}?token=${encodeURIComponent(this.token)}`;
-            
-                const tempVideo = document.createElement('video');
-                tempVideo.preload = 'auto';
-                tempVideo.src = videoUrl;
-
-                await new Promise((resolve) => {
-                    const timeout = setTimeout(() => {
-                        console.log(`Preload timeout for video ${item.index + 1}`);
-                        resolve();
-                    }, 20000);
-
-                    tempVideo.addEventListener('loadedmetadata', () => {
-                        clearTimeout(timeout);
-                        this.preloadedVideos.set(item.index, tempVideo);
-                        this.preloadedIndices.add(item.index);
-                        console.log(`Preloaded video ${item.index + 1}/${this.playlist.length}`);
-                        resolve();
-                    }, {once: true});
-
-                    tempVideo.addEventListener('error', (e) => {
-                        clearTimeout(timeout);
-                        console.log(`Failed to preload video ${item.index + 1}: `, e);
-                        resolve();
-                    }, {once: true});
-
-                    tempVideo.load();
-                });
-
-            } catch (error) {
-                console.log('Error during preloading: ', error);
-            }
-        }
-
-        this.isPreloading = false;
-    }
-
     async preloadBuffers() {
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) return [];
+        }
+        if(!this.token) return [];
+
         const buffer1 = document.getElementById('video-buffer1');
         const buffer2 = document.getElementById('video-buffer2');
 
@@ -724,55 +654,6 @@ class tsGame{
             buffer2.load();
             this.buffer2Index = nextNextIndex;
             console.log("Buffered video: ", nextNextIndex);
-        }
-    }
-
-    async maintainPreloadBuffer() {
-        if(!this.isGameActive) return;
-
-        const targetIndex = this.currentPlaylistIndex + this.preloadBuffer;
-
-        for(let i = this.currentPlaylistIndex + 1; i <= targetIndex; i++){
-            if(i >= this.playlist.length) break;
-            if(this.preloadedVideos.has(i)) continue;
-            if(this.preloadedIndices.has(i)) continue;
-
-            const video = this.playlist[i];
-
-            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
-
-            try{
-                const tempVideo = document.createElement('video');
-                tempVideo.preload = 'auto';
-                tempVideo.src = videoUrl;
-
-                await new Promise(resolve => {
-                    const timeout = this.setTimeout(() => {
-                        console.log(`Preload timeout for video ${i}`);
-                        resolve();
-                    }, 15000);
-
-                    tempVideo.addEventListener('loadedmetadata', () => {
-                        clearTimeout(timeout);
-                        this.preloadedVideos.set(i, tempVideo);
-                        this.preloadedIndices.add(i);
-
-                        console.log(`Buffered video ${i}`);
-
-                        resolve();
-                    }, {once: true});
-
-                    tempVideo.addEventListener('error', () => {
-                        clearTimeout(timeout);
-                        resolve();
-                    }, {once: true});
-
-                    tempVideo.load();
-                });
-
-            } catch (error) {
-                console.log("Preload error: ", error);
-            }
         }
     }
 
