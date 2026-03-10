@@ -241,14 +241,13 @@ class MultiplayerGame{
         this.isLoading = false;
         loading_screen.innerHTML = '<h3>Waiting for other players...</h3>';
 
-        const mainPlayer = document.getElementById('video-player');
         const buffer1 = document.getElementById('video-buffer1');
         const buffer2 = document.getElementById('video-buffer2');
 
         console.log('buffer1.src: ', buffer1.src);
 
-        if(buffer1.src !== null){
-            mainPlayer.src = buffer1.src;
+        if(buffer1.src !== null && songData.currentRound !== 0){
+            videoPlayer.src = buffer1.src;
 
             buffer1.src = buffer2.src;
             buffer2.removeAttribute('src');
@@ -258,16 +257,14 @@ class MultiplayerGame{
             this.buffer2Index = null;
 
             this.preloadBuffers();
-            return;
+        } else {
+            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(songData.file_path)}?token=${encodeURIComponent(this.token)}`;
+
+            videoPlayer.src = videoUrl;
+            videoPlayer.preload = 'auto';
+
+            console.log(`Video URL: ${videoUrl}, videoPlayer.src: ${videoPlayer.src}`);
         }
-
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(songData.file_path)}?token=${encodeURIComponent(this.token)}`;
-
-        videoPlayer.src = videoUrl;
-        videoPlayer.preload = 'auto';
-
-        console.log(`Video URL: ${videoUrl}, videoPlayer.src: ${videoPlayer.src}`);
-
         try{
             await new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
