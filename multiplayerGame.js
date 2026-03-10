@@ -161,6 +161,9 @@ class MultiplayerGame{
                 }
                 break;
             case 'playing':
+                if(this.videoReady && !this.playbackStarted && !this.isLoading){
+                    this.startPlayback(state.game_settings);
+                }
                 if(!this.isLoading && !this.videoReady){
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
@@ -324,6 +327,40 @@ class MultiplayerGame{
 
         loading_screen.innerHTML = '<h3>Waiting for other players...</h3>'       
     }
+
+
+    async startPlayback(game_settings) {
+        if(this.playbackStarted) return;
+        this.playbackStarted = true;
+
+        const loading_screen = document.getElementById('loading-screen');
+        const game_screen = document.getElementById('game-screen');
+        const videoPlayer = document.getElementById('video-player');
+        
+        loading_screen.style.display = 'none';  
+        game_screen.style.display = 'block';
+
+        if(this.hardMode){
+            videoPlayer.classList.add('video-hidden');
+        } else {
+            videoPlayer.classList.remove('video-hidden');
+        }
+
+        this.videoStartTime = Date.now()
+
+        const time_limit_check = game_settings.time_limit_check;
+
+        try{
+            await videoPlayer.play();
+            console.log("Time Limit Check: ", time_limit_check)
+            if(time_limit_check){
+                this.startTimer(this.timeLimit);
+            }
+        } catch (error) {
+            console.log("Autoplay prevented: ", error);
+        }
+    }
+
 
     startTimer(seconds){
         const timerDisplay = document.createElement('div');
