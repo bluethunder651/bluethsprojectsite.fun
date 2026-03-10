@@ -195,6 +195,13 @@ class MultiplayerGame{
     }
 
     async loadAndPlayVideo(songData){
+        if(this.videoReady || this.isLoading) return;
+        this.isLoading = true;
+
+        this.videoReady = false;
+        this.hasAnswered = false;
+        this.playbackStarted = false;
+        this.answerSubmitted = false;
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
@@ -213,15 +220,6 @@ class MultiplayerGame{
                 playerName: this.playerName
             })
         });
-
-
-        if(this.videoReady || this.isLoading) return;
-        this.isLoading = true;
-
-        this.videoReady = false;
-        this.hasAnswered = false;
-        this.playbackStarted = false;
-        this.answerSubmitted = false;
 
         const loading_screen = document.getElementById('loading-screen');
         const game_screen = document.getElementById('game-screen');
@@ -253,7 +251,7 @@ class MultiplayerGame{
             videoPlayer.src = buffer1.src;
             videoPlayer.preload = 'auto';
 
-            console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`)
+            console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`);
 
             buffer1.src = buffer2.src;
             buffer2.removeAttribute('src');
