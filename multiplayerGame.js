@@ -61,7 +61,7 @@ class MultiplayerGame{
                 game.nextRound();
             })
 
-            document.getElementById('next-video').style.display = 'none';
+            document.getElementById('next-video').disabled = true;
         });
     }
 
@@ -174,7 +174,6 @@ class MultiplayerGame{
                 setTimeout(() => {
                     const nextBtn = document.getElementById('next-video');
                     if(this.isHost){
-                        nextBtn.style.display = 'block';
                         nextBtn.disabled = false;
                     } else {
                         const loading_screen = document.getElementById('loading-screen');
@@ -445,7 +444,6 @@ class MultiplayerGame{
 
         document.getElementById('video-player').classList.remove('video-hidden')
         const next_btn = document.getElementById('next-video');
-        next_btn.style.display = 'block';
         next_btn.disabled = false;
 
         const timer = document.getElementById('timer');
@@ -899,7 +897,7 @@ class MultiplayerGame{
         
         try{
             const nextBtn = document.getElementById('next-video');
-            nextBtn.style.display = 'none';
+            nextBtn.disabled = true;
 
             const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/next-round`, {
                 method: 'POST',
@@ -939,12 +937,12 @@ class MultiplayerGame{
                 this.showLoadingScreen('Loading next video...');
             } else {
                 console.error('Failed to advance round');
-                document.getElementById('next-video').style.display = 'block';
+                document.getElementById('next-video').disabled = false;
             }
 
         } catch (error) {
             console.error('Failed to advance round: ', error);
-            document.getElementById('next-video').style.display = 'block';
+            document.getElementById('next-video').disabled = false;
         }
     }
 
