@@ -846,7 +846,6 @@ class MultiplayerGame{
     }
 
     showLoadingScreen(message){
-        document.getElementById('landing-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'block';
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('loading-screen').innerHTML = `<h3>${message}</h3>`;
@@ -1058,14 +1057,13 @@ class MultiplayerGame{
         main.pause();
         this.isGameActive = false;
         const gameScreen = document.getElementById('game-screen');
-        const landingScreen = document.getElementById('landing-screen');
         
         alert(`Game over!\nFinal score: ${scores}\nHighest Streak: ${highest_streak}`)
 
         gameScreen.style.display = 'none';
-        landingScreen.style.display = 'block';
-        landingScreen.classList.add('active');
         gameScreen.classList.remove('active');
+
+        window.location.href = "tsPlayer.html";
 
         this.clearPreloadedVideos();
     }
