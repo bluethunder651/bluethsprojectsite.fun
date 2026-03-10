@@ -28,6 +28,8 @@ class MultiplayerGame{
         this.maxPreloadCount = 3;
         this.isPreloading = false;
         this.preloadedIndices = new Set();
+        this.buffer1Index = null;
+        this.buffer2Index = null;
 
         this.gameStatePollInterval = null;
         this.videoReady = false;
@@ -149,7 +151,7 @@ class MultiplayerGame{
                     this.loadAndPlayVideo(state.currentSong);
 
                     if(this.currentRound >= 0){
-                        this.preloadNextVideos();
+                        this.preloadBuffers();
                     }
                 } else {
                     console.log('state.currentRound === this.currentRound');
@@ -715,7 +717,7 @@ class MultiplayerGame{
             const options = await this.getOptions();
             this.fillButtons(options);
 
-            this.startAggressivePreloading();
+            this.preloadBuffers();
 
             this.currentRound++;
             this.currentPlaylistIndex++;
@@ -726,23 +728,19 @@ class MultiplayerGame{
     
     async loadVideoWithFallback() {
         const mainPlayer = document.getElementById('video-player');
+        const buffer1 = document.getElementById('video-buffer1');
+        const buffer2 = document.getElementById('video-buffer2');
 
-        if(this.preloadedVideos.has(this.currentPlaylistIndex)){
-            const preloadedVideo = this.preloadedVideos.get(this.currentPlaylistIndex);
+        mainPlayer.src = buffer1.src;
 
-            if(preloadedVideo.readyState >= 1){
-                mainPlayer.src = preloadedVideo.src;
-                this.preloadedVideos.delete(this.currentPlaylistIndex);
-                console.log(`Using preloaded video for index ${this.currentPlaylistIndex}`);
-            } else {
-                console.log(`Preloaded video for index ${this.currentPlaylistIndex} not ready, falling back.`);
-                this.preloadedVideos.delete(this.currentPlaylistIndex);
-                await this.loadVideoNormally(mainPlayer);
-            }
-        } else {
-            console.log(`No preloaded video for index ${this.currentPlaylistIndex}, loading normally.`);
-            await this.loadVideoNormally(mainPlayer);
-        }
+        buffer1.src = buffer2.src;
+        buffer2.removeAttribute('src');
+        buffer2.load();
+
+        this.buffer1Index = this.buffer2Index;
+        this.buffer2Index = null;
+
+        this.preloadBuffers();
 
         if(this.hardMode){
             mainPlayer.classList.add('video-hidden');
@@ -754,9 +752,51 @@ class MultiplayerGame{
         this.videoStartTime = Date.now();
 
         try{
-            await mainPlayer.play();
+            const playPromise = mainPlayer.play();
+            if(playPromise !== undefined){
+                playPromise.catch(e => {
+                    console.log('Play failed: ', e);
+                    mainPlayer.load();
+                    setTimeout(() => {
+                        mainPlayer.play().catch(e2 => {
+                            console.log('Retry play failed: ', e2);
+                            this.handleVideoEnded();
+                        })
+                    }, 100)
+                });
+            }
         } catch (e) {
             console.log('Autoplay prevented: ', e);
+        }
+    }
+
+    async preloadBuffers(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) return [];
+        }
+        if(!this.token) return [];
+
+        const buffer1 = document.getElementById('video-buffer1');
+        const buffer2 = document.getElementById('video-buffer2')
+
+        const nextIndex = this.currentRound + 1;
+        const nextNextIndex = this.currentRound + 2;
+
+        if(nextIndex < this.playlist.length && this.buffer1Index !== nextIndex){
+            const video = this.playlist[nextIndex];
+            buffer1.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
+            buffer1.load();
+            this.buffer1Index = nextIndex;
+            console.log('Buffered video: ', nextIndex);
+        }
+
+        if(nextNextIndex < this.playlist.length && this.buffer2Index !== nextNextIndex){
+            const video = this.playlist[nextNextIndex]
+            buffer2.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
+            buffer2.load();
+            this.buffer2Index = nextNextIndex;
+            console.log('Buffered video: ', nextNextIndex);
         }
     }
 
@@ -959,11 +999,6 @@ class MultiplayerGame{
         localStorage.removeItem('multiplayerGame');
         localStorage.removeItem('mutliplayerGameCode');
         window.location.href = 'lobby.html';
-    }
-
-    async usePreloadedVideo(options){
-        await this.loadVideoWithFallback();
-        this.fillButtons(options);
     }
 
     async preloadNextVideos(){
