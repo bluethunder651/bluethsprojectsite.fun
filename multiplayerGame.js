@@ -245,6 +245,8 @@ class MultiplayerGame{
         const buffer1 = document.getElementById('video-buffer1');
         const buffer2 = document.getElementById('video-buffer2');
 
+        console.log('buffer1.src: ', buffer1.src);
+
         if(buffer1.src !== null){
             mainPlayer.src = buffer1.src;
 
