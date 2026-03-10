@@ -32,7 +32,8 @@ class tsGame{
         this.bufferSize = 2;
         this.isPreloading = false;
         this.preloadedIndices = new Set();
-        this.videoBlobCache = new Map();
+        this.buffer1Index = null;
+        this.buffer2Index = null;
 
         this.setupEventListeners();
     }
@@ -709,17 +710,19 @@ class tsGame{
         const nextIndex = this.currentPlaylistIndex + 1;
         const nextNextIndex = this.currentPlaylistIndex + 2;
     
-        if(nextIndex < this.playlist.length) {
+        if(nextIndex < this.playlist.length && this.buffer1Index !== nextIndex) {
             const video = this.playlist[nextIndex];
             buffer1.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
             buffer1.load();
+            this.buffer1Index = nextIndex;
             console.log("Buffered video: ", nextIndex);
         }
 
-        if(nextNextIndex < this.playlist.length){
+        if(nextNextIndex < this.playlist.length && this.buffer2Index !== nextNextIndex){
             const video = this.playlist[nextNextIndex];
             buffer2.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
             buffer2.load();
+            this.buffer2Index = nextNextIndex;
             console.log("Buffered video: ", nextNextIndex);
         }
     }
@@ -880,6 +883,9 @@ class tsGame{
         buffer1.src = buffer2.src;
         buffer2.removeAttribute('src');
         buffer2.load();
+
+        this.buffer1Index = this.buffer2Index;
+        this.buffer2Index = null;
 
         this.preloadBuffers();
 
