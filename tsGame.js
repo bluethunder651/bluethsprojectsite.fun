@@ -28,7 +28,7 @@ class tsGame{
         this.highest_streak = 0;
         this.preloadQueue = [];
         this.preloadedVideos = new Map();
-        this.maxPreloadCount = 1;
+        this.maxPreloadCount = 2;
         this.isPreloading = false;
         this.preloadedIndices = new Set();
 
@@ -610,7 +610,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
-            this.preloadNextVideo();
+            this.startAggressivePreloading();
         }
     }
 
@@ -740,7 +740,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        if(!this.playlist || this.currentPlaylistIndex > this.playlist.length){
+        if(!this.playlist || this.currentPlaylistIndex >= this.playlist.length){
             console.log('No more videos in queue');
             this.gameEnded(this.scores, this.highest_streak);
         }
@@ -792,7 +792,7 @@ class tsGame{
             const options = await this.getOptions(song.game_name);
             this.fillButtons(options);
 
-            this.preloadNextVideo();
+            this.startAggressivePreloading();
         } else {
             this.gameEnded(this.scores, this.highest_streak);
         }
@@ -1046,6 +1046,9 @@ class tsGame{
                 return;
             }
 
+            this.currentRound++;
+            this.currentPlaylistIndex++;
+
             const song = this.playlist[this.currentPlaylistIndex];
             this.current_song = song;
 
@@ -1053,8 +1056,7 @@ class tsGame{
 
             this.usePreloadedVideo(options);
 
-            this.currentRound++;
-            this.currentPlaylistIndex++;
+
         }
     }
 
