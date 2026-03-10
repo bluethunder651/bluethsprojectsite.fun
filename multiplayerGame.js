@@ -240,6 +240,8 @@ class MultiplayerGame{
             btn.style.removeProperty('background-color');
         });
 
+        console.log('SongData.file_path: ', songData.file_path);
+
         this.fillButtons(songData.options);
 
         if(this.preloadedVideos.has(this.currentRound)){
