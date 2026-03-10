@@ -29,8 +29,10 @@ class tsGame{
         this.preloadQueue = [];
         this.preloadedVideos = new Map();
         this.maxPreloadCount = 2;
+        this.bufferSize = 2;
         this.isPreloading = false;
         this.preloadedIndices = new Set();
+        this.videoBlobCache = new Map();
 
         this.setupEventListeners();
     }
@@ -610,7 +612,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
-            this.startAggressivePreloading();
+            this.preloadBuffers();
         }
     }
 
@@ -698,6 +700,77 @@ class tsGame{
         }
 
         this.isPreloading = false;
+    }
+
+    async preloadBuffers() {
+        const buffer1 = document.getElementById('video-buffer1');
+        const buffer2 = document.getElementById('video-buffer2');
+
+        const nextIndex = this.currentPlaylistIndex + 1;
+        const nextNextIndex = this.currentPlaylistIndex + 2;
+    
+        if(nextIndex < this.playlist.length) {
+            const video = this.playlist[nextIndex];
+            buffer1.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
+            buffer1.load();
+            console.log("Buffered video: ", nextIndex);
+        }
+
+        if(nextNextIndex < this.playlist.length){
+            const video = this.playlist[nextNextIndex];
+            buffer2.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
+            buffer2.load();
+            console.log("Buffered video: ", nextNextIndex);
+        }
+    }
+
+    async maintainPreloadBuffer() {
+        if(!this.isGameActive) return;
+
+        const targetIndex = this.currentPlaylistIndex + this.preloadBuffer;
+
+        for(let i = this.currentPlaylistIndex + 1; i <= targetIndex; i++){
+            if(i >= this.playlist.length) break;
+            if(this.preloadedVideos.has(i)) continue;
+            if(this.preloadedIndices.has(i)) continue;
+
+            const video = this.playlist[i];
+
+            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
+
+            try{
+                const tempVideo = document.createElement('video');
+                tempVideo.preload = 'auto';
+                tempVideo.src = videoUrl;
+
+                await new Promise(resolve => {
+                    const timeout = this.setTimeout(() => {
+                        console.log(`Preload timeout for video ${i}`);
+                        resolve();
+                    }, 15000);
+
+                    tempVideo.addEventListener('loadedmetadata', () => {
+                        clearTimeout(timeout);
+                        this.preloadedVideos.set(i, tempVideo);
+                        this.preloadedIndices.add(i);
+
+                        console.log(`Buffered video ${i}`);
+
+                        resolve();
+                    }, {once: true});
+
+                    tempVideo.addEventListener('error', () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    }, {once: true});
+
+                    tempVideo.load();
+                });
+
+            } catch (error) {
+                console.log("Preload error: ", error);
+            }
+        }
     }
 
     shuffleArray(array){
@@ -792,7 +865,6 @@ class tsGame{
             const options = await this.getOptions(song.game_name);
             this.fillButtons(options);
 
-            this.startAggressivePreloading();
         } else {
             this.gameEnded(this.scores, this.highest_streak);
         }
@@ -800,32 +872,16 @@ class tsGame{
     
     async loadVideoWithFallback() {
         const mainPlayer = document.getElementById('video-player');
-        const video = this.playlist[this.currentPlaylistIndex];
+        const buffer1 = document.getElementById('video-buffer1');
+        const buffer2 = document.getElementById('video-buffer2');
 
-        const canPlay = await this.checkVideoPlayability(video.file_path);
+        mainPlayer.src = buffer1.src;
 
-        if (!canPlay){
-            console.log(`Video at index ${this.currentPlaylistIndex} cannot be played, skipping...`);
-            this.handleVideoEnded();
-            return;
-        }
+        buffer1.src = buffer2.src;
+        buffer2.removeAttribute('src');
+        buffer2.load();
 
-        if(this.preloadedVideos.has(this.currentPlaylistIndex)){
-            const preloadedVideo = this.preloadedVideos.get(this.currentPlaylistIndex);
-
-            if(preloadedVideo.readyState >= 2){
-                mainPlayer.src = preloadedVideo.src;
-                this.preloadedVideos.delete(this.currentPlaylistIndex);
-                console.log(`Using preloaded video for index ${this.currentPlaylistIndex}`);
-            } else {
-                console.log(`Preloaded video for index ${this.currentPlaylistIndex} not ready, falling back.`);
-                this.preloadedVideos.delete(this.currentPlaylistIndex);
-                await this.loadVideoNormally(mainPlayer, video);
-            }
-        } else {
-            console.log(`No preloaded video for index ${this.currentPlaylistIndex}, loading normally.`);
-            await this.loadVideoNormally(mainPlayer, video);
-        }
+        this.preloadBuffers();
 
         if(this.hardMode){
             mainPlayer.classList.add('video-hidden');
@@ -1049,13 +1105,14 @@ class tsGame{
             this.currentRound++;
             this.currentPlaylistIndex++;
 
+            this.preloadedVideos.delete(this.currentPlaylistIndex - 1);
+
             const song = this.playlist[this.currentPlaylistIndex];
             this.current_song = song;
 
             const options = await this.getOptions(song.game_name);
 
             this.usePreloadedVideo(options);
-
 
         }
     }
