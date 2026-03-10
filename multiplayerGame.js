@@ -63,6 +63,7 @@ class MultiplayerGame{
 
             document.getElementById('end-game').addEventListener('click', () => {
                 if(confirm('End the game?')){
+                    document.getElementById('video-player').pause();
                     game.showLeaderboard();
                 }
             })
