@@ -253,7 +253,7 @@ class MultiplayerGame{
             videoPlayer.src = buffer1.src;
             videoPlayer.preload = 'auto';
 
-            console.log(`Video Src: ${videoPlayer.src}`)
+            console.log(`Video Src: ${videoPlayer.src}, songData.currentRound: ${songData.currentRound}`)
 
             buffer1.src = buffer2.src;
             buffer2.removeAttribute('src');
