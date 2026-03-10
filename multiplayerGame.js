@@ -249,11 +249,11 @@ class MultiplayerGame{
 
         console.log('buffer1.src: ', buffer1.src);
 
-        if(buffer1.src !== null && songData.currentRound !== 0){
+        if(buffer1.src !== null && this.currentRound !== 0){
             videoPlayer.src = buffer1.src;
             videoPlayer.preload = 'auto';
 
-            console.log(`Video Src: ${videoPlayer.src}, songData.currentRound: ${songData.currentRound}`)
+            console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`)
 
             buffer1.src = buffer2.src;
             buffer2.removeAttribute('src');
