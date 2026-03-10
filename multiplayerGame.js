@@ -251,8 +251,10 @@ class MultiplayerGame{
 
         if(buffer1.src !== null && songData.currentRound !== 0){
             videoPlayer.src = buffer1.src;
-            videoPlayer.load();
-            
+            videoPlayer.preload = 'auto';
+
+            console.log(`Video Src: ${videoPlayer.src}`)
+
             buffer1.src = buffer2.src;
             buffer2.removeAttribute('src');
             buffer2.load();
