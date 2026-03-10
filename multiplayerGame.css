@@ -76,6 +76,10 @@ body {
     background: #4CAF50;
 }
 
+.nav-btn.right {
+    align-items: end;
+}
+
 .btn {
   padding: 15px 30px;
   font-size: 18px;

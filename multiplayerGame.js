@@ -61,6 +61,12 @@ class MultiplayerGame{
                 game.nextRound();
             })
 
+            document.getElementById('end-game').addEventListener('click', () => {
+                if(confirm('End the game?')){
+                    game.showLeaderboard();
+                }
+            })
+
             document.getElementById('next-video').disabled = true;
         });
     }
@@ -185,7 +191,7 @@ class MultiplayerGame{
                 break;
             case 'game_end':
                 if(!this.leaderboardShown){
-                    this.showLeaderboard(state);
+                    this.showLeaderboard();
                     break;
                 }
         }
@@ -946,7 +952,7 @@ class MultiplayerGame{
         }
     }
 
-    showLeaderboard(state){
+    showLeaderboard(){
         this.leaderboardShown = true;
         document.getElementById('game-screen').style.display = 'none';
 
