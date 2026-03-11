@@ -150,6 +150,7 @@ class MultiplayerGame{
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
                     this.playbackStarted = false;
+                    console.log("phase: loading, running loadAndPlayVideo")
                     this.showLoadingScreen('Loading video...');
                     this.loadAndPlayVideo();
 
@@ -164,9 +165,11 @@ class MultiplayerGame{
                 break;
             case 'playing':
                 if(this.videoReady && !this.playbackStarted && !this.isLoading){
+                    console.log('Video ready, starting playback.')
                     this.startPlayback(state.game_settings);
                 }
                 if(!this.isLoading && !this.videoReady){
+                    console.log('Video not ready, running LoadANdPlayVideo();')
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
                     this.loadAndPlayVideo();
