@@ -151,9 +151,9 @@ class MultiplayerGame{
                     this.currentSong = state.currentSong;
                     this.playbackStarted = false;
                     this.showLoadingScreen('Loading video...');
-                    this.loadAndPlayVideo(state.currentSong);
+                    this.loadAndPlayVideo();
 
-                    if(this.currentRound >= 0){
+                    if(this.currentRound > 0){
                         console.log("Buffer.src", document.getElementById('video-buffer1').src);
                         this.preloadBuffers();
                         console.log("2 Buffer.src", document.getElementById('video-buffer1').src);
@@ -169,7 +169,7 @@ class MultiplayerGame{
                 if(!this.isLoading && !this.videoReady){
                     this.currentRound = state.currentRound;
                     this.currentSong = state.currentSong;
-                    this.loadAndPlayVideo(state.currentSong);
+                    this.loadAndPlayVideo();
                 }
                 break;
             case 'reveal':
@@ -196,7 +196,7 @@ class MultiplayerGame{
         }
     }
 
-    async loadAndPlayVideo(songData){
+    async loadAndPlayVideo(){
         if(this.videoReady || this.isLoading) return;
         this.isLoading = true;
 
@@ -204,6 +204,7 @@ class MultiplayerGame{
         this.hasAnswered = false;
         this.playbackStarted = false;
         this.answerSubmitted = false;
+
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
@@ -211,7 +212,7 @@ class MultiplayerGame{
 
         console.log('loadandplay')
 
-        await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/player-ready`, {
+        const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/player-ready`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
@@ -223,112 +224,119 @@ class MultiplayerGame{
             })
         });
 
-        const loading_screen = document.getElementById('loading-screen');
-        const game_screen = document.getElementById('game-screen');
-        const videoPlayer = document.getElementById('video-player');
+        if(response.ok){
+            const current_song = await response.json();
+            const file_path = current_song.file_path;
+            const options = current_song.options;
+            
 
-        loading_screen.style.display = 'block';
-        game_screen.style.display = 'none';
+            const loading_screen = document.getElementById('loading-screen');
+            const game_screen = document.getElementById('game-screen');
+            const videoPlayer = document.getElementById('video-player');
 
-        document.querySelectorAll('.answer-btn').forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('answered', 'correct', 'incorrect');
-            btn.style.removeProperty('background-color');
-        });
+            loading_screen.style.display = 'block';
+            game_screen.style.display = 'none';
 
-        console.log('SongData.file_path: ', songData.file_path);
-
-        this.fillButtons(songData.options);
-
-        this.videoReady = true;
-        this.isLoading = false;
-        loading_screen.innerHTML = '<h3>Waiting for other players...</h3>';
-
-        const buffer1 = document.getElementById('video-buffer1');
-        const buffer2 = document.getElementById('video-buffer2');
-
-        console.log('buffer1.src: ', buffer1.src);
-
-        if(buffer1.src !== null && this.currentRound !== 0){
-            videoPlayer.src = buffer1.src;
-            videoPlayer.preload = 'auto';
-
-            console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`);
-
-            buffer1.src = buffer2.src;
-            buffer2.removeAttribute('src');
-            buffer2.load();
-
-            this.buffer1Index = this.buffer2Index;
-            this.buffer2Index = null;
-
-            this.preloadBuffers();
-        } else {
-            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(songData.file_path)}?token=${encodeURIComponent(this.token)}`;
-
-            videoPlayer.src = videoUrl;
-            videoPlayer.preload = 'auto';
-
-            console.log(`Video URL: ${videoUrl}, videoPlayer.src: ${videoPlayer.src}`);
-        }
-        try{
-            await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    reject(new Error('Video loading timeout'));
-                }, 60000);
-
-                const onCanPlay = () => {
-                    cleanup();
-                    resolve();
-                };
-
-                const onError = (e) => {
-                    cleanup();
-                    reject(new Error(`Video error: ${e.target.error?.message || 'Unknown Error'}`));
-                };
-
-                const onStalled = () => {
-                    console.log('Video stalled, trying to recover...');
-                    //videoPlayer.load();
-                };
-
-                const cleanup = () => {
-                    clearTimeout(timeout);
-                    videoPlayer.removeEventListener('canplay', onCanPlay);
-                    videoPlayer.removeEventListener('error', onError);
-                    videoPlayer.removeEventListener('stalled', onStalled);
-                };
-
-                videoPlayer.addEventListener('canplay', onCanPlay);
-                videoPlayer.addEventListener('error', onError);
-                videoPlayer.addEventListener('stalled', onStalled);
-
-                videoPlayer.load();
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('answered', 'correct', 'incorrect');
+                btn.style.removeProperty('background-color');
             });
 
-            console.log('Video loaded successfully');
+            console.log('SongData.file_path: ', file_path);
+
+            this.fillButtons(options);
+
             this.videoReady = true;
             this.isLoading = false;
             loading_screen.innerHTML = '<h3>Waiting for other players...</h3>';
 
-        } catch (error) {
-            console.error('Failed to load video: ', error);
+            const buffer1 = document.getElementById('video-buffer1');
+            const buffer2 = document.getElementById('video-buffer2');
+
+            console.log('buffer1.src: ', buffer1.src);
+
+            if(buffer1.src !== null && this.currentRound !== 0){
+                videoPlayer.src = buffer1.src;
+                videoPlayer.preload = 'auto';
+
+                console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`);
+
+                buffer1.src = buffer2.src;
+                buffer2.removeAttribute('src');
+                buffer2.load();
+
+                this.buffer1Index = this.buffer2Index;
+                this.buffer2Index = null;
+
+                this.preloadBuffers();
+            } else {
+                const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(file_path)}?token=${encodeURIComponent(this.token)}`;
+
+                videoPlayer.src = videoUrl;
+                videoPlayer.preload = 'auto';
+
+                console.log(`Video URL: ${videoUrl}, videoPlayer.src: ${videoPlayer.src}`);
+            }
+            try{
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        cleanup();
+                        reject(new Error('Video loading timeout'));
+                    }, 60000);
+
+                    const onCanPlay = () => {
+                        cleanup();
+                        resolve();
+                    };
+
+                    const onError = (e) => {
+                        cleanup();
+                        reject(new Error(`Video error: ${e.target.error?.message || 'Unknown Error'}`));
+                    };
+
+                    const onStalled = () => {
+                        console.log('Video stalled, trying to recover...');
+                        //videoPlayer.load();
+                    };
+
+                    const cleanup = () => {
+                        clearTimeout(timeout);
+                        videoPlayer.removeEventListener('canplay', onCanPlay);
+                        videoPlayer.removeEventListener('error', onError);
+                        videoPlayer.removeEventListener('stalled', onStalled);
+                    };
+
+                    videoPlayer.addEventListener('canplay', onCanPlay);
+                    videoPlayer.addEventListener('error', onError);
+                    videoPlayer.addEventListener('stalled', onStalled);
+
+                    videoPlayer.load();
+                });
+
+                console.log('Video loaded successfully');
+                this.videoReady = true;
+                this.isLoading = false;
+                loading_screen.innerHTML = '<h3>Waiting for other players...</h3>';
+
+            } catch (error) {
+                console.error('Failed to load video: ', error);
+                this.isLoading = false;
+
+                loading_screen.innerHTML = `
+                    <h3>Failed to load video</h3>
+                    <p>${error.message}</p>
+                    <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                `;
+            }
+
+            console.log('resolved promise')
+
+            this.videoReady = true;
             this.isLoading = false;
 
-            loading_screen.innerHTML = `
-                <h3>Failed to load video</h3>
-                <p>${error.message}</p>
-                <button onclick="location.reload()" class="btn btn-primary">Retry</button>
-            `;
+            loading_screen.innerHTML = '<h3>Waiting for other players...</h3>'       
         }
-
-        console.log('resolved promise')
-
-        this.videoReady = true;
-        this.isLoading = false;
-
-        loading_screen.innerHTML = '<h3>Waiting for other players...</h3>'       
     }
 
 
