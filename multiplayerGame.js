@@ -228,6 +228,8 @@ class MultiplayerGame{
             const current_song = await response.json();
             const file_path = current_song.file_path;
             const options = current_song.options;
+
+            console.log(`FilePath: ${file_path}, Options: ${options}`);
             
 
             const loading_screen = document.getElementById('loading-screen');
