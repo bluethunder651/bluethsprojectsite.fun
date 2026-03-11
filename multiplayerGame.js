@@ -290,7 +290,7 @@ class MultiplayerGame{
 
                 const onStalled = () => {
                     console.log('Video stalled, trying to recover...');
-                    videoPlayer.load();
+                    //videoPlayer.load();
                 };
 
                 const cleanup = () => {
