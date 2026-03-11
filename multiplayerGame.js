@@ -154,7 +154,9 @@ class MultiplayerGame{
                     this.loadAndPlayVideo(state.currentSong);
 
                     if(this.currentRound >= 0){
+                        console.log("Buffer.src", document.getElementById('video-buffer1').src);
                         this.preloadBuffers();
+                        console.log("2 Buffer.src", document.getElementById('video-buffer1').src);
                     }
                 } else {
                     console.log('state.currentRound === this.currentRound');
