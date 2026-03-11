@@ -225,7 +225,8 @@ class MultiplayerGame{
         });
 
         if(response.ok){
-            const current_song = await response.json();
+            const data = await response.json();
+            const current_song = data.current_song;
             const file_path = current_song.file_path;
             const options = current_song.options;
 
