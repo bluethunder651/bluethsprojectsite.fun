@@ -25,6 +25,8 @@ class MultiplayerLobby{
         });
         this.gameCode = null;
 
+        this.setupSocketListeners();
+
         this.init = this.init.bind(this);
 
         if(document.readyState === 'loading'){
@@ -81,6 +83,32 @@ class MultiplayerLobby{
             }
         });
 
+
+    }
+
+    setupSocketListeners(){
+        this.socket.on('connect', () => {
+            console.log('Socket connected with ID: ', this.socket.id);
+
+            if(this.gameCode && this.playerName && this.token){
+                this.joinGameRoom();
+            }
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Socket connection error: ', error);
+        });
+
+        this.socket.on('disconnect', (reason) => {
+            console.log("Socket disconnected: ", reason);
+        });
+
+        this.socket.on('error', (data) => {
+            console.error('Socket error: ', data);
+            alert(data.message || "Socket connection error.");
+        });
+
+
         this.socket.on('new_chat_message', (data) => {
             lobby.addChatMessage(data.player, data.message, data.timestamp);
         });
@@ -128,26 +156,18 @@ class MultiplayerLobby{
             window.location.href = `multiplayerGame.html?code=${this.currentGame.code}`;
         });
 
-        this.socket.on('connect', () => {
-            console.log('Connected to server with ID: ', this.socket.id);
-            if(this.currentGame){
-                this.socket.emit('join_game_room', {
-                    token: this.token,
-                    gameCode: this.gameCode,
-                    playerName: this.playerName,
-                    sessionId: this.sessionId
-                });
-            }
-        });
-
-        this.socket.on('connect_error', (error) => {
-            console.error('Socket connection error: ', error);
-        });
-
-        this.socket.on('error', (data) => {
-            console.error('Socket error: ', data);
-            alert(data.message || "Socket connection error.");
-        })
+    }
+    
+    joinGameRoom(){
+        if(this.socket && this.socket.connected && this.gameCode && this.playerName && this.token){
+            console.log("Joining game room: ", this.gameCode);
+            this.socket.emit('join_game_room', {
+                token: this.token,
+                gameCode: this.gameCode,
+                playerName: this.playerName,
+                sessionId: this.sessionId
+            });
+        }
     }
 
     loadSavedName() {
@@ -345,8 +365,10 @@ class MultiplayerLobby{
                     if(game && game.players.some(p => p.name === this.playerName)){
                         this.currentGame = game;
                         this.isHost = (game.host === this.playerName);
+                        this.gameCode = game.code;
                         this.showGameLobby(gameData);
                         this.startHeartbeat();
+                        this.joinGameRoom();
                     } else {
                         localStorage.removeItem('lastGame');
                     }
@@ -526,6 +548,15 @@ class MultiplayerLobby{
         this.isReady = false;
 
         this.currentScreen = 'lobby';
+
+        if(this.socket && this.socket.connected){
+            this.socket.emit('join_game_room', {
+                token: this.token,
+                gameCode: this.gameCode,
+                playerName: this.playerName,
+                sessionId: this.sessionId
+            });
+        }
     }
 
     updatePlayersList(players){
@@ -607,6 +638,7 @@ class MultiplayerLobby{
                 const gameData = await response.json();
                 this.currentGame = gameData;
                 this.isHost = (gameData.host === this.playerName);
+                this.gameCode = gameData.code;
 
                 localStorage.setItem('lastGame', JSON.stringify({
                     code: gameData.code,
@@ -614,6 +646,7 @@ class MultiplayerLobby{
                     players: gameData.players
                 }));
                 this.showGameLobby(gameData);
+                this.joinGameRoom();
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to join game');
@@ -676,6 +709,8 @@ class MultiplayerLobby{
                 }));
 
                 this.showGameLobby(gameData);
+
+                this.joinGameRoom();
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to create game');
