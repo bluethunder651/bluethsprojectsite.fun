@@ -30,6 +30,8 @@ class MultiplayerGame{
         this.gameStatePollInterval = null;
         this.videoReady = false;
 
+        const socket = io('https://julia.bluethsprojectsite.fun');
+
         this.setupEventListeners();
         this.loadGameData();
     }
@@ -65,6 +67,9 @@ class MultiplayerGame{
             })
 
             document.getElementById('next-video').disabled = true;
+
+
+
         });
     }
 
@@ -1046,6 +1051,8 @@ class MultiplayerGame{
         const arrow = header.querySelector('.arrow');
         arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
     }
+
+
 
 
 }
