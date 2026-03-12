@@ -30,7 +30,6 @@ class MultiplayerLobby{
         this.setupEventListeners();
         this.loadSavedName();
         this.loadFilterMetadata();
-        this.startPolling();
 
         this.recoverSession();
 
@@ -74,11 +73,51 @@ class MultiplayerLobby{
             }
         });
 
-        this.socket.on('update_messages', function(data){
-            const message = data.chat_message;
-            game.addChatMessage(message.player, message.message, message.timestamp);
-        })
+        this.socket.on('new_chat_message', (data) => {
+            lobby.addChatMessage(data.player, data.message, data.timestamp);
+        });
 
+        this.socket.on('player_joined', (data) => {
+            this.updatePlayersList(data.players);
+            this.addChatMessage('system', `${data.playerName} joined the game`);
+        });
+
+        this.socket.on('player_left', (data) => {
+            this.updatePlayersList(data.players);
+            if(data.newHost){
+                this.isHost = (this.playerName === data.newHost);
+                document.getElementById('start-game-btn').style.display = this.isHost ? 'block' : 'none';
+                this.addChatMessage('system', `${data.playerName} left. New host: ${data.newHost}`);
+            } else {
+                this.addChatMessage('system', `${data.playerName} left the game`);
+            }
+        });
+
+        this.socket.on('player_ready_update', (data) => {
+            this.updatePlayersList(data.players);
+            this.checkAllReady();
+        });
+
+        this.socket.on('all_players_ready', (data) => {
+            if(this.isHost){
+                this.addChatMessage('system', 'All players ready! You can start the game now!');
+            }
+        });
+
+        this.socket.on('game_starting', (data) => {
+            localStorage.setItem('multiplayerGame', JSON.stringify({
+                code: this.currentGame.code,
+                rounds: data.rounds,
+                hardMode: data.hardMode,
+                timeLimit: data.timeLimit,
+                players: data.players,
+                host: this.currentGame.host
+            }));
+
+            localStorage.setItem('multiplayerGameCode', this.currentGame.code);
+            this.showGameStarting();
+            window.location.href = `multiplayerGame.html?code=${this.currentGame.code}`;
+        });
     }
 
     loadSavedName() {
@@ -247,48 +286,11 @@ class MultiplayerLobby{
         }
     }
 
-    handleVisibilityChange() {
-        if(document.hidden){
-            this.throttlePolling();
-        } else {
-            this.restorePolling();
 
-            if(this.currentGame){
-                this.verifyGameMembership();
-            }
-        }
-    }
 
-    throttlePolling() {
-        if(this.pollInterval){
-            clearInterval(this.pollInterval);
-            this.pollInterval = setInterval(() => this.fetchGames(), 10000);
-        }
-        if(this.gamePollInterval){
-            clearInterval(this.gamePollInterval);
-            this.gamePollInterval = setInterval(() => this.fetchGameStatus(this.currentGame.code), 5000);
-        }
-        if(this.chatPollInterval){
-            clearInterval(this.chatPollInterval);
-            this.chatPollInterval = setInterval(() => this.fetchChatMessages(this.currentGame.code), 5000);
-        }
-    }
 
-    restorePolling(){
-        if(this.pollInterval){
-            clearInterval(this.pollInterval);
-            this.pollInterval = setInterval(() => this.fetchGames(), 3000);
-        } 
-        if(this.gamePollInterval && this.currentGame){
-            clearInterval(this.gamePollInterval);
-            this.gamePollInterval = setInterval(() => this.fetchGameStatus(this.currentGame.code), 2000);
-        }
-        if(this.chatPollInterval){
-            clearInterval(this.chatPollInterval);
-            this.chatPollInterval = setInterval(() => this.fetchChatMessages(this.currentGame.code), 1000);
-        }
-    }
 
+    
     async recoverSession(){
         if(!this.token || Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -314,7 +316,6 @@ class MultiplayerLobby{
                         this.currentGame = game;
                         this.isHost = (game.host === this.playerName);
                         this.showGameLobby(gameData);
-                        this.startGamePolling(game.code);
                         this.startHeartbeat();
                     } else {
                         localStorage.removeItem('lastGame');
@@ -359,9 +360,7 @@ class MultiplayerLobby{
 
     handleForcedLeave(){
         alert('You have been removed from the game or the game has ended.');
-        this.stopGamePolling();
         this.stopHeartbeat();
-        this.stopChatPolling();
         this.currentGame = null;
         this.isHost = false;
         localStorage.removeItem('lastGame');
@@ -489,7 +488,6 @@ class MultiplayerLobby{
         document.getElementById('start-game-btn').style.display = this.isHost ? 'block' : 'none';
 
         this.updatePlayersList(gameData.players);
-        this.startChatPolling(gameData.code);
 
         document.getElementById('chat-messages').innerHTML = '';
         this.addChatMessage('system', `Welcome to ${gameData.name}`);
@@ -585,7 +583,6 @@ class MultiplayerLobby{
                     players: gameData.players
                 }));
                 this.showGameLobby(gameData);
-                this.startGamePolling(gameCode);
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to join game');
@@ -646,7 +643,6 @@ class MultiplayerLobby{
                 }));
 
                 this.showGameLobby(gameData);
-                this.startGamePolling(gameData.code);
             } else {
                 const error = await response.json();
                 alert(error.message || 'Failed to create game');
@@ -691,23 +687,12 @@ class MultiplayerLobby{
         }
         if(!this.currentGame) return;
         
-        try{
-            await fetch(`${this.website}/api/local/multiplayer/ready`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    gameCode: this.currentGame.code,
-                    playerName: this.playerName,
-                    ready: ready
-                })
-            });
-        } catch (error) {
-            console.error('Fialed to set ready status: ', error);
-        }
+        this.socket.emit('player_ready', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName,
+            ready: ready
+        });
     }
 
     async fetchGameStatus(gameCode){
@@ -852,64 +837,22 @@ class MultiplayerLobby{
         }
         if(!this.currentGame) return;
         
-        try{
-            await fetch(`${this.website}/api/local/multiplayer/leave`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    gameCode: this.currentGame.code,
-                    playerName: this.playerName,
-                    sessionId: this.sessionId
-                })
-            });
+        this.socket.emit('leave_game', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName,
+            sessionId: this.sessionId
+        });
 
-            this.cleanupGameSession();
-        } catch (error) {
-            console.error('Failed to leave game: ', error);
-            this.cleanupGameSession();
-        }
+        this.cleanupGameSession();
     }
 
     cleanupGameSession(){
-        this.stopGamePolling();
         this.stopHeartbeat();
-        this.stopChatPolling();
         this.currentGame = null;
         this.isHost = false;
         localStorage.removeItem('lastGame');
         this.showMainMenu();
-    }
-
-    startPolling(){
-        this.pollInterval = setInterval(() => this.fetchGames(), 3000);
-        this.fetchGames();
-    }
-
-    startChatPolling(gameCode){
-        this.lastChatTimestamp = 0;
-        this.chatPollInterval = setInterval(() => this.fetchChatMessages(gameCode), 1000);
-    }
-
-    stopChatPolling(){
-        if(this.chatPollInterval){
-            clearInterval(this.chatPollInterval);
-            this.chatPollInterval = null;
-        }
-    }
-
-    startGamePolling(gameCode){
-        this.gamePollInterval = setInterval(() => this.fetchGameStatus(gameCode), 2000);
-    }
-
-    stopGamePolling(){
-        if(this.gamePollInterval){
-            clearInterval(this.gamePollInterval);
-            this.gamePollInterval = null;
-        }
     }
 
     async startGame(){
@@ -920,42 +863,12 @@ class MultiplayerLobby{
             if(!this.token) return
         }
 
-        try{
-            const response = await fetch(`${this.website}/api/local/multiplayer/start`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    gameCode: this.currentGame.code
-                })
-            });
-            if(response.ok){
-                const gameData = await response.json();
+        this.socket.emit('start_game', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName
+        });
 
-                localStorage.setItem('multiplayerGame', JSON.stringify({
-                    code: this.currentGame.code,
-                    rounds: gameData.rounds,
-                    hardMode: gameData.hardMode,
-                    timeLimit: gameData.timeLimit,
-                    players: gameData.players,
-                    host: this.currentGame.host
-                }));
-
-                localStorage.setItem('multiplayerGameCode', this.currentGame.code);
-
-                this.showGameStarting();
-
-                window.location.href = `multiplayerGame.html?code=${this.currentGame.code}`
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Failed to start game')
-            }
-        } catch (error) {
-            console.error('Failed to start game: ', error);
-        }
     }
 
     showGameStarting(){

@@ -36,6 +36,138 @@ class MultiplayerGame{
         this.loadGameData();
     }
 
+    generateSessionId(){
+        const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('sessionId', sessionId);
+        return sessionId;
+    }
+
+    connectSocket() {
+        this.socket = io(this.website, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000
+        });
+
+        this.socket.on('connect', () =>{
+            console.log('Socket connected');
+            if(this.gameCode && this.playerName){
+                this.joinGameRoom();
+            }
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log("Socket disconnected");
+            this.showLoadingScreen('Connection lost. Reconnecting...');
+        });
+
+        this.socket.on('reconnect', () => {
+            console.log('Socket reconnected.');
+            if (this.gameCode && this.playerName){
+                this.joinGameRoom();
+            }
+        })
+
+        this.socket.on('new_chat_message', (data) => {
+            this.addChatMessage(data.player, data.message, data.timestamp)
+        });
+
+        this.socket.on('player_joined', (data) => {
+            this.players = data.players;
+            this.updateScoreboard();
+            this.addChatMessage('system', `${data.playerName} joined the game`);
+        });
+
+        this.socket.on('player_left', (data) => {
+            this.players = data.players;
+            if(data.newHost){
+                this.isHost = (this.playerName === data.newHost);
+                this.addChatMessage('system', `${data.playerName} left. New host: ${data.newHost}`);
+            } else {
+                this.addChatMessage('system', `${data.playerName} left the game.`);
+            }
+            this.updateScoreboard();
+        });
+
+        this.socket.on('player_ready_update', (data) => {
+            this.players = data.players;
+            this.updateScoreboard();
+        });
+
+        this.socket.on('all_players_ready', (data) => {
+            if(this.isHost){
+                this.addChatMessage('system', 'All players ready!')
+            }
+        });
+
+        this.socket.on('game_starting', (data) => {
+            this.players = data.players;
+            this.hardMode = data.hardMode;
+            this.timeLimit = data.timeLimit;
+            this.playlist = data.playlist;
+            this.showLoadingScreen('Game starting...');
+        });
+
+        this.socket.on('round_loading', (data) => {
+            this.currentRound = data.currentRound;
+            this.currentSong = data.currentSong;
+            this.videoReady = false;
+            this.playbackStarted = false;
+            this.hasAnswered = false;
+            this.answerSubmitted = false;
+
+            this.fillButtons(this.currentSong.options);
+            this.showLoadingScreen('Loading video...');
+            this.loadVideo(this.currentSong.file_path);
+        });
+
+        this.socket.on('round_start', (data) => {
+            this.startPlayback(data);
+        });
+
+        this.socket.on('answer_result', (data) => {
+            this.updatePlayerScore(data.playerName, data.correct, data.scores, data.streaks);
+
+            const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === data.selected);
+            if (playerButton && data.playerName === this.playerName){
+                playerButton.classList.add(data.correct ? 'correct': 'incorrect');
+            }
+        });
+
+        this.socket.on('round_reveal', (data) => {
+            this.showAnswerReveal(data);
+        })
+
+        this.socket.on('next_round', (data) => {
+            this.currentRound = data.currentRound;
+            this.currentSong = data.currentSong;
+            this.prepareNextRound();
+        });
+
+        this.socket.on('game_ended', (data) => {
+            if(!this.leaderboardShown){
+                this.showLeaderboard(data);
+            }
+        });
+
+        this.socket.on('error', (data) => {
+            console.error('Socket error: ', data.message);
+            alert(data.message);
+        });
+    }
+
+    joinGameRoom() {
+        if(!this.gameCode || !this.playerName || !this.token) return;
+
+        this.socket.emit('join_game_room', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName,
+            sessionId: this.sessionId
+        });
+    }
+
     setupEventListeners(){
         
         document.addEventListener('DOMContentLoaded', async function() {
@@ -73,6 +205,92 @@ class MultiplayerGame{
         });
     }
 
+    async loadVideo(filePath){
+        if(this.videoReady || this.isLoading) return;
+        this.isLoading = true;
+
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) return;
+        }
+
+        const videoPlayer = document.getElementById('video-player');
+        const loadingScreen = document.getElementById('loading-screen');
+        const gameScreen = document.getElementById('game-screen');
+
+        loadingScreen.style.display = 'block';
+        gameScreen.style.display = 'none';
+
+        document.querySelectorAll('.answer-btn').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('answered', 'correct', 'incorrect');
+            btn.style.removeProperty('background-color');
+        });
+
+        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filePath)}?token=${encodeURIComponent(this.token)}`
+
+        videoPlayer.src = videoUrl;
+        videoPlayer.preload = 'auto';
+
+        try{
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('Video loading timeout'));
+                }, 60000);
+
+                const onCanPlay = () => {
+                    cleanup();
+                    resolve();
+                };
+
+                const onError = (e) => {
+                    cleanup();
+                    reject(new Error(`Video error: ${e.target.error?.message || 'Unknown Error'}`));
+                };
+
+                const onStalled = () => {
+                    console.log('Video stalled, trying to recover...');
+                };
+
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    videoPlayer.removeEventListener('canplay', onCanPlay);
+                    videoPlayer.removeEventListener('error', onError);
+                    videoPlayer.removeEventListener('stalled', onStalled);
+                };
+
+                videoPlayer.addEventListener('canplay', onCanPlay);
+                videoPlayer.addEventListener('error', onError);
+                videoPlayer.addEventListener('stalled', onStalled);
+
+                videoPlayer.load();
+            });
+
+            console.log('Video loaded successfully');
+            this.videoReady = true;
+            this.isLoading = false;
+
+            this.socket.emit('player_loaded', {
+                token: this.token,
+                gameCode: this.gameCode,
+                playerName: this.playerName
+            });
+
+            loadingScreen.innerHTML = '<h3>Waiting for other players...</h3>';
+
+        } catch (error) {
+            console.error('Failed to load video: ', error);
+            this.isLoading = false;
+
+            loadingScreen.innerHTML = `
+                <h3>Failed to load video</h3>
+                <p>${error.message}</p>
+                <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+            `;
+        }
+    }
+
     async loadGameData() {
         const urlParams = new URLSearchParams(window.location.search);
         this.gameCode = urlParams.get('code') || localStorage.getItem('multiplayerGameCode');
@@ -93,8 +311,7 @@ class MultiplayerGame{
 
         await this.refreshToken();
         if(this.token){
-            this.startGamePolling();
-            this.fetchInitialPlaylist();
+            this.startHeartbeat();
         }
     }
 
@@ -456,25 +673,42 @@ class MultiplayerGame{
         if(correctButton){
             correctButton.style.backgroundColor = '#4CAF50';
         }
-        this.players.forEach(player => {
-            const playerResult = state.results[player.name];
-            if(playerResult){
-                const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === playerResult.selected);
-                if (playerButton){
-                    playerButton.classList.add(playerResult.correct ? 'correct' : 'incorrect');
-                }
+        this.players.forEach(player => {    
+            if(data.scores[player.name] !== undefined){
+                player.score = data.scores[player.name];
+            }
+            if(data.streaks[player.name] !== undefined){
+                player.streak = data.streaks[player.name];
+            } 
+            if(data.highestStreaks[player.name] !== undefined){
+                player.highest_streak = data.highestStreaks[player.name];
             }
         });
 
         this.updateScoreboard();
 
         document.getElementById('video-player').classList.remove('video-hidden')
-        const next_btn = document.getElementById('next-video');
-        next_btn.disabled = false;
+        
+        if(this.isHost){
+            const nextBtn = document.getElementById('next-video');
+            nextBtn.disabled = false;
+        }
 
         const timer = document.getElementById('timer');
         if (timer) timer.remove();
+    }
 
+    updatePlayerScore(playerName, correct, scores, streaks){
+        const player = this.players.find(p => p.name === playerName);
+        if(player){
+            if(scores[playerName] !== undefined){
+                player.score = scores[playerName]
+            }
+            if(streaks[playerName] !== undefined){
+                player.streak = streaks[playerName]
+            }
+        }
+        this.updateScoreboard();
     }
 
     updateScoreboard(){
@@ -486,6 +720,81 @@ class MultiplayerGame{
         });
 
         scoresDiv.textContent = scoreText;
+    }
+
+    addChatMessage(sender, message, timestamp = null){
+        const chatMessages = document.getElementById('chat-messages');
+        if(!chatMessages) return;
+
+        const messageElement = document.createElement('div');
+        messageElement.className = 'chat-message';
+
+        let timeString = '';
+        if(timestamp){
+            const date = new Date(timestamp * 1000);
+            timeString = `<span class="chat-time">[${date.toLocaleTimeString()}]</span>`;
+        }
+
+        if(sender === 'system'){
+            messageElement.classList.add('system');
+            messageElement.innerHTML = message;
+        } else {
+            messageElement.innerHTML = `
+                ${timeString}
+                <span class="sender">${sender}:</span>
+                <span class="text">${this.escapeHtml(message)}</span>
+            `;
+        }
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    escapeHtml(text){
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    sendChatMessage(){
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+
+        if (!messgae || !this.gameCode) return;
+
+        this.socket.emit('multiplayer_chat_send', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName,
+            message: message
+        });
+
+        input.value = "";
+    }
+
+    prepareNextRound(){
+        const videoPlayer = document.getElementById('video-player');
+        videoPlayer.pause();
+        videoPlayer.src = '';
+        videoPlayer.classList.remove('video-hidden');
+
+        document.querySelectorAll('.answer-btn').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('answered', 'correct', 'incorrect');
+            btn.style.removeProperty('background-color');
+        });
+        
+        const timer = document.getElementById('timer');
+        if (timer) timer.remove();
+
+        this.hasAnswered = false;
+        this.answerSubmitted = false;
+        this.playbackStarted = false;
+        this.videoReady = false;
+
+        this.fillButtons(this.currentSong.options);
+        this.showLoadingScreen('Loading next video...');
+        this.loadVideo(this.currentSong.file_path);
     }
 
     async ping(){
@@ -916,63 +1225,17 @@ class MultiplayerGame{
     }
 
     async nextRound() {
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if (!this.token) return [];
-        }        
-        
-        try{
-            const nextBtn = document.getElementById('next-video');
-            nextBtn.disabled = true;
+        if(!this.isHost) return;
 
-            const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/next-round`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    playerName: this.playerName
-                })
-            });
-            if(response.ok){
-                const data = await response.json();
-                if (data.ended) {
-                    return;
-                }
-                const videoPlayer = document.getElementById('video-player');
-                videoPlayer.pause();
-                videoPlayer.src = ''
-                videoPlayer.classList.remove('video-hidden');
-
-                document.querySelectorAll('.answer-btn').forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('answered', 'correct', 'incorrect');
-                    btn.style.removeProperty('background-color');
-                });
-
-                const timer = document.getElementById('timer');
-                if(timer) timer.remove();
-
-                this.hasAnswered = false;
-                this.answerSubmitted = false;
-                this.playbackStarted = false;
-                this.videoReady = false;
-
-                this.showLoadingScreen('Loading next video...');
-            } else {
-                console.error('Failed to advance round');
-                document.getElementById('next-video').disabled = false;
-            }
-
-        } catch (error) {
-            console.error('Failed to advance round: ', error);
-            document.getElementById('next-video').disabled = false;
-        }
+        this.socket.emit('host_next_round', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName
+        });
+        document.getElementById('next-video').disabled = true;
     }
 
-    showLeaderboard(){
+    showLeaderboard(finalData = null){
         this.leaderboardShown = true;
         document.getElementById('game-screen').style.display = 'none';
 
@@ -1002,27 +1265,32 @@ class MultiplayerGame{
             if (!this.token) return [];
         }   
         
-        try{
-            await fetch(`${this.website}/api/local/multiplayer/leave`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                }, 
-                body: JSON.stringify({
-                    gameCode: this.gameCode,
-                    playerName: this.playerName
-                })
-            });
-        } catch (error) {
-            console.error('Failed to leave game: ', error);
-        }
+        this.socket.emit('leave_game', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName,
+            sessionId: this.sessionId
+        })
 
-        clearInterval(this.gameStatePollInterval);
+
+        this.socket.disconnect();
+        clearInterval(this.heartbeatInterval);
         localStorage.removeItem('multiplayerGame');
         localStorage.removeItem('mutliplayerGameCode');
         window.location.href = 'lobby.html';
+    }
+
+    startHeartbeat(){
+        this.heartbeatInterval = setInterval(() => {
+            if(this.socket && this.socket.connected){
+                this.socket.emit('heartbeat', {
+                    token: this.token,
+                    sessionId: this.sessionId,
+                    gameCode: this.gameCode,
+                    playerName: this.playerName
+                });
+            }
+        }, 30000);
     }
     
     gameEnded(scores, highest_streak){
