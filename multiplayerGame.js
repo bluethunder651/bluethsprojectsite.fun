@@ -60,9 +60,6 @@ class MultiplayerGame{
 
         this.socket.on('connect', () =>{
             console.log('Socket connected');
-            if(this.gameCode && this.playerName){
-                this.joinGameRoom();
-            }
         });
 
         this.socket.on('disconnect', () => {
@@ -72,9 +69,6 @@ class MultiplayerGame{
 
         this.socket.on('reconnect', () => {
             console.log('Socket reconnected.');
-            if (this.gameCode && this.playerName){
-                this.joinGameRoom();
-            }
         })
 
         this.socket.on('player_joined', (data) => {
