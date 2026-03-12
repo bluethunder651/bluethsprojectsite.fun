@@ -22,7 +22,7 @@ class tsPlayer{
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-            const response = await fetch(`${this.website}/api/local/ping`, {
+            const response = await fetch(`${this.website}/api/local/status/ping`, {
                 signal: controller.signal,
                 mode: 'cors',
                 cache: 'no-cache'
