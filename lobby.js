@@ -127,6 +127,27 @@ class MultiplayerLobby{
             this.showGameStarting();
             window.location.href = `multiplayerGame.html?code=${this.currentGame.code}`;
         });
+
+        this.socket.on('connect', () => {
+            console.log('Connected to server with ID: ', this.socket.id);
+            if(this.currentGame){
+                this.socket.emit('join_game_room', {
+                    token: this.token,
+                    gameCode: this.gameCode,
+                    playerName: this.playerName,
+                    sessionId: this.sessionId
+                });
+            }
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Socket connection error: ', error);
+        });
+
+        this.socket.on('error', (data) => {
+            console.error('Socket error: ', data);
+            alert(data.message || "Socket connection error.");
+        })
     }
 
     loadSavedName() {
