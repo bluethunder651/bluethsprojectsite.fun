@@ -110,7 +110,8 @@ class MultiplayerLobby{
 
 
         this.socket.on('new_chat_message', (data) => {
-            lobby.addChatMessage(data.player, data.message, data.timestamp);
+            console.log('New chat message sent');
+            this.addChatMessage(data.player, data.message, data.timestamp);
         });
 
         this.socket.on('player_joined', (data) => {
@@ -138,6 +139,7 @@ class MultiplayerLobby{
         this.socket.on('all_players_ready', (data) => {
             if(this.isHost){
                 this.addChatMessage('system', 'All players ready! You can start the game now!');
+                this.checkAllReady();
             }
         });
 
@@ -612,8 +614,6 @@ class MultiplayerLobby{
         const allReady = this.currentGame.players.every(p => p.ready);
         document.getElementById('start-game-btn').disabled = !allReady;
     }
-
-
 
     async joinGame(gameCode){
         if(!this.token || Date.now() > this.tokenExpiry){
