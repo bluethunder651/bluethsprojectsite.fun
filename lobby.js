@@ -22,7 +22,8 @@ class MultiplayerLobby{
             reconnectionAttempts: 10,
             reconnectionDelay: 1000,
             timeout: 30000,
-        })
+        });
+        this.gameCode = null;
 
         this.init = this.init.bind(this);
 
@@ -643,7 +644,9 @@ class MultiplayerLobby{
                 const gameData = await response.json();
                 this.currentGame = gameData;
                 this.isHost = true;
-
+                console.log('GameData.code: ', gameData.code);
+                this.gameCode = gameData.code;
+                console.log('this.gameCode: ', this.gameCode)
                 localStorage.setItem('lastGame', JSON.stringify({
                     code: gameData.code,
                     name: gameData.name
