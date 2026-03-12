@@ -102,6 +102,7 @@ class MultiplayerLobby{
         });
 
         this.socket.on('player_ready_update', (data) => {
+            console.log('playerReadyUpdate')
             this.updatePlayersList(data.players);
             this.checkAllReady();
         });
@@ -507,6 +508,7 @@ class MultiplayerLobby{
     }
 
     updatePlayersList(players){
+        console.log('Running UpdatePlayersList')
         const playersList = document.getElementById('players-list');
         const playerCount = document.getElementById('player-count');
 
