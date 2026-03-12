@@ -139,7 +139,7 @@ class MultiplayerLobby{
         this.socket.on('all_players_ready', (data) => {
             if(this.isHost){
                 this.addChatMessage('system', 'All players ready! You can start the game now!');
-                this.checkAllReady();
+                document.getElementById('start-game-btn').disabled = false;
             }
         });
 
