@@ -750,10 +750,10 @@ class MultiplayerLobby{
         }
         try{      
             this.socket.emit('multiplayer_chat_send', {
-                token: this.token,
-                gameCode: this.gameCode,
-                playerName: this.playerName,
-                message: message
+                'token': this.token,
+                'gameCode': this.gameCode,
+                'playerName': this.playerName,
+                'message': message
             })
             input.value = "";
         } catch (error) {
