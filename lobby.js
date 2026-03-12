@@ -160,7 +160,7 @@ class MultiplayerLobby{
     
     joinGameRoom(){
         if(this.socket && this.socket.connected && this.gameCode && this.playerName && this.token){
-            console.log("Joining game room: ", this.gameCode);
+            console.log("Joining game room: ", this.gameCode, "sessionId: ", this.sessionId);
             this.socket.emit('join_game_room', {
                 token: this.token,
                 gameCode: this.gameCode,
