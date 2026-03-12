@@ -15,6 +15,7 @@ class MultiplayerLobby{
         this.chatPollInterval = null;
         this.maxRounds = false;
         this.timeLimitCheck = false;
+        this.socket = io()
 
         this.init = this.init.bind(this);
 
@@ -72,6 +73,11 @@ class MultiplayerLobby{
                 document.getElementById('time-limit-div').style.display = 'none';
             }
         });
+
+        this.socket.on('update_messages', function(data){
+            const message = data.chat_message;
+            game.addChatMessage(message.player, message.message, message.timestamp);
+        })
 
     }
 
@@ -294,7 +300,7 @@ class MultiplayerLobby{
         if(lastGame){
             try{
                 const gameData = JSON.parse(lastGame);
-                
+                console.log(`lastGame: ${lastGame}, gameData: ${gameData}`);
                 const response = await fetch(`${this.website}/api/local/multiplayer/game/${gameData.code}?player=${encodeURIComponent(this.playerName)}&session=${this.sessionId}`, {
                     headers: {
                         'X-Auth-Token': this.token,
