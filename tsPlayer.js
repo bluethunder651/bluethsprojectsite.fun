@@ -761,9 +761,7 @@ class tsPlayer{
             videos.forEach(video => {
                 const card = createVideoCard(video);
                 videoGrid.appendChild(card);
-            });
-            
-            updateStats(videos, statsMessage);
+            });   
         }
 
         function createVideoCard(video) {
@@ -1305,7 +1303,7 @@ class tsPlayer{
         if(!this.token || query.length < 3) return [];
 
         try{
-            const response = await fetch(`${this.website}/api/local/search?q=${encodeURIComponent(query)}`, {
+            const response = await fetch(`${this.website}/api/local/videos/search?q=${encodeURIComponent(query)}`, {
                 headers: {
                     'X-Auth-Token': this.token,
                     'Referer': window.location.origin
