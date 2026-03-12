@@ -552,7 +552,7 @@ class MultiplayerLobby{
         if(this.socket && this.socket.connected){
             this.socket.emit('join_game_room', {
                 token: this.token,
-                gameCode: this.gameCode,
+                gameCode: gameData.gameCode,
                 playerName: this.playerName,
                 sessionId: this.sessionId
             });
