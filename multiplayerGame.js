@@ -89,6 +89,7 @@ class MultiplayerGame{
         });
 
         this.socket.on('game_starting', (data) => {
+            console.log("Game starting.")
             this.players = data.players;
             this.hardMode = data.hardMode;
             this.timeLimit = data.timeLimit;
@@ -97,6 +98,7 @@ class MultiplayerGame{
         });
 
         this.socket.on('round_loading', (data) => {
+            console.log("round loading...")
             this.currentRound = data.currentRound;
             this.currentSong = data.currentSong;
             this.videoReady = false;
@@ -110,6 +112,7 @@ class MultiplayerGame{
         });
 
         this.socket.on('round_start', (data) => {
+            console.log("round starting.")
             this.startPlayback(data);
         });
 
