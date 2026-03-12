@@ -145,12 +145,12 @@ class MultiplayerLobby{
 
         this.socket.on('game_starting', (data) => {
             localStorage.setItem('multiplayerGame', JSON.stringify({
-                code: this.currentGame.code,
+                code: this.gameCode,
                 rounds: data.rounds,
                 hardMode: data.hardMode,
                 timeLimit: data.timeLimit,
                 players: data.players,
-                host: this.currentGame.host
+                host: this.host
             }));
 
             localStorage.setItem('multiplayerGameCode', this.currentGame.code);
