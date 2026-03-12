@@ -450,7 +450,7 @@ class tsPlayer{
                 currentPlaylistIndex = index;
 
                 const progressText = `(${index + 1}/${playlist.length}) `;
-                currentVideoTitle.textContent = progressText + (video.opening_name || video.filename);
+                currentVideoTitle.textContent = progressText + (video.opening_name || video.file_path);
 
                 if (preloader.src) {
                     URL.revokeObjectURL(preloader.src);
@@ -459,7 +459,7 @@ class tsPlayer{
 
                 try {
                     if (player.mobileMode) {
-                        const isCompatible = await player.getVideoCodec(video.filename);
+                        const isCompatible = await player.getVideoCodec(video.file_path);
                         if (!isCompatible) {
                             showError(`Video not H.264 compatible (mobile mode). Skipping...`);
                             setTimeout(() => playPlaylistVideo(index + 1), 500);
@@ -467,8 +467,8 @@ class tsPlayer{
                         }
                     }
 
-                    const filename = encodeURIComponent(video.filename)
-                    const videoUrl = `${player.website}/api/local/videos/${filename}?token=${encodeURIComponent(player.token)}`;
+                    const file_path = encodeURIComponent(video.file_path)
+                    const videoUrl = `${player.website}/api/local/videos/${file_path}?token=${encodeURIComponent(player.token)}`;
                     console.log("Video URL: " + videoUrl);
                     
                     videoPlayer.removeEventListener('ended', handleVideoEnded);
@@ -480,7 +480,7 @@ class tsPlayer{
 
                     if('mediaSession' in navigator){
                         navigator.mediaSession.metadata = new MediaMetadata({
-                            title: video.opening_name || video.filename,
+                            title: video.opening_name || video.file_path,
                             artist: 'Theme Song Player',
                             album: 'Playlist Mode'
                         });
@@ -502,7 +502,7 @@ class tsPlayer{
                                  navigator.mediaSession.playbackState = 'playing';
 
                                  navigator.mediaSession.metadata = new MediaMetadata({
-                                    title: video.opening_name || video.filename,
+                                    title: video.opening_name || video.file_path,
                                     artist: 'Theme Song Player',
                                     album: 'Playlist Mode'
                                  });
@@ -530,10 +530,10 @@ class tsPlayer{
                         const nextVideo = playlist[currentIndex + 1];
                         try {
                             
-                            const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}?token=${encodeURIComponent(player.token)}`;
+                            const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(player.token)}`;
                             preloader.src = videoUrl;
                             preloader.load();
-                            console.log('Preloaded next video:', nextVideo.filename);
+                            console.log('Preloaded next video:', nextVideo.file_path);
 
                         } catch (error) {
                             console.log('Failed to preload next video:', error);
@@ -549,22 +549,22 @@ class tsPlayer{
                 while (nextIndex < playlist.length && checkedCount < maxChecks) {
                     const nextVideo = playlist[nextIndex];
                     
-                    let isCompatible = player.codecCache.get(nextVideo.filename);
+                    let isCompatible = player.codecCache.get(nextVideo.file_path);
                     
                     if (isCompatible === undefined) {
-                        console.log(`Checking compatibility for next video: ${nextVideo.filename}`);
-                        isCompatible = await player.getVideoCodec(nextVideo.filename);
+                        console.log(`Checking compatibility for next video: ${nextVideo.file_path}`);
+                        isCompatible = await player.getVideoCodec(nextVideo.file_path);
                     }
                     
                     if (isCompatible) {
-                        console.log(`Found compatible next video at index ${nextIndex}: ${nextVideo.filename}`);
+                        console.log(`Found compatible next video at index ${nextIndex}: ${nextVideo.file_path}`);
                         try {
 
-                            const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(nextVideo.filename)}?token=${encodeURIComponent(player.token)}`;
+                            const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(player.token)}`;
                             preloader.src = videoUrl;
                             preloader.load();
                             preloader.dataset.preloadedIndex = nextIndex;
-                            console.log(`Preloaded video ${nextIndex + 1}/${playlist.length}: ${nextVideo.filename}`);
+                            console.log(`Preloaded video ${nextIndex + 1}/${playlist.length}: ${nextVideo.file_path}`);
 
                             break;
                         } catch (error) {
@@ -595,7 +595,7 @@ class tsPlayer{
                             
                             const nextVideo = playlist[nextIndex];
                             const progressText = `(${nextIndex + 1}/${playlist.length}) `;
-                            currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.filename);
+                            currentVideoTitle.textContent = progressText + (nextVideo.opening_name || nextVideo.file_path);
                             
                             videoPlayer.currentTime = 0;
 
@@ -603,7 +603,7 @@ class tsPlayer{
 
                             if('mediaSession' in navigator){
                                 navigator.mediaSession.metadata = new MediaMetadata({
-                                    title: nextVideo.opening_name || nextVideo.filename,
+                                    title: nextVideo.opening_name || nextVideo.file_path,
                                     artist: 'Theme Song Player',
                                     album: 'Playlist Mode'
                                 });
@@ -615,7 +615,7 @@ class tsPlayer{
                                         navigator.mediaSession.playbackState = 'playing';
 
                                         navigator.mediaSession.metadata = new MediaMetadata({
-                                            title: nextVideo.opening_name || nextVideo.filename,
+                                            title: nextVideo.opening_name || nextVideo.file_path,
                                             artist: 'Theme Song Player',
                                             album: 'Playlist Mode'
                                         });
@@ -734,8 +734,8 @@ class tsPlayer{
                         
                         if (data.videos && data.videos.length > 0) {
                             const randomVideo = data.videos[0];
-                            console.log("random video filename: "+randomVideo.filename);
-                            playVideo(randomVideo.filename);
+                            console.log("random video file_path: "+randomVideo.file_path);
+                            playVideo(randomVideo.file_path);
                         } else {
                             showError('No videos available');
                         }
@@ -770,11 +770,11 @@ class tsPlayer{
             const card = document.createElement('div');
             card.className = 'video-card';
             
-            const filename = video.filename || video;
-            const displayName = filename.length > 50 ? filename.substring(0, 47) + '...' : filename;
+            const file_path = video.file_path || video;
+            const displayName = file_path.length > 50 ? file_path.substring(0, 47) + '...' : file_path;
             
             card.innerHTML = `
-                <h3 title="${escapeHtml(filename)}">${escapeHtml(displayName)}</h3>
+                <h3 title="${escapeHtml(file_path)}">${escapeHtml(displayName)}</h3>
                 <div class="video-card-footer">
                     ${video.size ? `<span class="file-size">${formatFileSize(video.size)}</span>` : ''}
                 </div>
@@ -782,28 +782,28 @@ class tsPlayer{
             
             card.addEventListener('click', () => {
                 if (player.mobileMode) {
-                    const isCompatible = player.codecCache.get(filename);
+                    const isCompatible = player.codecCache.get(file_path);
                     
                     if (isCompatible === undefined) {
                         const h264Extensions = ['.mp4', '.m4v', '.mov'];
-                        const isCompatible = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
-                        player.codecCache.set(filename, isCompatible);
+                        const isCompatible = h264Extensions.some(ext => file_path.toLowerCase().endsWith(ext));
+                        player.codecCache.set(file_path, isCompatible);
                     }
                     
                     if (isCompatible) {
-                        playVideo(filename);
+                        playVideo(file_path);
                     } else {
                         showError('This video cannot be played in mobile mode (not H.264 compatible)');
                     }
                 } else {
-                    playVideo(filename);
+                    playVideo(file_path);
                 }
             });
             
             return card;
         }
             
-        async function playVideo(filename) {
+        async function playVideo(file_path) {
             if (!player.token) {
                 showError('Not authenticated. Please refresh the page.');
                 return;
@@ -811,10 +811,10 @@ class tsPlayer{
             
             videoBrowser.style.display = 'none';
             playerScreen.style.display = 'block';
-            currentVideoTitle.textContent = filename;
+            currentVideoTitle.textContent = file_path;
             
             try {
-                const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(filename)}?token=${encodeURIComponent(player.token)}`;
+                const videoUrl = `${player.website}/api/local/videos/${encodeURIComponent(file_path)}?token=${encodeURIComponent(player.token)}`;
                 console.log('Loading video from:', videoUrl);
                 
                 videoPlayer.src = videoUrl;
@@ -850,10 +850,10 @@ class tsPlayer{
 
                         const urlParts = currentSrc.split('/api/local/videos');
                         if (urlParts.length > 1){
-                            const filenamePart = urlParts[1].split('?')[0];
-                            const filename = decodeURIComponent(filenamePart);
+                            const file_pathPart = urlParts[1].split('?')[0];
+                            const file_path = decodeURIComponent(file_pathPart);
 
-                            const newVideoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filename)}?token=${encodeURIComponent(this.token)}`;
+                            const newVideoUrl = `${this.website}/api/local/videos/${encodeURIComponent(file_path)}?token=${encodeURIComponent(this.token)}`;
 
                             if (retryCount < maxRetries){
                                 retryCount++;
@@ -961,9 +961,9 @@ class tsPlayer{
                 }
                 
                 videos.forEach(video => {
-                    if (video.filename && video.codec) {
+                    if (video.file_path && video.codec) {
                         const isH264 = this.isH264Codec(video.codec);
-                        this.codecCache.set(video.filename, isH264);
+                        this.codecCache.set(video.file_path, isH264);
                     }
                 });
                 
@@ -1007,9 +1007,9 @@ class tsPlayer{
                     videos = data;
                 }
                 videos.forEach(video => {
-                    if(video.filename && video.codec){
+                    if(video.file_path && video.codec){
                         const isH264 = this.isH264Codec(video.codec);
-                        this.codecCache.set(video.filename, isH264);
+                        this.codecCache.set(video.file_path, isH264);
                     }
                 });
                 console.log(videos);
@@ -1056,15 +1056,15 @@ class tsPlayer{
         }, 3000);
     }
 
-    async getVideoCodec(filename){
-        if (this.codecCache.has(filename)) {
-            return this.codecCache.get(filename);
+    async getVideoCodec(file_path){
+        if (this.codecCache.has(file_path)) {
+            return this.codecCache.get(file_path);
         }
         
         const h264Extensions = ['.mp4', '.m4v', '.mov'];
-        const hasH264Ext = h264Extensions.some(ext => filename.toLowerCase().endsWith(ext));
+        const hasH264Ext = h264Extensions.some(ext => file_path.toLowerCase().endsWith(ext));
         
-        this.codecCache.set(filename, hasH264Ext);
+        this.codecCache.set(file_path, hasH264Ext);
         return hasH264Ext;
     }
 
