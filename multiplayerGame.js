@@ -76,10 +76,6 @@ class MultiplayerGame{
             }
         })
 
-        this.socket.on('new_chat_message', (data) => {
-            this.addChatMessage(data.player, data.message, data.timestamp)
-        });
-
         this.socket.on('player_joined', (data) => {
             this.players = data.players;
             this.updateScoreboard();
@@ -95,17 +91,6 @@ class MultiplayerGame{
                 this.addChatMessage('system', `${data.playerName} left the game.`);
             }
             this.updateScoreboard();
-        });
-
-        this.socket.on('player_ready_update', (data) => {
-            this.players = data.players;
-            this.updateScoreboard();
-        });
-
-        this.socket.on('all_players_ready', (data) => {
-            if(this.isHost){
-                this.addChatMessage('system', 'All players ready!')
-            }
         });
 
         this.socket.on('game_starting', (data) => {
