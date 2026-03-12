@@ -756,27 +756,14 @@ class MultiplayerLobby{
             await this.refreshToken();
             if (!this.token) return;
         }
-        try{
-            const response = await fetch(`${this.website}/api/local/multiplayer/chat/send`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    gameCode: this.currentGame.code,
-                    playerName: this.playerName,
-                    message: message
-                })
-            });
-
-            if(response.ok){
-                input.value = "";
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Failed to send message');
-            }
+        try{      
+            this.socket.emit('multiplayer_chat_send', {
+                'token': this.token,
+                'gameCode': this.gameCode,
+                'playerName': this.playerName,
+                'message': message
+            })
+            input.value = "";
         } catch (error) {
             console.error('Failed to send chat message: ', error);
             alert('Failed to send message');
