@@ -15,7 +15,14 @@ class MultiplayerLobby{
         this.chatPollInterval = null;
         this.maxRounds = false;
         this.timeLimitCheck = false;
-        this.socket = io()
+        this.socket = io(this.website, {
+            path: '/socket.io/',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            timeout: 30000,
+        })
 
         this.init = this.init.bind(this);
 

@@ -30,7 +30,14 @@ class MultiplayerGame{
         this.gameStatePollInterval = null;
         this.videoReady = false;
 
-        const socket = io('https://julia.bluethsprojectsite.fun');
+        this.socket = io(this.website, {
+            path: '/socket.io/',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            timeout: 30000,
+        })
 
         this.setupEventListeners();
         this.loadGameData();
