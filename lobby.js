@@ -553,12 +553,7 @@ class MultiplayerLobby{
         this.currentScreen = 'lobby';
 
         if(this.socket && this.socket.connected){
-            this.socket.emit('join_game_room', {
-                token: this.token,
-                gameCode: gameData.gameCode,
-                playerName: this.playerName,
-                sessionId: this.sessionId
-            });
+            this.joinGameRoom();
         }
     }
 
