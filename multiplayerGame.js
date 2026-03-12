@@ -41,6 +41,7 @@ class MultiplayerGame{
 
         this.setupEventListeners();
         this.loadGameData();
+        this.connectSocket();
     }
 
     generateSessionId(){
