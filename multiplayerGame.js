@@ -60,6 +60,9 @@ class MultiplayerGame{
 
         this.socket.on('connect', () =>{
             console.log('Socket connected');
+            if(this.gameCode && this.playerName && this.token){
+                this.joinGameRoom();
+            }
         });
 
         this.socket.on('disconnect', () => {
@@ -69,6 +72,9 @@ class MultiplayerGame{
 
         this.socket.on('reconnect', () => {
             console.log('Socket reconnected.');
+            if(this.gameCode && this.playerName && this.token){
+                this.joinGameRoom();
+            }
         })
 
         this.socket.on('player_joined', (data) => {
@@ -285,6 +291,7 @@ class MultiplayerGame{
         const urlParams = new URLSearchParams(window.location.search);
         this.gameCode = urlParams.get('code') || localStorage.getItem('multiplayerGameCode');
         this.playerName = localStorage.getItem('playerName');
+        this.sessionId = localStorage.getItem('sessionId');
 
         const gameData = JSON.parse(localStorage.getItem('multiplayerGame') || '{}');
         this.totalRounds = gameData.rounds || 20;
