@@ -150,7 +150,7 @@ class MultiplayerLobby{
                 hardMode: data.hardMode,
                 timeLimit: data.timeLimit,
                 players: data.players,
-                host: this.host
+                host: data.host
             }));
 
             localStorage.setItem('multiplayerGameCode', this.currentGame.code);
