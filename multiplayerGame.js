@@ -100,6 +100,7 @@ class MultiplayerGame{
             this.hardMode = data.hardMode;
             this.timeLimit = data.timeLimit;
             this.playlist = data.playlist;
+            this.fetchInitialPlaylist();
             this.showLoadingScreen('Game starting...');
         });
 
