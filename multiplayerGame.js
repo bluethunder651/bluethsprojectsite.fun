@@ -171,7 +171,7 @@ class MultiplayerGame{
 
         this.socket.on('reveal_answer', (data) => {
             console.log('reveal answer');
-            this.showAnswerReveal(data);
+            this.showAnswerReveal(data.correct_answer);
         })
     }
 
@@ -708,8 +708,8 @@ class MultiplayerGame{
         }
     }
 
-    showAnswerReveal(answers){
-        const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answers.correct_answer);
+    showAnswerReveal(answer){
+        const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answer);
         if(correctButton){
             correctButton.style.backgroundColor = '#4CAF50';
         }
