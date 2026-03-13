@@ -167,6 +167,11 @@ class MultiplayerGame{
             }
 
             this.updateScoreboard();
+        });
+
+        this.socket.on('reveal_answer', (data) => {
+            console.log('reveal answer');
+            this.showAnswerReveal(state);
         })
     }
 
@@ -371,10 +376,6 @@ class MultiplayerGame{
         } catch (error) {
             console.error('Failed to fetch playlist: ', error);
         }
-    }
-
-    startGamePolling() {
-        this.gameStatePollInterval = setInterval(() => this.fetchGameState(), 1000);
     }
 
     async fetchGameState() {
@@ -707,8 +708,8 @@ class MultiplayerGame{
         }
     }
 
-    showAnswerReveal(state){
-        const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === state.correctAnswer);
+    showAnswerReveal(answers){
+        const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answers.correct_answer);
         if(correctButton){
             correctButton.style.backgroundColor = '#4CAF50';
         }
