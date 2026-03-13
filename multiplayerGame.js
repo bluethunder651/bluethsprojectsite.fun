@@ -62,6 +62,7 @@ class MultiplayerGame{
             console.log('Socket connected');
             if(this.gameCode && this.playerName && this.token){
                 this.joinGameRoom();
+                this.fetchInitialPlaylist();
             }
         });
 
@@ -113,7 +114,6 @@ class MultiplayerGame{
             this.answerSubmitted = false;
 
             this.fillButtons(this.currentSong.options);
-            this.fetchInitialPlaylist();
             this.showLoadingScreen('Loading video...');
             this.loadVideo(this.currentSong.file_path);
         });
