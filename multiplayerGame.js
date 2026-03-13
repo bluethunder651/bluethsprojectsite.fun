@@ -728,6 +728,8 @@ class MultiplayerGame{
 
         document.getElementById('video-player').classList.remove('video-hidden')
         
+        console.log('this.isHost: ', this.isHost);
+
         if(this.isHost){
             const nextBtn = document.getElementById('next-video');
             nextBtn.disabled = false;
