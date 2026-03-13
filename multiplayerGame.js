@@ -171,8 +171,8 @@ class MultiplayerGame{
 
         this.socket.on('reveal_answer', (data) => {
             console.log('reveal answer: ', data);
-            const correct_answer = data.correct_answer
-            this.showAnswerReveal(correct_answer);
+            const answer = data;
+            this.showAnswerReveal(answer);
         });
     }
 
@@ -715,14 +715,12 @@ class MultiplayerGame{
             correctButton.style.backgroundColor = '#4CAF50';
         }
         this.players.forEach(player => {    
-            if(data.scores[player.name] !== undefined){
-                player.score = data.scores[player.name];
-            }
-            if(data.streaks[player.name] !== undefined){
-                player.streak = data.streaks[player.name];
-            } 
-            if(data.highestStreaks[player.name] !== undefined){
-                player.highest_streak = data.highestStreaks[player.name];
+            const playerResult = answer.results[player.name];
+            if(playerResult){
+                const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === playerResult.selected);
+                if (playerButton){
+                    playerButton.classList.add(playerResult.correct ? 'correct' : 'incorrect');
+                }
             }
         });
 
