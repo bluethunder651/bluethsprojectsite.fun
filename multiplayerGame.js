@@ -171,7 +171,7 @@ class MultiplayerGame{
 
         this.socket.on('reveal_answer', (data) => {
             console.log('reveal answer');
-            this.showAnswerReveal(state);
+            this.showAnswerReveal(data);
         })
     }
 
