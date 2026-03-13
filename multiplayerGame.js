@@ -62,8 +62,7 @@ class MultiplayerGame{
             console.log('Socket connected');
             if(this.gameCode && this.playerName && this.token){
                 this.joinGameRoom();
-                this.fetchInitialPlaylist();
-                this.preloadBuffers();
+                this.fetchInitialPlaylist().then(this.preloadBuffers());
             }
         });
 
