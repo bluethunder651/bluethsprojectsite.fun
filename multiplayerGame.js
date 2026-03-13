@@ -1264,6 +1264,7 @@ class MultiplayerGame{
     }
 
     async nextRound() {
+        console.log("this.isHost: ", this.isHost);
         if(!this.isHost) return;
 
         this.socket.emit('host_next_round', {
