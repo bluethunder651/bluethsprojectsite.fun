@@ -840,10 +840,6 @@ class MultiplayerGame{
         const buffer1 = document.getElementById('video-buffer1');
         const buffer2 = document.getElementById('video-buffer2');
 
-        if (this.currentRound === 0){
-            return;
-        }
-
         const nextIndex = this.currentRound + 1;
         const nextNextIndex = this.currentRound + 2;
 
