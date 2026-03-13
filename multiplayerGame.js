@@ -151,16 +151,58 @@ class MultiplayerGame{
             console.error('Socket error: ', data.message);
             alert(data.message);
         });
+
+        this.socket.on('game_state_sync', (data) => {
+            console.log("Received game state sync: ", data);
+
+            if(data.players){
+                this.players = data.players;
+            }
+            if (data.scores) {
+                this.players.forEach(player => {
+                    player.score = data.scores[player.name] || 0;
+                    player.streak = data.streaks?.[player.name] || 0;
+                    player.highest_streak = data.highestStreaks?.[player.name] || 0;
+                });
+            }
+
+            this.updateScoreboard();
+        })
     }
 
     joinGameRoom() {
-        if(!this.gameCode || !this.playerName || !this.token) return;
+        if (!this.socket || !this.socket.connected){
+            console.log("Socket not connected yet, will retry");
+            setTimeout(() => this.joinGameRoom(), 500);
+            return;
+        }
 
+        if(!this.gameCode || !this.playerName || !this.token){
+            console.log('Missing fields for joining room.');
+            return;
+        } 
+
+        console.log("Joining game room: ", this.gameCode);
         this.socket.emit('join_game_room', {
             token: this.token,
             gameCode: this.gameCode,
             playerName: this.playerName,
             sessionId: this.sessionId
+        });
+
+        setTimeout(() => {
+            this.requestCurrentGameState();
+        }, 500);
+    }
+
+    requestCurrentGameState(){
+        if(!this.socket || !this.socket.connected) return;
+
+        console.log("Requesting current game state");
+        this.socket.emit('request_game_state', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName
         });
     }
 
