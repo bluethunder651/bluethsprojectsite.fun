@@ -170,9 +170,9 @@ class MultiplayerGame{
         });
 
         this.socket.on('reveal_answer', (data) => {
-            console.log('reveal answer');
+            console.log('reveal answer: ', data);
             this.showAnswerReveal(data.correct_answer);
-        })
+        });
     }
 
     joinGameRoom() {
