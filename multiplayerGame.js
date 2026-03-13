@@ -271,10 +271,30 @@ class MultiplayerGame{
             btn.style.removeProperty('background-color');
         });
 
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filePath)}?token=${encodeURIComponent(this.token)}`
+        const buffer1 = document.getElementById('video-buffer1');
+        const buffer2 = document.getElementById('video-buffer2');
 
-        videoPlayer.src = videoUrl;
-        videoPlayer.preload = 'auto';
+        if (this.currentRound === 0) {
+            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filePath)}?token=${encodeURIComponent(this.token)}`
+
+            videoPlayer.src = videoUrl;
+            videoPlayer.preload = 'auto';
+
+        } else {
+            videoPlayer.src = buffer1.src;
+            videoPlayer.preload = 'auto';
+
+            console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`);
+
+            buffer1.src = buffer2.src;
+            buffer2.removeAttribute('src');
+            buffer2.load();
+
+            this.buffer1Index = this.buffer2Index;
+            this.buffer2Index = null;
+        }
+
+        this.preloadBuffers();
 
         try{
             await new Promise((resolve, reject) => {
