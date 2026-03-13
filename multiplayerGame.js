@@ -63,6 +63,7 @@ class MultiplayerGame{
             if(this.gameCode && this.playerName && this.token){
                 this.joinGameRoom();
                 this.fetchInitialPlaylist();
+                this.preloadBuffers();
             }
         });
 
