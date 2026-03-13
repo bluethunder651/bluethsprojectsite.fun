@@ -481,25 +481,16 @@ class MultiplayerGame{
         if(this.answerSubmitted) return;
         this.answerSubmitted = true;
 
-        try{
-            await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/submit`, {
-                method: 'POST',
-                headers: {
-                    'X-Auth-Token': this.token,
-                    'Referer': window.location.origin,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    playerName: this.playerName,
-                    selectedOption: selectedOption,
-                    correctOption: this.currentSong.game_name,
-                    answerTime: Date.now(),
-                    videoStartTime: this.videoStartTime
-                })
-            });
-        } catch (error){
-            console.error('Failed to submit answer: ', error);
-        }
+        this.socket.emit('submit_answer', {
+            token: this.token,
+            gameCode: this.gameCode,
+            playerName: this.playerName,
+            selectedOption: selectedOption,
+            correctOption: this.currentSong.game_name,
+            answerTime: Date.now(),
+            videoStartTime: this.videoStartTime
+        });
+
     }
 
     showAnswerReveal(answer){
