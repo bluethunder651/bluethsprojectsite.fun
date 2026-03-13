@@ -295,8 +295,6 @@ class MultiplayerGame{
             this.buffer2Index = null;
         }
 
-        this.preloadBuffers();
-
         try{
             await new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
@@ -343,6 +341,8 @@ class MultiplayerGame{
             });
 
             loadingScreen.innerHTML = '<h3>Waiting for other players...</h3>';
+            this.preloadBuffers();
+
 
         } catch (error) {
             console.error('Failed to load video: ', error);
