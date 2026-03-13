@@ -100,7 +100,6 @@ class MultiplayerGame{
             this.hardMode = data.hardMode;
             this.timeLimit = data.timeLimit;
             this.playlist = data.playlist;
-            this.fetchInitialPlaylist();
             this.showLoadingScreen('Game starting...');
         });
 
@@ -114,6 +113,7 @@ class MultiplayerGame{
             this.answerSubmitted = false;
 
             this.fillButtons(this.currentSong.options);
+            this.fetchInitialPlaylist();
             this.showLoadingScreen('Loading video...');
             this.loadVideo(this.currentSong.file_path);
         });
@@ -827,113 +827,6 @@ class MultiplayerGame{
 
         if(response.ok){
             return await response.json();
-        }
-    }
-
-    async playVideo(hidden){
-        if(Date.now() > this.tokenExpiry){
-            await this.refreshToken();
-            if (!this.token) return [];
-        }
-
-        if(!this.token) return [];
-
-        if(!this.playlist || this.currentPlaylistIndex > this.playlist.length){
-            console.log('No more videos in queue');
-            this.gameEnded(this.scores, this.highest_streak);
-        }
-
-        const video = this.playlist[this.currentPlaylistIndex]
-
-        if(this.mobileMode){
-            const isCompatible = await this.checkVideoCompatibility(video.file_path);
-            if(!isCompatible){
-                console.log('Video not compatible with mobile mode, skipping...');
-                this.handleVideoEnded();
-                return;
-            }
-        }
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`
-
-        const videoPlayer = document.getElementById('video-player');
-        if(hidden){
-            videoPlayer.classList.add('video-hidden');
-        } else {
-            videoPlayer.classList.remove('video-hidden');
-        }
-        
-        videoPlayer.src = videoUrl;
-        this.videoStartTime = Date.now();
-
-        videoPlayer.preload = 'auto';
-
-        return new Promise((resolve, reject) => {
-            videoPlayer.play().then(() => resolve()).catch(e => {
-                console.log('Autoplay prevented: ', e);
-                resolve();
-            });
-        });
-    }
-
-    async handleVideoEnded(){
-        if(this.currentPlaylistIndex < this.playlist.length){
-
-            await this.loadVideoWithFallback();
-            this.current_song = this.playlist[this.currentPlaylistIndex];
-
-            const options = await this.getOptions();
-            this.fillButtons(options);
-
-            this.preloadBuffers();
-
-            this.currentRound++;
-            this.currentPlaylistIndex++;
-        } else {
-            this.next_video();
-        }
-    }
-    
-    async loadVideoWithFallback() {
-        const mainPlayer = document.getElementById('video-player');
-        const buffer1 = document.getElementById('video-buffer1');
-        const buffer2 = document.getElementById('video-buffer2');
-
-        mainPlayer.src = buffer1.src;
-
-        buffer1.src = buffer2.src;
-        buffer2.removeAttribute('src');
-        buffer2.load();
-
-        this.buffer1Index = this.buffer2Index;
-        this.buffer2Index = null;
-
-        this.preloadBuffers();
-
-        if(this.hardMode){
-            mainPlayer.classList.add('video-hidden');
-        } else {
-            mainPlayer.classList.remove('video-hidden');
-        }
-
-        mainPlayer.currentTime = 0;
-        this.videoStartTime = Date.now();
-
-        try{
-            const playPromise = mainPlayer.play();
-            if(playPromise !== undefined){
-                playPromise.catch(e => {
-                    console.log('Play failed: ', e);
-                    mainPlayer.load();
-                    setTimeout(() => {
-                        mainPlayer.play().catch(e2 => {
-                            console.log('Retry play failed: ', e2);
-                            this.handleVideoEnded();
-                        })
-                    }, 100)
-                });
-            }
-        } catch (e) {
-            console.log('Autoplay prevented: ', e);
         }
     }
 
