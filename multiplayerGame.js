@@ -348,6 +348,8 @@ class MultiplayerGame{
         this.players = gameData.players || [];
         this.isHost = (gameData.host === this.playerName);
 
+        console.log('this.isHost: ', this.isHost, ", gameData.host: ", gameData.host, ", this.playerName: ", this.playerName);
+
         if(!this.gameCode || !this.playerName){
             alert('No game data found.');
             window.location.href = 'lobby.html';
