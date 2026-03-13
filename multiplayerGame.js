@@ -1194,6 +1194,8 @@ class MultiplayerGame{
             this.buffer2Index = nextNextIndex;
             console.log('Buffered video: ', nextNextIndex);
         }
+
+        console.log(`buffer1.src: ${buffer1.src}, buffer2.src: ${buffer2.src}`);
     }
 
     async loadVideoNormally(videoPlayer){
