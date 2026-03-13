@@ -551,10 +551,6 @@ class MultiplayerLobby{
         this.isReady = false;
 
         this.currentScreen = 'lobby';
-
-        if(this.socket && this.socket.connected){
-            this.joinGameRoom();
-        }
     }
 
     updatePlayersList(players){
