@@ -181,8 +181,7 @@ class VideoPlayer{
     }
 
     updateVolume(baseVolume){
-        let videoVolume = this.getVideoVolume();
-        this.player.volume(baseVolume);
+        this.player.volume = baseVolume;
     }
 
     hide(){
@@ -196,10 +195,7 @@ class VideoPlayer{
     setVideo(videoUrl){
         this.reloadTried = false;
         this.currentVideoUrl = videoUrl;
-        this.player.src({
-            src: videoUrl,
-            type: 'video/mp4'
-        });
+        this.player.src = videoUrl;
     }
 
     getVideoVolume(){
