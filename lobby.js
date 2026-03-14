@@ -157,7 +157,7 @@ class MultiplayerLobby{
         });
 
         this.socket.on('update_active_games', (data) => {
-            this.availableGames = data;
+            this.availableGames = data.available_games;
             this.displayGamesList();
         });
 
