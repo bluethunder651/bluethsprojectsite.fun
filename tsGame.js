@@ -148,7 +148,7 @@ class tsGame{
             });
 
             document.getElementById('go-back-btn').addEventListener('click', async () => {
-                const response = await fetch(`${player.website}/api/local/game/single/next`, {
+                const response = await fetch(`${player.website}/api/local/single/next`, {
                     method: 'POST',
                     headers: {
                         'X-Auth-Token': player.token,
@@ -321,9 +321,9 @@ class tsGame{
                 }
 
                 videos.forEach(video => {
-                    if(video.filename && video.codec) {
+                    if(video.file_path && video.codec) {
                         const isH264 = this.isH264Codec(video.codec);
-                        this.codecCache.set(video.filename, isH264);
+                        this.codecCache.set(video.file_path, isH264);
                     }
                 });
 
@@ -566,7 +566,7 @@ class tsGame{
         landing_screen.classList.remove('active');
         loading_screen.classList.add('active');
 
-        const response = await fetch(`${this.website}/api/local/game/single/start`, {
+        const response = await fetch(`${this.website}/api/local/single/start`, {
             method: "POST",
             headers: {
                 'X-Auth-Token': this.token,
@@ -672,7 +672,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.website}/api/local/game/single/options`, {
+        const response = await fetch(`${this.website}/api/local/single/options`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
@@ -872,7 +872,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.website}/api/local/game/join`, {
+        const response = await fetch(`${this.website}/api/local/single/join`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
@@ -927,7 +927,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.website}/api/local/game/single/submit`, {
+        const response = await fetch(`${this.website}/api/local/single/submit`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
@@ -965,7 +965,7 @@ class tsGame{
 
         if(!this.token) return [];
 
-        const response = await fetch(`${this.website}/api/local/game/single/next`, {
+        const response = await fetch(`${this.website}/api/local/single/next`, {
             method: 'POST',
             headers: {
                 'X-Auth-Token': this.token,
