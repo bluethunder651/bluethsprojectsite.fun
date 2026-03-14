@@ -184,8 +184,7 @@ class VideoPlayer{
 
     updateVolume(baseVolume){
         let videoVolume = this.getVideoVolume();
-        let targetVolume = equalizeVolume(baseVolume, videoVolume);
-        this.player.volume(targetVolume);
+        this.player.volume(baseVolume);
     }
 
     hide(){
