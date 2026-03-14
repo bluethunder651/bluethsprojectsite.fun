@@ -39,9 +39,9 @@ class MultiplayerGame{
             timeout: 30000,
         })
 
-        this.setupEventListeners();
         this.loadGameData();
         this.connectSocket();
+        this.setupEventListeners();
     }
 
     generateSessionId(){
