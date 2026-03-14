@@ -610,6 +610,11 @@ class MultiplayerLobby{
     }
 
     async joinGame(gameCode){
+        if (this.playerName === undefined || this.playerName === ''){
+            alert('Must set username first.');
+            return;
+        }
+
         if(!this.token || Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
