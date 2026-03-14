@@ -213,7 +213,7 @@ class VideoPlayer{
             this.bufferMonitorInterval = null;
         }
 
-        this.video.removeEventListener('progress', this.handleProgressEvent);
+        this.player.removeEventListener('progress', this.handleProgressEvent);
     }
 
     isReadyToPlay(){
