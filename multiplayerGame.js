@@ -126,10 +126,10 @@ class MultiplayerGame{
         this.socket.on('answer_result', (data) => {
             this.updatePlayerScore(data.playerName, data.correct, data.scores, data.streaks);
 
-            const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === data.selected);
-            if (playerButton && data.playerName === this.playerName){
-                playerButton.classList.add(data.correct ? 'correct': 'incorrect');
-            }
+            //const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === data.selected);
+            //if (playerButton && data.playerName === this.playerName){
+            //    playerButton.classList.add(data.correct ? 'correct': 'incorrect');
+            //}
         });
 
         this.socket.on('round_reveal', (data) => {
@@ -168,12 +168,6 @@ class MultiplayerGame{
             }
 
             this.updateScoreboard();
-        });
-
-        this.socket.on('reveal_answer', (data) => {
-            console.log('reveal answer: ', data);
-            const answer = data;
-            this.showAnswerReveal(answer);
         });
     }
 
