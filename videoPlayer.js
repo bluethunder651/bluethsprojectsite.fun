@@ -62,7 +62,7 @@ class VideoPlayer{
                 this.reloadTried = true;
 
                 setTimeout(() => {
-                    this.player.src({src: this.currentVideoUrl, type: 'video/mp4'})
+                    this.player.src = this.currentVideoUrl;
                 }, 100);
             }
         });
@@ -72,7 +72,7 @@ class VideoPlayer{
                 this.reloadTried = true;
 
                 setTimeout(() => {
-                    this.player.src({src: this.currentVideoUrl, type: 'video/mp4'});
+                    this.player.src = this.currentVideoUrl;
                 }, 100);
             }
         });
