@@ -240,7 +240,6 @@ class MultiplayerGame{
             if(!this.token) return;
         }
 
-        const videoPlayer = document.getElementById('video-player');
         const loadingScreen = document.getElementById('loading-screen');
         const gameScreen = document.getElementById('game-screen');
 
@@ -299,13 +298,23 @@ class MultiplayerGame{
     initVideoPlayer(){
         const videoElement = document.getElementById("video-player");
 
-        if(videoElement){
+        if(videoElement && typeof VideoPlayer !== 'undefined'){
+            if(videoElement.player){
+                videoElement.player.dispose();
+            }
+
             this.videoPlayer = new VideoPlayer($(videoElement));
 
             this.videoPlayer.handleVideoReady = () => {
                 console.log("Video ready in player");
                 this.videoReady = true;
                 this.isLoading = false;
+
+                if(this.videoPlayer && this.videoPlayer.player){
+                    this.videoPlayer.player.controls(false);
+                    this.videoPlayer.player.addClass('vjs-controls-disabled');
+                    this.videoPlayer.player.addClass('vjs-hide-controls');
+                }
 
                 this.socket.emit('player_loaded', {
                     token: this.token,
