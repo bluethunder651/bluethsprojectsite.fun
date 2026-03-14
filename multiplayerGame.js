@@ -243,6 +243,9 @@ class MultiplayerGame{
                         })
                     }
                 }
+                else {
+                    console.log("Not host")
+                }
             })
 
             document.getElementById('next-video').disabled = true;
