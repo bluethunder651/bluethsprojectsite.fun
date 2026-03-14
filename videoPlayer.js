@@ -102,14 +102,94 @@ class VideoPlayer{
         return this.player.currentTime();
     }
 
+    getBufferedPercent(){
+        const video = this.player
+
+        if(!video.duration || isNaN(video.duration) || video.duration === 0){
+            return 0;
+        }
+
+        if (video.buffered.length === 0){
+            return 0;
+        }
+
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+
+        return bufferedEnd / video.duration;
+    }
+
+    getBufferedEnd(){
+        const video = this.player;
+
+        if(video.buffered.length === 0){
+            return 0;
+        }
+
+        return video.buffered.end(video.buffered.length - 1);
+    }
+
+    isTimeBuffered(time){
+        const video = this.player;
+
+        for(let i = 0; i< video.buffered.length; i++){
+            if(time >= video.buffered.start(i) && time <= video.buffered.end(i)){
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+    getBufferedRanges(){
+        const ranges = [];
+        const video = this.player;
+
+        for (let i = 0; i < video.buffered.length; i++){
+            ranges.push({
+                start: video.buffered.start(i),
+                end: video.buffered.end(i)
+            });
+        }
+
+        return ranges;
+    }
+
     startBufferMonitor() {
         this.stopBufferMonitor();
         this.readyReported = false;
+        this.player.addEventListener('progress', this.handleProgressEvent.bind(this));
+        
         this.bufferMonitorInterval = setInterval(() => {
-            let bufferedPercent = this.player.bufferedPercent();
-            this.handleBuffMeasurement(bufferedPercent);
-        }, this.bufferMonitorTickRate);
+            this.checkBufferStatus();
+        }, 333);
     }
+
+    handleProgressEvent(){
+        this.checkBufferStatus();
+    }
+
+    checkBufferStatus(){
+        const bufferedPercent = this.getBufferedPercent();
+        const bufferedEnd = this.getBufferedEnd();
+
+        if (bufferedEnd > this.startPoint + this._TIME_TO_BUFFER_BEFORE_READY || bufferedPercent >= 0.99){
+            if(!this.readyReported){
+                this.handleVideoReady();
+                this.readyReported = true;
+            }
+
+            if (this.isFinishedBuffering()){
+                this.handleVideoFinishedBuffering();
+                this.stopBufferMonitor();
+
+                if(this.playOnReady){
+                    this.pauseVideo();
+                }
+            }
+        }
+    }
+
+
 
     handleBuffMeasurement(bufferedPercent){
         if(this.player.bufferedEnd() > this.startPoint + this._TIME_TO_BUFFER_BEFORE_READY || bufferedPercent === 1){
@@ -128,7 +208,24 @@ class VideoPlayer{
     }
 
     stopBufferMonitor(){
-        clearInterval(this.bufferMonitorInterval);
+        if(this.bufferMonitorInterval){
+            clearInterval(this.bufferMonitorInterval);
+            this.bufferMonitorInterval = null;
+        }
+
+        this.video.removeEventListener('progress', this.handleProgressEvent);
+    }
+
+    isReadyToPlay(){
+        const bufferedEnd = this.getBufferedEnd();
+        return bufferedEnd > this.startPoint + this._TIME_TO_BUFFER_BEFORE_READY;
+    }
+
+    isFinishedBuffering(){
+        const bufferedEnd = this.getBufferedEnd();
+        const befferedPercent = this.getBufferedPercent();
+
+        return (bufferedEnd >= this.startPoint + this.bufferLength || bufferedPercent >= 0.99);
     }
 
     handleCanPlay(){
