@@ -124,7 +124,6 @@ class MultiplayerGame{
         });
 
         this.socket.on('answer_result', (data) => {
-            this.updatePlayerScore(data.playerName, data.correct, data.scores, data.streaks);
 
             //const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === data.selected);
             //if (playerButton && data.playerName === this.playerName){
@@ -133,6 +132,8 @@ class MultiplayerGame{
         });
 
         this.socket.on('round_reveal', (data) => {
+            this.updatePlayerScore(this.playerName, data.scores, data.streaks);
+
             this.showAnswerReveal(data);
         })
 
@@ -524,7 +525,7 @@ class MultiplayerGame{
         if (timer) timer.remove();
     }
 
-    updatePlayerScore(playerName, correct, scores, streaks){
+    updatePlayerScore(playerName, scores, streaks){
         const player = this.players.find(p => p.name === playerName);
         if(player){
             if(scores[playerName] !== undefined){
