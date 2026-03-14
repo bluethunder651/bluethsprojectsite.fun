@@ -526,15 +526,17 @@ class MultiplayerGame{
     }
 
     updatePlayerScore(playerName, scores, streaks){
-        const player = this.players.find(p => p.name === playerName);
-        if(player){
-            if(scores[playerName] !== undefined){
-                player.score = scores[playerName]
+        this.players.forEach(p => {
+            if (p.name){
+                if (scores[p.name] !== undefined){
+                    p.score = scores[p.name];
+                }
+                if (streaks[p.name] !== undefined){
+                    p.streak = streaks[p.name];
+                }
             }
-            if(streaks[playerName] !== undefined){
-                player.streak = streaks[playerName]
-            }
-        }
+        });
+
         this.updateScoreboard();
     }
 
