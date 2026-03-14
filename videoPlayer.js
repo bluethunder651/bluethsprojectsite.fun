@@ -8,11 +8,11 @@ class VideoPlayer{
             inactivityTimeout: 0,
         });
 
-        this.player.attr("disablePictureInPicture", "");
-        this.player.attr("disablepictureinpicture", "");
-        this.player.attr("disableremoteplayback", "");
-        this.player.attr("noremoteplayback", "");
-        this.player.attr("controlsList", "nodownload nofullscreen noremoteplayback");
+        this.player.setAttribute("disablePictureInPicture");
+        this.player.setAttribute("disablepictureinpicture", "");
+        this.player.setAttribute("disableremoteplayback", "");
+        this.player.setAttribute("noremoteplayback", "");
+        this.player.setAttribute("controlsList", "nodownload nofullscreen noremoteplayback");
 
         this.videoVolume = 0;
         this.playOnReady = true;
