@@ -205,7 +205,7 @@ class MultiplayerGame{
         
         document.addEventListener('DOMContentLoaded', async function() {
         
-            this.initVideoPlayer();
+            game.initVideoPlayer();
 
             document.querySelectorAll('.answer-btn').forEach(button => {
                 button.addEventListener('click', (e) => game.handleAnswerClick(e));
