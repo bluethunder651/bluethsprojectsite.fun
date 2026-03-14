@@ -123,14 +123,6 @@ class MultiplayerGame{
             this.startPlayback(data);
         });
 
-        this.socket.on('answer_result', (data) => {
-
-            //const playerButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === data.selected);
-            //if (playerButton && data.playerName === this.playerName){
-            //    playerButton.classList.add(data.correct ? 'correct': 'incorrect');
-            //}
-        });
-
         this.socket.on('round_reveal', (data) => {
             this.updatePlayerScore(this.playerName, data.scores, data.streaks);
 
@@ -229,28 +221,14 @@ class MultiplayerGame{
 
             document.getElementById('next-video').addEventListener('click', () => {
                 game.nextRound();
-            })
+            });
 
             document.getElementById('end-game').addEventListener('click', () => {
-                if(this.isHost){
-                    if(confirm('End the game?')){
-                        document.getElementById('video-player').pause();
-                        this.socket.emit('end_game', {
-                            token: this.token,
-                            player_name: this.playerName,
-                            game_code: this.gameCode,
-                            sessionId: this.sessionId
-                        })
-                    }
-                }
-                else {
-                    console.log("Not host")
-                }
-            })
+                game.confirmEndGame();
+            });
 
             document.getElementById('next-video').disabled = true;
-
-
+    
 
         });
     }
@@ -580,6 +558,23 @@ class MultiplayerGame{
 
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    confirmEndGame(){
+        if(this.isHost){
+            if(confirm('End the game?')){
+                document.getElementById('video-player').pause();
+                this.socket.emit('end_game', {
+                    token: this.token,
+                    player_name: this.playerName,
+                    game_code: this.gameCode,
+                    sessionId: this.sessionId
+                })
+            }
+        }
+        else {
+            console.log("this.isHost: ", this.isHost)
+        }
     }
 
     escapeHtml(text){
