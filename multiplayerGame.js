@@ -10,7 +10,7 @@ class MultiplayerGame{
         this.playerName = null;
         this.players = [];
         this.isHost = false;
-        this.currentRound = -1;
+        this.currentRound = 0;
         this.hardMode = false;
         this.timeLimit = 0;
 
@@ -394,7 +394,7 @@ class MultiplayerGame{
             if(response.ok){
                 const data = await response.json();
                 this.playlist = data.playlist;
-                this.currentRound = -1;
+                this.currentRound = 0;
                 this.showLoadingScreen('Waiting for host to start...');
             }
         } catch (error) {
@@ -834,14 +834,11 @@ class MultiplayerGame{
         const nextIndex = this.currentRound + 1;
         const nextNextIndex = this.currentRound + 2;
 
-        console.log(`this.playlist: ${this.playlist}`);
-
         if(nextIndex < this.playlist.length && this.buffer1Index !== nextIndex){
             const video = this.playlist[nextIndex];
             buffer1.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
             buffer1.load();
             this.buffer1Index = nextIndex;
-            console.log('Buffered video: ', nextIndex);
         }
 
         if(nextNextIndex < this.playlist.length && this.buffer2Index !== nextNextIndex){
@@ -849,10 +846,7 @@ class MultiplayerGame{
             buffer2.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
             buffer2.load();
             this.buffer2Index = nextNextIndex;
-            console.log('Buffered video: ', nextNextIndex);
         }
-
-        console.log(`buffer1.src: ${buffer1.src}, buffer2.src: ${buffer2.src}`);
     }
 
     async loadVideoNormally(videoPlayer){
