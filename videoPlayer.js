@@ -1,35 +1,6 @@
 class VideoPlayer{
     constructor(player){
         this.player = player;
-        this.player = videojs(this.player.attr('id'), {
-            controls: false,
-            autoplay: false,
-            preload: "metadata",
-            inactivityTimeout: 0,
-            controlBar: false,
-            textTrackSettings: false,
-            bigPlayButton: false,
-            loadingSpinner: false,
-            errorDisplay: false,
-            userActions: {
-                hotkeys: false
-            },
-            html5:{
-                nativeControlsForTouch: false
-            }
-        });
-
-        this.player.controls(false);
-        this.player.addClass('vjs-controls-disabled');
-        this.player.addClass('vjs-hide-controls');
-
-        if(this.player.controlBar){
-            this.player.controlBar.hide();
-        }
-
-        if(this.player.textTrackSettings){
-            this.player.textTrackSettings.hide();
-        }
 
         this.player.setAttribute("disablePictureInPicture");
         this.player.setAttribute("disablepictureinpicture", "");
