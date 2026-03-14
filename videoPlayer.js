@@ -10,7 +10,7 @@ class VideoPlayer{
         this.player.disableRemotePlayback = true;
 
         //this.player.setAttribute("controlsList", "nodownload nofullscreen noremoteplayback");
-        this.player.style.pointerEvents = 'none';
+        //this.player.style.pointerEvents = 'none';
 
         this.videoVolume = 100;
         this.playOnReady = true;
