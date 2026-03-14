@@ -237,9 +237,16 @@ class MultiplayerGame{
             })
 
             document.getElementById('end-game').addEventListener('click', () => {
-                if(confirm('End the game?')){
-                    document.getElementById('video-player').pause();
-                    game.showLeaderboard();
+                if(this.isHost){
+                    if(confirm('End the game?')){
+                        document.getElementById('video-player').pause();
+                        this.socket.emit('end_game', {
+                            token: this.token,
+                            player_name: this.playerName,
+                            game_code: this.gameCode,
+                            sessionId: this.sessionId
+                        })
+                    }
                 }
             })
 
