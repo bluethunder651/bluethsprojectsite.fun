@@ -2,11 +2,15 @@ class VideoPlayer{
     constructor(player){
         this.player = player;
 
-        this.player.setAttribute("disablePictureInPicture");
-        this.player.setAttribute("disablepictureinpicture", "");
-        this.player.setAttribute("disableremoteplayback", "");
-        this.player.setAttribute("noremoteplayback", "");
-        this.player.setAttribute("controlsList", "nodownload nofullscreen noremoteplayback");
+        this.player.controls = false;
+        this.player.autoplayer = false;
+        this.player.preload = 'metadata';
+
+        this.player.disablePictureInPicture = true;
+        this.player.disableRemotePlayback = true;
+
+        //this.player.setAttribute("controlsList", "nodownload nofullscreen noremoteplayback");
+        this.player.style.pointerEvents = 'none';
 
         this.videoVolume = 100;
         this.playOnReady = true;
