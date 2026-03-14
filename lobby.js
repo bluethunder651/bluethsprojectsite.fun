@@ -44,8 +44,6 @@ class MultiplayerLobby{
         this.recoverSession();
 
         window.addEventListener('beforeunload', () => this.handlePageUnload());
-
-        document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
     }
 
     setupEventListeners(){
@@ -156,6 +154,11 @@ class MultiplayerLobby{
             localStorage.setItem('multiplayerGameCode', this.currentGame.code);
             this.showGameStarting();
             window.location.href = `multiplayerGame.html?code=${this.currentGame.code}`;
+        });
+
+        this.socket.on('update_active_games', (data) => {
+            this.availableGames = data;
+            this.displayGamesList();
         });
 
     }
