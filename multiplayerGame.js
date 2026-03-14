@@ -204,14 +204,11 @@ class MultiplayerGame{
     setupEventListeners(){
         
         document.addEventListener('DOMContentLoaded', async function() {
+        
+            this.initVideoPlayer();
+
             document.querySelectorAll('.answer-btn').forEach(button => {
                 button.addEventListener('click', (e) => game.handleAnswerClick(e));
-            });
-
-            document.getElementById('video-player').addEventListener('ended', () => {
-                if(this.gameStatePollInterval && !this.answerSubmitted){
-                    game.submitAnswer(null);
-                }
             });
 
             document.getElementById('go-back-btn').addEventListener('click', () => {
@@ -259,84 +256,71 @@ class MultiplayerGame{
         const buffer1 = document.getElementById('video-buffer1');
         const buffer2 = document.getElementById('video-buffer2');
 
-        if (this.currentRound === 0) {
-            const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filePath)}?token=${encodeURIComponent(this.token)}`
-
-            videoPlayer.src = videoUrl;
-            videoPlayer.preload = 'auto';
-
-        } else {
-            videoPlayer.src = buffer1.src;
-            videoPlayer.preload = 'auto';
-
-            console.log(`Video Src: ${videoPlayer.src}, this.currentRound: ${this.currentRound}`);
-
-            buffer1.src = buffer2.src;
-            buffer2.removeAttribute('src');
-            buffer2.load();
-
-            this.buffer1Index = this.buffer2Index;
-            this.buffer2Index = null;
-        }
+        const videoUrl =  `${this.website}/api/local/videos/${encodeURIComponent(filePath)}?token=${encodeURIComponent(this.token)}`;
 
         try{
-            await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    reject(new Error('Video loading timeout'));
-                }, 60000);
+            if(this.currentRound === 0){
+                this.videoPlayer.setVideo(videoUrl);
+            } else {
+                if (buffer1 && buffer1.src){
+                    this.videoPlayer.setVideo(buffer1.src);
 
-                const onCanPlay = () => {
-                    cleanup();
-                    resolve();
-                };
+                    if (buffer2 && this.buffer2Index !== null){
+                        buffer1.src = buffer2.src;
+                        buffer2.removeAttribute('src');
+                        buffer2.load();
 
-                const onError = (e) => {
-                    cleanup();
-                    reject(new Error(`Video error: ${e.target.error?.message || 'Unknown Error'}`));
-                };
+                        this.buffer1Index = this.buffer2Index;
+                        this.buffer2Index = null;
+                    }
+                } else {
+                    this.videoPlayer.setVideo(videoUrl);
+                }
+            }
 
-                const onStalled = () => {
-                    console.log('Video stalled, trying to recover...');
-                };
+            this.videoPlayer.startPoint = 0;
+            this.videoPlayer.bufferLength = 10;
 
-                const cleanup = () => {
-                    clearTimeout(timeout);
-                    videoPlayer.removeEventListener('canplay', onCanPlay);
-                    videoPlayer.removeEventListener('error', onError);
-                    videoPlayer.removeEventListener('stalled', onStalled);
-                };
+            this.videoPlayer.startBufferMonitor();
 
-                videoPlayer.addEventListener('canplay', onCanPlay);
-                videoPlayer.addEventListener('error', onError);
-                videoPlayer.addEventListener('stalled', onStalled);
-
-                videoPlayer.load();
-            });
-
-            console.log('Video loaded successfully');
-            this.videoReady = true;
-            this.isLoading = false;
-
-            this.socket.emit('player_loaded', {
-                token: this.token,
-                gameCode: this.gameCode,
-                playerName: this.playerName
-            });
-
-            loadingScreen.innerHTML = '<h3>Waiting for other players...</h3>';
-            this.preloadBuffers();
-
-
+            console.log("Video loading initiated");
         } catch (error) {
-            console.error('Failed to load video: ', error);
+            console.error("Failed to load video: ", error);
             this.isLoading = false;
 
             loadingScreen.innerHTML = `
                 <h3>Failed to load video</h3>
                 <p>${error.message}</p>
                 <button onclick="location.reload()" class="btn btn-primary">Retry</button>
-            `;
+            `;            
+        }
+    }
+    
+    initVideoPlayer(){
+        const videoElement = document.getElementById("video-player");
+
+        if(videoElement){
+            this.videoPlayer = new VideoPlayer($(videoElement));
+
+            this.videoPlayer.handleVideoReady = () => {
+                console.log("Video ready in player");
+                this.videoReady = true;
+                this.isLoading = false;
+
+                this.socket.emit('player_loaded', {
+                    token: this.token,
+                    gameCode: this.gameCode,
+                    playerName: this.playerName
+                });
+
+                document.getElementById('loading-screen').innerHTML = '<h3>Waiting for other players...</h3>';
+
+                this.preloadBuffers();
+            }
+
+            this.videoPlayer.handleVideoFinishedBuffering = () => {
+                console.log("Video finished buffering...");
+            }
         }
     }
 
@@ -392,29 +376,27 @@ class MultiplayerGame{
 
         const loading_screen = document.getElementById('loading-screen');
         const game_screen = document.getElementById('game-screen');
-        const videoPlayer = document.getElementById('video-player');
         
         loading_screen.style.display = 'none';  
         game_screen.style.display = 'block';
 
         if(this.hardMode){
-            videoPlayer.classList.add('video-hidden');
+            this.videoPlayer.hide();
         } else {
-            videoPlayer.classList.remove('video-hidden');
+            this.videoPlayer.show();
         }
 
         this.videoStartTime = Date.now()
 
         const time_limit_check = game_settings.time_limit_check;
 
-        try{
-            await videoPlayer.play();
-            console.log("Time Limit Check: ", time_limit_check)
-            if(time_limit_check){
-                this.startTimer(this.timeLimit);
-            }
-        } catch (error) {
-            console.log("Autoplay prevented: ", error);
+        this.videoPlayer.playOnReady = true;
+        this.videoPlayer.forcedMute = false;
+
+        this.videoPlayer.playVideo();
+
+        if(game_settings.time_limit_check){
+            this.startTimer(this.timeLimit);
         }
     }
 
@@ -601,10 +583,8 @@ class MultiplayerGame{
     }
 
     prepareNextRound(){
-        const videoPlayer = document.getElementById('video-player');
-        videoPlayer.pause();
-        videoPlayer.src = '';
-        videoPlayer.classList.remove('video-hidden');
+        this.videoPlayer.stopVideo();
+        this.videoPlayer.pauseVideo();
 
         document.querySelectorAll('.answer-btn').forEach(btn => {
             btn.disabled = false;
@@ -999,6 +979,12 @@ class MultiplayerGame{
             await this.refreshToken();
             if (!this.token) return [];
         }   
+
+        if(this.videoPlayer){
+            this.videoPlayer.stopVideo();
+            this.videoPlayer.pauseVideo();
+            this.videoPlayer.stopBufferMonitor();
+        }
         
         this.socket.emit('leave_game', {
             token: this.token,
