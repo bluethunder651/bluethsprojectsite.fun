@@ -136,6 +136,7 @@ class MultiplayerGame{
         });
 
         this.socket.on('game_ended', (data) => {
+            document.getElementById('video-player').pause();
             if(!this.leaderboardShown){
                 this.showLeaderboard(data);
             }
@@ -957,6 +958,21 @@ class MultiplayerGame{
     showLeaderboard(finalData = null){
         this.leaderboardShown = true;
         document.getElementById('game-screen').style.display = 'none';
+        
+        const scores = finalData.finalScores;
+        const highest_streaks = finalData.highestStreaks; 
+
+        this.players.forEach(p => {
+            if (p.name){
+                if (scores[p.name] !== undefined){
+                    p.score = scores[p.name];
+                }
+                if (highest_streaks[p.name] !== undefined){
+                    p.highest_streak = highest_streaks[p.name];
+                }
+
+            }
+        });
 
         const leaderboardDiv = document.createElement('div');
         leaderboardDiv.className = 'leaderboard';
@@ -967,8 +983,8 @@ class MultiplayerGame{
         sortedPlayers.forEach((player, index) => {
             leaderboardDiv.innerHTML += `
                 <div class="leaderboard-row ${index === 0 ? 'winner' : ''}">
-                    <span>${index + 1}. ${player.name}</span>
-                    <span>${player.score} points</span>
+                    <span>${index + 1}. ${player.name}:</span>
+                    <span>${player.score} points,</span>
                     <span>Highest Streak: ${player.highest_streak || 0}</span>
                 </div>
             `;
@@ -1011,37 +1027,6 @@ class MultiplayerGame{
             }
         }, 30000);
     }
-    
-    gameEnded(scores, highest_streak){
-        const main = document.getElementById('video-player');
-        main.pause();
-        this.isGameActive = false;
-        const gameScreen = document.getElementById('game-screen');
-        
-        alert(`Game over!\nFinal score: ${scores}\nHighest Streak: ${highest_streak}`)
-
-        gameScreen.style.display = 'none';
-        gameScreen.classList.remove('active');
-
-        window.location.href = "tsPlayer.html";
-    }
-
-    isH264Codec(codec){
-        if (!codec) return false;
-        const codecLower= codec.toLowerCase();
-        return codecLower.includes('h264') || codecLower.includes('avc') || codecLower.includes('h.264') || codecLower === 'avc1';
-    }
-
-    toggleSection(header){
-        const content = header.nextElementSibling;
-        content.classList.toggle('active');
-        const arrow = header.querySelector('.arrow');
-        arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
-    }
-
-
-
-
 }
 
 const game = new MultiplayerGame();
