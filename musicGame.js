@@ -1,5 +1,3 @@
-const { startTransition } = require("react");
-
 class MusicQuizGame{
     constructor() {
         console.log("Game constructor starting...");
