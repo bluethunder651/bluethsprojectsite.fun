@@ -291,8 +291,6 @@ class MultiplayerGame{
         this.players = gameData.players || [];
         this.isHost = (gameData.host === this.playerName);
 
-        console.log('this.isHost: ', this.isHost, ", gameData.host: ", gameData.host, ", this.playerName: ", this.playerName);
-
         if(!this.gameCode || !this.playerName){
             alert('No game data found.');
             window.location.href = 'lobby.html';
@@ -412,7 +410,7 @@ class MultiplayerGame{
 
     showAnswerReveal(answer){
         console.log(`correct answer: ${answer}`)
-        const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answer);
+        const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answer.correctAnswer);
         if(correctButton){
             console.log('correct button found')
             correctButton.style.backgroundColor = '#4CAF50';
@@ -431,8 +429,6 @@ class MultiplayerGame{
 
         document.getElementById('video-player').classList.remove('video-hidden')
         
-        console.log('this.isHost: ', this.isHost);
-
         if(this.isHost){
             const nextBtn = document.getElementById('next-video');
             nextBtn.disabled = false;
@@ -507,9 +503,6 @@ class MultiplayerGame{
                     sessionId: this.sessionId
                 })
             }
-        }
-        else {
-            console.log("this.isHost: ", this.isHost)
         }
     }
 
@@ -903,7 +896,6 @@ class MultiplayerGame{
     }
 
     async nextRound() {
-        console.log("this.isHost: ", this.isHost);
         if(!this.isHost) return;
 
         this.socket.emit('host_next_round', {
