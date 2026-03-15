@@ -220,12 +220,7 @@ class VideoPlayer{
 
     handleCanPlay(){
         if(this.playOnReady){
-            if(!this.forcedMute){
-                this.player.muted(false);
-            }
             this.player.play();
-        } else {
-            this.player.muted(true);
         }
     }
 
@@ -282,20 +277,7 @@ class VideoPlayer{
 
     playVideo() {
         this.playOnReady = true;
-        if(!this.forcedMute){
-            this.player.muted(false);
-        }
         this.replayVideo();
-    }
-
-    mute() {
-        this.forcedMute = true;
-        this.player.muted(true);
-    }
-
-    unmute(){
-        this.forcedMute = false;
-        this.player.muted(false);
     }
 
     replayVideo(){

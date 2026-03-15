@@ -399,7 +399,6 @@ class MultiplayerGame{
         const time_limit_check = game_settings.time_limit_check;
 
         this.videoPlayer.playOnReady = true;
-        this.videoPlayer.forcedMute = false;
 
         this.videoPlayer.playVideo();
 
