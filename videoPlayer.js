@@ -166,7 +166,7 @@ class VideoPlayer{
         const bufferedPercent = this.getBufferedPercent();
         const bufferedEnd = this.getBufferedEnd();
 
-        const duration = this.player.duration && !isNan(this.player.duration)
+        const duration = this.player.duration && !isNaN(this.player.duration)
             ? this.player.duration
             : Infinity;
         
