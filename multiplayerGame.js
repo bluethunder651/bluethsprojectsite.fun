@@ -411,8 +411,10 @@ class MultiplayerGame{
     }
 
     showAnswerReveal(answer){
+        console.log(`correct answer: ${answer}`)
         const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answer);
         if(correctButton){
+            console.log('correct button found')
             correctButton.style.backgroundColor = '#4CAF50';
         }
         this.players.forEach(player => {    
