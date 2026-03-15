@@ -22,7 +22,9 @@ class VideoPlayer{
         this.forcedMute = false;
 
         this.bufferMonitorInterval;
-        this._TIME_TO_BUFFER_BEFORE_READY = 55;
+        this._TIME_TO_BUFFER_BEFORE_READY = 15;
+
+        this._boundHandleProgress = null;
 
         this.setupEventListeners();
     }
@@ -77,7 +79,7 @@ class VideoPlayer{
     }
 
     get videoLength() {
-        return this.player.duration();
+        return this.player.duration;
     }
 
     get bufferMonitorTickRate() {
@@ -85,7 +87,7 @@ class VideoPlayer{
     }
 
     get isPlaying(){
-        return !this.player.paused();
+        return !this.player.paused;
     }
 
     get currentTime() {
@@ -147,7 +149,9 @@ class VideoPlayer{
     startBufferMonitor() {
         this.stopBufferMonitor();
         this.readyReported = false;
-        this.player.addEventListener('progress', this.handleProgressEvent.bind(this));
+
+        this._boundHandleProgress = this.handleProgressEvent(this);
+        this.player.addEventListener('progress', this._boundHandleProgress);
         
         this.bufferMonitorInterval = setInterval(() => {
             this.checkBufferStatus();
@@ -162,7 +166,12 @@ class VideoPlayer{
         const bufferedPercent = this.getBufferedPercent();
         const bufferedEnd = this.getBufferedEnd();
 
-        if (bufferedEnd > this.startPoint + this._TIME_TO_BUFFER_BEFORE_READY || bufferedPercent >= 0.99){
+        const duration = this.player.duration && !isNan(this.player.duration)
+            ? this.player.duration
+            : Infinity;
+        
+        const readyThreshold = Math.min(this._TIME_TO_BUFFER_BEFORE_READY, duration *0.4);
+        if (bufferedEnd > this.startPoint + readyThreshold || bufferedPercent >= 0.4){
             if(!this.readyReported){
                 this.handleVideoReady();
                 this.readyReported = true;
@@ -202,8 +211,10 @@ class VideoPlayer{
             clearInterval(this.bufferMonitorInterval);
             this.bufferMonitorInterval = null;
         }
-
-        this.player.removeEventListener('progress', this.handleProgressEvent);
+        if (this._boundHandleProgress){
+            this.player.removeEventListener('progress', this._boundHandleProgress);
+            this._boundHandleProgress = null;
+        }
     }
 
     isReadyToPlay(){

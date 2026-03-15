@@ -318,12 +318,10 @@ class MultiplayerGame{
                 });
 
                 document.getElementById('loading-screen').innerHTML = '<h3>Waiting for other players...</h3>';
-
-                this.preloadBuffers();
             }
-
             this.videoPlayer.handleVideoFinishedBuffering = () => {
                 console.log("Video finished buffering...");
+                this.preloadBuffers();
             }
         }
     }
@@ -602,6 +600,7 @@ class MultiplayerGame{
         this.answerSubmitted = false;
         this.playbackStarted = false;
         this.videoReady = false;
+        this.isLoading = false;
 
         this.fillButtons(this.currentSong.options);
         this.showLoadingScreen('Loading next video...');
