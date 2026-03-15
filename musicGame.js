@@ -697,6 +697,106 @@ class MusicQuizGame{
         }
     }
 
+    async loadCustomPlaylist(url){
+        const playlistId = this.extractPlaylistId(url);
+
+        if(!playlistId){
+            document.getElementById('playlist-status').className = 'playlist-status error';
+            document.getElementById('playlist-status').textContent = 'Invalid YouTube playlist URL';
+            return;
+        }
+
+        const playlistSongs = await this.fetchPlaylistItems(playlistId);
+
+        if(playlistSongs && playlistSongs.length > 0){
+            this.customPlaylist = playlistSongs;
+            this.isCustomPlaylist = true;
+
+            document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('start-round').disabled = false;
+
+            if(!window.songDatabase.custom){
+                window.songDatabase.custom = [];
+            }
+
+            window.songDatabase.custom = playlistSongs;
+
+            this.selectedPlaylist = 'custom'
+        }
+    }
+
+    extractPlaylistId(url) {
+        const patterns = [
+            /[&?]list=([^&]+)/i,
+            /youtube\.com\/playlist\?list=([^&]+)/i,
+            /youtu\.be\/.*[&?]list=([^&]+)/i
+        ];
+
+        for (const pattern of patterns){
+            const match = url.match(pattern)
+            if (match){
+                return match[1];
+            }
+        }
+        return null;
+    }
+
+    async fetchPlaylistItems(playlistId){
+        const statusDiv = document.getElementById('playlist-status');
+        if (!statusDiv) return null;
+        
+        statusDiv.className = 'playlist-status loading';
+        statusDiv.textContent = 'Loading playlist...';
+
+        try{
+            let allVideos = [];
+            let nextPageToken = '';
+
+            do{
+                const videosResponse = await fetch(
+                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
+                );
+
+                if (!videosResponse.ok){
+                    throw new Error('Failed to fetch playlist items');
+                }
+
+                const videosData = await videosResponse.json();
+
+                const validVideos = videosData.items.filter(item => 
+                    item.snippet && 
+                    item.snippet.title && 
+                    item.snippet.title !== 'Private video' && 
+                    item.snippet.title !== 'Deleted video'
+                ).map(item => ({
+                    title: this.cleanVideoTitle(item.snippet.title),
+                    artist: this.extractArtistFromTitle(item.snippet.title) || 'Unknown Artist',
+                    year: new Date().getFullYear().toString(),
+                    genre: 'custom',
+                    videoId: item.snippet.resourceId.videoId
+                }));
+
+                allVideos = [...allVideos, ...validVideos];
+                nextPageToken = videosData.nextPageToken;
+            } while (nextPageToken);
+            
+            if(allVideos.length === 0){
+                throw new Error('No valid videos found in playlist');
+            }
+
+            statusDiv.className = 'playlist-status success';
+            statusDiv.textContent = `Loaded ${allVideos.length} songs`;
+
+            return allVideos;
+        
+        } catch (error) {
+            console.log('Error fetching playlist: ', error);
+            statusDiv.className = 'playlist-status error';
+            statusDiv.textContent = 'Failed to load playlist. Please check the URL.';
+            return null;
+        }
+    }
+
 }
 
 const game = new MusicQuizGame();
