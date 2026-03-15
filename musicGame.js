@@ -224,7 +224,7 @@ class MusicQuizGame{
             }
         } catch (e){
             console.error('Failed to get audio: ', e);
-            document.getElementById('dev-message').innerHTML = 'Could not load audio.';
+            document.getElementById('dev-message').innerHTML = `Could not load audio: ${e}`;
         }
     }
 
