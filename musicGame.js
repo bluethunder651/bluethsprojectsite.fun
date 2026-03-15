@@ -272,7 +272,7 @@ class MusicQuizGame{
 
         audio.onerror = (e) => {
             console.error('Audio error: ', e);
-            document.getElementById('dev-message').innerHTML = 'Playback failed';
+            document.getElementById('dev-message').innerHTML = 'Playback failed: ', e;
             document.getElementById('play-snippet').disabled = false;
         }
 
@@ -281,7 +281,7 @@ class MusicQuizGame{
         if(playPromise !== undefined){
             playPromise.catch(error => {
                 console.error('Playback failed: ', error);
-                document.getElementById('dev-message').innerHTML = 'Playback failed';
+                document.getElementById('dev-message').innerHTML = 'Playback failed: ', error;
                 document.getElementById('play-snippet').disabled = false;
             });
         }
