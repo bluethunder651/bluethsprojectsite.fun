@@ -213,7 +213,7 @@ class VideoPlayer{
 
     isFinishedBuffering(){
         const bufferedEnd = this.getBufferedEnd();
-        const befferedPercent = this.getBufferedPercent();
+        const bufferedPercent = this.getBufferedPercent();
 
         return (bufferedEnd >= this.startPoint + this.bufferLength || bufferedPercent >= 0.99);
     }
