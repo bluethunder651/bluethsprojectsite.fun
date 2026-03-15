@@ -181,7 +181,27 @@ class MusicQuizGame{
             if (this.replaysLeft === 0) {
                 document.getElementById('replay-snippet').disabled = true;
             }
-            this.playCurrentSong(); 
+            this.currentAudio.currentTime = 0;
+            const playPromise = this.currentAudio.play();
+
+            if(playPromise !== undefined){
+                playPromise.catch(error => {
+                    console.error('Playback failed: ', error);
+                    document.getElementById('dev-message').innerHTML = 'Playback failed: ', error;
+                    document.getElementById('play-snippet').disabled = false;
+                });
+            }
+            
+            this.currentAudio = audio;
+
+            setTimeout(() => {
+                if(this.currentAudio){
+                    this.currentAudio.pause();
+                    this.currentAudio = null;
+                }
+
+                document.getElementById('dev-message').innerHTML = 'Playback finished.';
+            }, this.snippetDuration * 1000);
         }
     }
 
