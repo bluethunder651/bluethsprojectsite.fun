@@ -34,6 +34,7 @@ class MusicQuizGame {
         this.setupEventListeners();
         this.initVoiceRecognition();
         this.loadYouTubeAPI();
+        this.setupIOSPlayback();
     }
     
     // Load YouTube IFrame API
@@ -131,10 +132,12 @@ class MusicQuizGame {
             if (!playerContainer) {
                 playerContainer = document.createElement('div');
                 playerContainer.id = 'youtube-player-container';
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
                 playerContainer.style.position = 'absolute';
-                playerContainer.style.width = '0';
-                playerContainer.style.height = '0';
+                playerContainer.style.width = isIOS ? '1' : '0';
+                playerContainer.style.height = isIOS ? '1' : '0';
                 playerContainer.style.overflow = 'hidden';
+                playerContainer.style.opacity = '0.01';
                 document.body.appendChild(playerContainer);
             }
             
@@ -145,12 +148,12 @@ class MusicQuizGame {
             playerContainer.appendChild(playerDiv);
             
             if (window.YT && window.YT.Player) {
-                this.createPlayerInstance(playerDiv, videoId, resolve);
+                this.createIOSFriendlyPlayer(playerDiv, videoId, resolve);
             } else {
                 const checkAPI = setInterval(() => {
                     if (window.YT && window.YT.Player) {
                         clearInterval(checkAPI);
-                        this.createPlayerInstance(playerDiv, videoId, resolve);
+                        this.createIOSFriendlyPlayer(playerDiv, videoId, resolve);
                     }
                 }, 100);
             }
@@ -215,6 +218,66 @@ class MusicQuizGame {
             }
         });
     }
+
+    createIOSFriendlyPlayer(playerDiv, videoId, resolve){
+        if(this.youtubePlayer && this.youtubePlayer.destroy){
+            this.youtubePlayer.destroy();
+        }
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.TransformStream;
+
+        this.youtubePlayer = new YT.Player(playerDiv.id, {
+            height: isIOS ? '1': '0',
+            width: isIOS ? '1': '0',
+            videoId: videoId,
+            playerVars: {
+                autoplay: 0,
+                controls: 0,
+                disablekb: 1,
+                fs: 0,
+                modestbranding: 1,
+                rel: 0,
+                showinfo: 0,
+                playsinline: 1,
+                enablejsapi: 1
+            }, 
+            events: {
+                'onReady': (event) => {
+                    console.log('Player ready.');
+                    event.target.cueVideoById(videoId);
+                    resolve(true);
+                },
+                'onStateChange': (event) => {
+                    if(event.data === YT.PlayerState.PLAYING){
+                        if(!this.hasSeekedThisPlay){
+                            this.hasSeekedThisPlay = true;
+                            this.youtubePlayer.seekTo(this.randomStartTime, true);
+                            console.log("Seeking to ", this.randomStartTime);
+
+                            setTimeout(() => {
+                                if(this.youtubePlayer && this.youtubePlayer.pauseVideo){
+                                    this.youtubePlayer.pauseVideo();
+                                    console.log(`Playback stopped after ${this.snippetDuration} seconds`);
+                                    document.getElementById('dev-message').innerHTML = 'Playback finished';
+                                    if(this.replaysLeft === 0){
+                                        document.getElementById('replay-snippet').disabled = true;
+                                    } else {
+                                        document.getElementById('replay-snippet').disabled = false;
+                                    }
+                                }
+                            }, this.snippetDuration * 1000);
+                        }
+                    }
+                },
+                'onError': (event) => {
+                    console.error('Player error: ', event.data);
+                    document.getElementById('dev-message').innerHTML = 'Playback error occured.';
+                    this.isPreloaded = false;
+                    resolve(false);
+                }
+            }
+        })
+    }
     
     playPreloadedVideo() {
         this.hasSeekedThisPlay = false;
@@ -227,13 +290,26 @@ class MusicQuizGame {
         try {
             console.log(`Playing from ${this.randomStartTime} to ${this.randomStartTime + this.snippetDuration}`);
             
-            // Make sure we're at the right position before playing
+            if(this.youtubePlayer.getPlayerState){
+                const state = this.youtubePlayer.getPlayerState();
+                if(state === -1 || state === 5){
+                    this.youtubePlayer.cueVideoById(this.preloadedVideoId);
+                }
+            }
+
             this.youtubePlayer.seekTo(this.randomStartTime, true);
             
-            // Small delay to ensure seek completes
             setTimeout(() => {
                 this.youtubePlayer.playVideo();
                 document.getElementById('dev-message').innerHTML = '🔊 Playing...';
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIOS){
+                    setTimeout(() => {
+                        if (this.youtubePlayer && this.youtubePlayer.getPlayerState() !== 1){
+                            this.youtubePlayer.playVideo();
+                        }
+                    }, 500);
+                }
             }, 100);
             
         } catch (e) {
@@ -247,6 +323,20 @@ class MusicQuizGame {
         }
     }
     
+    setupIOSPlayback(){
+        const playButton = document.getElementById('play-snippet');
+        const replayButton = document.getElementById('replay-snippet');
+
+        const ensurePlayback = (e) => {
+            if(this.youtubePlayer && this.preloadedVideoId){
+                this.youtubePlayer.cueVideoById(this.preloadedVideoId);
+            }
+        };
+
+        playButton.addEventListener('touchstart', ensurePlayback);
+        replayButton.addEventListener('touchstart', ensurePlayback);
+    }
+
     async playYouTube(song) {
         console.log("Fallback: Playing song with YouTube API:", song);
         if(!song || !song.title) return false;
@@ -293,7 +383,7 @@ class MusicQuizGame {
         const endTime = startTime + this.snippetDuration;
         
         // Using end parameter to stop automatically
-        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${endTime}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0`;
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${endTime}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0&playsinline=1`;
 
         console.log(`Playing with iframe: ${startTime} to ${endTime}`);
         
