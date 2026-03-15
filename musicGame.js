@@ -592,6 +592,47 @@ class MusicQuizGame{
         this.startNewRound();
     }   
 
+    checkPartialMatch(guess, target) {
+        const targetWords = target.toLowerCase().split(/[,\s]+/);
+        const guessWords = guess.split(/[,\s]+/);
+        
+        let matchCount = 0;
+        let significantWords = 0;
+        
+        targetWords.forEach(targetWord => {
+            if (targetWord.length > 2) {
+                significantWords++;
+                guessWords.forEach(guessWord => {
+                    if (guessWord.length > 2 && 
+                        (guessWord.includes(targetWord) || targetWord.includes(guessWord))) {
+                        matchCount++;
+                    }
+                });
+            }
+        });
+        
+        return significantWords > 0 && matchCount >= Math.ceil(significantWords / 2);
+    }
+
+    checkNormalizedMatch(guess, target) {
+        const normalizedGuess = this.normalizeText(guess);
+        const normalizedTarget = this.normalizeText(target.toLowerCase());
+        
+        return normalizedGuess.includes(normalizedTarget) || normalizedTarget.includes(normalizedGuess);
+    }
+
+    normalizeText(text){
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .replace(/\s+/g, ' ')
+            .replace(/^(the|an|a)\s+/, '')
+            .replace(/\s+(the|a|an)$/, '')
+            .replace(/&/g, 'and')
+            .replace(/[\.\-]/g, '')
+            .trim();
+    }
+
     endGame() {
         this.stopPlayback();
         
