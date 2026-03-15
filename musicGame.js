@@ -645,3 +645,5 @@ class MusicQuizGame{
     }
 
 }
+
+const game = new MusicQuizGame();
