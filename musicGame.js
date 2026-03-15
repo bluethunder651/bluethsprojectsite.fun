@@ -266,7 +266,7 @@ class MusicQuizGame{
         }
 
         const audio = new Audio();
-        const fullAudioUrl = audioUrl.startsWith('http') ? audioUrl : `${this.website}${audioUrl}`;
+        const fullAudioUrl = audioUrl.startsWith('http') ? audioUrl : `${this.website}${encodeURIComponent(audioUrl)}`;
         audio.src = audioUrl;
         audio.volume = 1.0;
 
@@ -425,7 +425,7 @@ class MusicQuizGame{
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
 
-        this.getAudioFromServer(this.currentSong)
+        this.playCurrentSong();
         
     }
 
