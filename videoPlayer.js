@@ -33,13 +33,6 @@ class VideoPlayer{
             this.handleCanPlay();
         });
 
-        this.player.addEventListener('playing', () => {
-            if(!this.playOnReady){
-                this.updateVolume(0);
-                this.updateVolume(this.videoVolume);
-            }
-        });
-
         this.player.addEventListener('play', () => {
             this.handlePlay();
         });
@@ -226,7 +219,6 @@ class VideoPlayer{
     }
 
     handleCanPlay(){
-        this.updateVolume(this.videoVolume);
         if(this.playOnReady){
             if(!this.forcedMute){
                 this.player.muted(false);
@@ -269,14 +261,6 @@ class VideoPlayer{
 
     }
 
-    setVolume(newVolume){
-        this.videoVolume = newVolume;
-        this.updateVolume(newVolume);
-    }
-
-    updateVolume(baseVolume){
-        this.player.volume = baseVolume;
-    }
 
     hide(){
         this.player.hide();
@@ -318,7 +302,6 @@ class VideoPlayer{
         this.pauseVideo();
         this.player.currentTime(this.startPoint);
         this.player.play();
-        this.updateVolume(this.videoVolume);
     }
 
     pauseVideo(){
