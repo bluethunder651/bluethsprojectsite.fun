@@ -63,7 +63,7 @@ class MultiplayerGame{
             console.log('Socket connected');
             if(this.gameCode && this.playerName && this.token){
                 this.joinGameRoom();
-                this.fetchInitialPlaylist().then(this.preloadBuffers());
+                this.fetchInitialPlaylist();
             }
         });
 
@@ -114,9 +114,11 @@ class MultiplayerGame{
             this.hasAnswered = false;
             this.answerSubmitted = false;
 
-            this.fillButtons(this.currentSong.options);
-            this.showLoadingScreen('Loading video...');
-            this.loadVideo(this.currentSong.file_path);
+            if(this.currentSong){
+                this.fillButtons(this.currentSong.options);
+                this.showLoadingScreen('Loading video...');
+                this.loadVideo(this.currentSong.file_path);
+            }
         });
 
         this.socket.on('round_start', (data) => {
@@ -277,7 +279,7 @@ class MultiplayerGame{
             }
 
             this.videoPlayer.startPoint = 0;
-            this.videoPlayer.bufferLength = 10;
+            this.videoPlayer.bufferLength = 15;
 
             this.videoPlayer.startBufferMonitor();
 

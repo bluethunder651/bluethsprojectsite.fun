@@ -22,7 +22,7 @@ class VideoPlayer{
         this.forcedMute = false;
 
         this.bufferMonitorInterval;
-        this._TIME_TO_BUFFER_BEFORE_READY = 10;
+        this._TIME_TO_BUFFER_BEFORE_READY = 15;
 
         this.setupEventListeners();
     }
