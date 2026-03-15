@@ -181,7 +181,7 @@ class MusicQuizGame{
             if (this.replaysLeft === 0) {
                 document.getElementById('replay-snippet').disabled = true;
             }
-            this.currentAudio.currentTime = 0;
+
             const playPromise = this.currentAudio.play();
 
             if(playPromise !== undefined){
@@ -192,8 +192,6 @@ class MusicQuizGame{
                 });
             }
             
-            this.currentAudio = audio;
-
             setTimeout(() => {
                 if(this.currentAudio){
                     this.currentAudio.pause();
