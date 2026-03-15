@@ -34,7 +34,6 @@ class MusicQuizGame {
         this.setupEventListeners();
         this.initVoiceRecognition();
         this.loadYouTubeAPI();
-        this.setupIOSPlayback();
     }
     
     // Load YouTube IFrame API
@@ -182,7 +181,6 @@ class MusicQuizGame {
             events: {
                 'onReady': (event) => {
                     console.log('Player ready');
-                    // Just cue the video at the random start time
                     event.target.cueVideoById(videoId);
                     resolve(true);
                 },
@@ -681,6 +679,9 @@ class MusicQuizGame {
                 }
             });
         }
+
+        this.setupIOSPlayback();
+
     }
     
     processTextGuess(title, artist) {
