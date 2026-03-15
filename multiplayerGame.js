@@ -309,12 +309,6 @@ class MultiplayerGame{
                 this.videoReady = true;
                 this.isLoading = false;
 
-                if(this.videoPlayer && this.videoPlayer.player){
-                    this.videoPlayer.player.controls(false);
-                    this.videoPlayer.player.addClass('vjs-controls-disabled');
-                    this.videoPlayer.player.addClass('vjs-hide-controls');
-                }
-
                 this.socket.emit('player_loaded', {
                     token: this.token,
                     gameCode: this.gameCode,
