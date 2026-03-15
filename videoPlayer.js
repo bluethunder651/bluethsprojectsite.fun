@@ -170,8 +170,8 @@ class VideoPlayer{
             ? this.player.duration
             : Infinity;
         
-        const readyThreshold = Math.min(this._TIME_TO_BUFFER_BEFORE_READY, duration *0.4);
-        if (bufferedEnd > this.startPoint + readyThreshold || bufferedPercent >= 0.4){
+        const readyThreshold = Math.min(this._TIME_TO_BUFFER_BEFORE_READY, duration *0.5);
+        if (bufferedEnd > this.startPoint + readyThreshold || bufferedPercent >= 0.5){
             if(!this.readyReported){
                 this.handleVideoReady();
                 this.readyReported = true;
@@ -279,7 +279,9 @@ class VideoPlayer{
     setVideo(videoUrl){
         this.reloadTried = false;
         this.currentVideoUrl = videoUrl;
+        this.player.preload = 'auto';
         this.player.src = videoUrl;
+        this.player.load();
     }
 
     getVideoVolume(){
