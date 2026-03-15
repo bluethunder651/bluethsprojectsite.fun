@@ -193,11 +193,6 @@ class MusicQuizGame{
             }
             
             setTimeout(() => {
-                if(this.currentAudio){
-                    this.currentAudio.pause();
-                    this.currentAudio = null;
-                }
-
                 document.getElementById('dev-message').innerHTML = 'Playback finished.';
             }, this.snippetDuration * 1000);
         }
@@ -328,11 +323,6 @@ class MusicQuizGame{
     }
 
     stopPlayback(){
-        if(this.currentAudio){
-            this.currentAudio.pause();
-            this.currentAudio = null;
-        }
-
         if(this.youtubePlayer){
             try{
                 if(this.youtubePlayer.pauseVideo){
