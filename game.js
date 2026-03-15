@@ -324,17 +324,27 @@ class MusicQuizGame {
     }
     
     setupIOSPlayback(){
+        if(!this.isIOS) return;
+
         const playButton = document.getElementById('play-snippet');
         const replayButton = document.getElementById('replay-snippet');
 
-        const ensurePlayback = (e) => {
+        playButton.removeEventListener('touchstart', this.iosPlayHandler);
+        replayButton.removeEventListener('touchstart', this.iosPlayHandler);
+
+        this.iosPlayHandler = (e) => {
             if(this.youtubePlayer && this.preloadedVideoId){
                 this.youtubePlayer.cueVideoById(this.preloadedVideoId);
+                if(this.youtubePlayer.setVolume){
+                    this.youtubePlayer.setVolume(100);
+                }
             }
-        };
+        }
 
-        playButton.addEventListener('touchstart', ensurePlayback);
-        replayButton.addEventListener('touchstart', ensurePlayback);
+        playButton.addEventListener('touchstart', this.iosPlayHandler);
+        replayButton.addEventListener('touchstart', this.iosPlayHandler);
+
+
     }
 
     async playYouTube(song) {
@@ -999,6 +1009,8 @@ class MusicQuizGame {
 
     async fetchPlaylistItems(playlistId){
         const statusDiv = document.getElementById('playlist-status');
+        if (!statusDiv) return null;
+        
         statusDiv.className = 'playlist-status loading';
         statusDiv.textContent = 'Loading playlist...';
 
@@ -1008,7 +1020,7 @@ class MusicQuizGame {
 
             do{
                 const videosResponse = await fetch(
-                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snipped&maxResults=50&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
+                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
                 );
 
                 if (!videosResponse.ok){
@@ -1017,7 +1029,12 @@ class MusicQuizGame {
 
                 const videosData = await videosResponse.json();
 
-                const validVideos = videosData.items.filter(item => item.snippet.title && item.snippet.title !== 'Private video' && item.snippet.title !== 'Deleted video').map(item => ({
+                const validVideos = videosData.items.filter(item => 
+                    item.snippet && 
+                    item.snippet.title && 
+                    item.snippet.title !== 'Private video' && 
+                    item.snippet.title !== 'Deleted video'
+                ).map(item => ({
                     title: this.cleanVideoTitle(item.snippet.title),
                     artist: this.extractArtistFromTitle(item.snippet.title) || 'Unknown Artist',
                     year: new Date().getFullYear().toString(),
@@ -1040,8 +1057,8 @@ class MusicQuizGame {
         
         } catch (error) {
             console.log('Error fetching playlist: ', error);
-            statsuDiv.className = 'playlist-status error';
-            statusDiv.textContent = 'Failed to load playlist. Please check the URL.'
+            statusDiv.className = 'playlist-status error';
+            statusDiv.textContent = 'Failed to load playlist. Please check the URL.';
             return null;
         }
     }
