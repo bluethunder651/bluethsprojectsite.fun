@@ -258,11 +258,11 @@ class VideoPlayer{
 
 
     hide(){
-        this.player.hide();
+        this.player.classList.add('video-hidden');
     }
 
     show(){
-        this.player.show();
+        this.player.classList.remove('video-hidden');
     }
 
     setVideo(videoUrl){
