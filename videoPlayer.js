@@ -68,11 +68,11 @@ class VideoPlayer{
         });
 
         this.player.addEventListener('timeupdate', () => {
-            this.handleTimeUpdate(this.player.currentTime());
+            this.handleTimeUpdate(this.player.currentTime);
         });
 
         this.player.addEventListener('seeking', () => {
-            this.handleSeeking(this.player.currentTime());
+            this.handleSeeking(this.player.currentTime);
         });
     }
 
@@ -89,7 +89,7 @@ class VideoPlayer{
     }
 
     get currentTime() {
-        return this.player.currentTime();
+        return this.player.currentTime;
     }
 
     getBufferedPercent(){
@@ -282,7 +282,6 @@ class VideoPlayer{
 
     replayVideo(){
         this.pauseVideo();
-        this.player.currentTime(this.startPoint);
         this.player.play();
     }
 
@@ -302,10 +301,6 @@ class VideoPlayer{
 
     getVideoUrl() {
         return this.currentVideoUrl;
-    }
-
-    seekTo(time) {
-        this.player.currentTime(time);
     }
 
 }
