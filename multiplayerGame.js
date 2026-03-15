@@ -40,6 +40,7 @@ class MultiplayerGame{
         })
 
         this.loadGameData();
+        this.initVideoPlayer();
         this.connectSocket();
         this.setupEventListeners();
     }
@@ -204,9 +205,7 @@ class MultiplayerGame{
     setupEventListeners(){
         
         document.addEventListener('DOMContentLoaded', async function() {
-        
-            game.initVideoPlayer();
-
+    
             document.querySelectorAll('.answer-btn').forEach(button => {
                 button.addEventListener('click', (e) => game.handleAnswerClick(e));
             });
