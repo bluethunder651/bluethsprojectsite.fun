@@ -317,11 +317,6 @@ class MusicQuizGame{
         this.currentAudio = audio;
 
         setTimeout(() => {
-            if(this.currentAudio){
-                this.currentAudio.pause();
-                this.currentAudio = null;
-            }
-
             document.getElementById('dev-message').innerHTML = 'Playback finished.';
             if(this.replaysLeft > 0){
                 document.getElementById('replay-snippet').disabled = false;
