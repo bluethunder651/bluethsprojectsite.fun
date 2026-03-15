@@ -173,9 +173,6 @@ class MusicQuizGame{
                 }
             });
         }
-
-        this.setupIOSPlayback();
-
     }
 
     async playCurrentSong(){
