@@ -29,30 +29,30 @@ class VideoPlayer{
 
     setupEventListeners(){ 
 
-        this.player.on('canplay', () => {
+        this.player.addEventListener('canplay', () => {
             this.handleCanPlay();
         });
 
-        this.player.on('playing', () => {
+        this.player.addEventListener('playing', () => {
             if(!this.playOnReady){
                 this.updateVolume(0);
                 this.updateVolume(this.videoVolume);
             }
         });
 
-        this.player.on('play', () => {
+        this.player.addEventListener('play', () => {
             this.handlePlay();
         });
 
-        this.player.on('pause', () => {
+        this.player.addEventListener('pause', () => {
             this.handlePause();
         });
 
-        this.player.on('loadedmetadata', () => {
+        this.player.addEventListener('loadedmetadata', () => {
             this.handleLoadedMetadata();
         });
 
-        this.player.on('error', () => {
+        this.player.addEventListener('error', () => {
             if(this.reloadTried){
                 this.handleError();
             } else {
@@ -64,7 +64,7 @@ class VideoPlayer{
             }
         });
 
-        this.player.on('stalled', () => {
+        this.player.addEventListener('stalled', () => {
             if(!this.reloadTried){
                 this.reloadTried = true;
 
@@ -74,11 +74,11 @@ class VideoPlayer{
             }
         });
 
-        this.player.on('timeupdate', () => {
+        this.player.addEventListener('timeupdate', () => {
             this.handleTimeUpdate(this.player.currentTime());
         });
 
-        this.player.on('seeking', () => {
+        this.player.addEventListener('seeking', () => {
             this.handleSeeking(this.player.currentTime());
         });
     }
