@@ -28,9 +28,6 @@ class VideoPlayer{
     }
 
     setupEventListeners(){ 
-        this.player.ready(() => {
-            this.updateVolume(this.videoVolume);
-        });
 
         this.player.on('canplay', () => {
             this.handleCanPlay();
