@@ -20,7 +20,7 @@ class MusicQuizGame{
         this.isPreloaded = false;
         this.isLoading = false;
         this.randomStartTime = 15;
-        this.snippetDuration = 10; // Play 10 seconds of the song
+        this.snippetDuration = 15;
         this.hasSeekedThisPlay = false;
         this.customPlaylist = null;
         this.isCustomPlaylist = false;
@@ -172,6 +172,16 @@ class MusicQuizGame{
                     this.loadCustomPlaylist(url);
                 }
             });
+        }
+    }
+
+    handleReplay() {
+        if (this.replaysLeft > 0) {
+            this.replaysLeft--;
+            if (this.replaysLeft === 0) {
+                document.getElementById('replay-snippet').disabled = true;
+            }
+            this.playCurrentSong(); 
         }
     }
 
