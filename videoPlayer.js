@@ -4,269 +4,66 @@ class VideoPlayer{
 
         this.player.controls = false;
         this.player.autoplayer = false;
-        this.player.preload = 'metadata';
-
+        this.player.preload = 'auto';
         this.player.disablePictureInPicture = true;
         this.player.disableRemotePlayback = true;
 
-        //this.player.setAttribute("controlsList", "nodownload nofullscreen noremoteplayback");
-        //this.player.style.pointerEvents = 'none';
-
-        this.videoVolume = 100;
-        this.playOnReady = true;
-        this.startPoint;
-        this.readyReported;
-        this.bufferLength;
+        this.currentVideoUrl = null;
         this.reloadTried = false;
-        this.currentVideoUrl;
-        this.forcedMute = false;
 
-        this.bufferMonitorInterval;
-        this._TIME_TO_BUFFER_BEFORE_READY = 15;
-
+        this._monitorInterval = null;
         this._boundHandleProgress = null;
+        this._readyFired = false;
 
-        this.setupEventListeners();
+        this._setupEventListeners();
     }
 
-    setupEventListeners(){ 
-
-        this.player.addEventListener('canplay', () => {
-            this.handleCanPlay();
-        });
-
-        this.player.addEventListener('play', () => {
-            this.handlePlay();
-        });
-
-        this.player.addEventListener('pause', () => {
-            this.handlePause();
-        });
-
-        this.player.addEventListener('loadedmetadata', () => {
-            this.handleLoadedMetadata();
-        });
+    _setupEventListeners(){ 
 
         this.player.addEventListener('error', () => {
             if(this.reloadTried){
                 this.handleError();
             } else {
                 this.reloadTried = true;
-
                 setTimeout(() => {
                     this.player.src = this.currentVideoUrl;
-                }, 100);
+                    this.player.load();
+                }, 200)
             }
         });
 
-        this.player.addEventListener('stalled', () => {
-            if(!this.reloadTried){
-                this.reloadTried = true;
-
-                setTimeout(() => {
-                    this.player.src = this.currentVideoUrl;
-                }, 100);
-            }
-        });
-
-        this.player.addEventListener('timeupdate', () => {
-            this.handleTimeUpdate(this.player.currentTime);
-        });
-
-        this.player.addEventListener('seeking', () => {
-            this.handleSeeking(this.player.currentTime);
-        });
-    }
-
-    get videoLength() {
-        return this.player.duration;
-    }
-
-    get bufferMonitorTickRate() {
-        return 333;
-    }
-
-    get isPlaying(){
-        return !this.player.paused;
-    }
-
-    get currentTime() {
-        return this.player.currentTime;
-    }
-
-    getBufferedPercent(){
-        const video = this.player
-
-        if(!video.duration || isNaN(video.duration) || video.duration === 0){
-            return 0;
-        }
-
-        if (video.buffered.length === 0){
-            return 0;
-        }
-
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-
-        return bufferedEnd / video.duration;
-    }
-
-    getBufferedEnd(){
-        const video = this.player;
-
-        if(video.buffered.length === 0){
-            return 0;
-        }
-
-        return video.buffered.end(video.buffered.length - 1);
-    }
-
-    isTimeBuffered(time){
-        const video = this.player;
-
-        for(let i = 0; i< video.buffered.length; i++){
-            if(time >= video.buffered.start(i) && time <= video.buffered.end(i)){
-                return true;
-            }
-        }
-        return false;
+        this.player.addEventListener('timeupdate', () => this.handleTimeUpdate(this.player.currentTime));
+        this.player.addEventListener('play', () => this.handlePlay());
+        this.player.addEventListener('pause', () => this.handlePause());
+        this.player.addEventListener('seeking', () => this.handleSeeking(this.player.currentTime));
 
     }
 
-    getBufferedRanges(){
-        const ranges = [];
-        const video = this.player;
+    load(url){
+        this._stopMonitor();
+        this._readyFired = false;
+        this.reloadTried = false;
+        this.currentVideoUrl = url;
 
-        for (let i = 0; i < video.buffered.length; i++){
-            ranges.push({
-                start: video.buffered.start(i),
-                end: video.buffered.end(i)
-            });
-        }
+        this.player.preload = 'auto';
+        this.player.src = url;
+        this.player.load();
 
-        return ranges;
+        this._startMonitor();
     }
 
-    startBufferMonitor() {
-        this.stopBufferMonitor();
-        this.readyReported = false;
-
-        this._boundHandleProgress = this.handleProgressEvent(this);
-        this.player.addEventListener('progress', this._boundHandleProgress);
-        
-        this.bufferMonitorInterval = setInterval(() => {
-            this.checkBufferStatus();
-        }, 333);
+    play(){
+        this.player.play();
     }
 
-    handleProgressEvent(){
-        this.checkBufferStatus();
+    pause(){
+        this.player.pause();
     }
 
-    checkBufferStatus(){
-        const bufferedPercent = this.getBufferedPercent();
-        const bufferedEnd = this.getBufferedEnd();
-
-        const duration = this.player.duration && !isNaN(this.player.duration)
-            ? this.player.duration
-            : Infinity;
-        
-        const readyThreshold = Math.min(this._TIME_TO_BUFFER_BEFORE_READY, duration *0.5);
-        if (bufferedEnd > this.startPoint + readyThreshold || bufferedPercent >= 0.5){
-            if(!this.readyReported){
-                this.handleVideoReady();
-                this.readyReported = true;
-            }
-
-            if (this.isFinishedBuffering()){
-                this.handleVideoFinishedBuffering();
-                this.stopBufferMonitor();
-
-                if(this.playOnReady){
-                    this.pauseVideo();
-                }
-            }
-        }
+    stop(){
+        this.player.pause();
+        this._stopMonitor();
     }
-
-
-
-    handleBuffMeasurement(bufferedPercent){
-        if(this.player.bufferedEnd() > this.startPoint + this._TIME_TO_BUFFER_BEFORE_READY || bufferedPercent === 1){
-            if(!this.readyReported){
-                this.handleVideoReady();
-                this.readyReported = true;
-            }
-            if (this.player.bufferedEnd() >= this.startPoint + this.bufferLength || bufferedPercent === 1){
-                this.handleVideoFinishedBuffering();
-                this.stopBufferMonitor();
-                if(!this.playOnReady) {
-                    this.pauseVideo();
-                }
-            }
-        }
-    }
-
-    stopBufferMonitor(){
-        if(this.bufferMonitorInterval){
-            clearInterval(this.bufferMonitorInterval);
-            this.bufferMonitorInterval = null;
-        }
-        if (this._boundHandleProgress){
-            this.player.removeEventListener('progress', this._boundHandleProgress);
-            this._boundHandleProgress = null;
-        }
-    }
-
-    isReadyToPlay(){
-        const bufferedEnd = this.getBufferedEnd();
-        return bufferedEnd > this.startPoint + this._TIME_TO_BUFFER_BEFORE_READY;
-    }
-
-    isFinishedBuffering(){
-        const bufferedEnd = this.getBufferedEnd();
-        const bufferedPercent = this.getBufferedPercent();
-
-        return (bufferedEnd >= this.startPoint + this.bufferLength || bufferedPercent >= 0.99);
-    }
-
-    handleCanPlay(){
-        if(this.playOnReady){
-            this.player.play();
-        }
-    }
-
-    handleLoadedMetadata(){
-
-    }
-
-    handleError(){
-
-    }
-
-	handleVideoReady() {
-
-    }
-
-	handleVideoFinishedBuffering() {
-
-    }
-
-	handleTimeUpdate() {
-
-    }
-
-	handlePlay() {
-
-    }
-
-	handlePause() {
-
-    }
-
-	handleSeeking() {
-
-    }
-
 
     hide(){
         this.player.classList.add('video-hidden');
@@ -276,44 +73,73 @@ class VideoPlayer{
         this.player.classList.remove('video-hidden');
     }
 
-    setVideo(videoUrl){
-        this.reloadTried = false;
-        this.currentVideoUrl = videoUrl;
-        this.player.preload = 'auto';
-        this.player.src = videoUrl;
-        this.player.load();
+    get currentTime() {
+        return this.player.currentTime;
     }
 
-    getVideoVolume(){
-        return null
+    get duration(){
+        return this.player.duration;
     }
 
-    playVideo() {
-        this.playOnReady = true;
-        this.replayVideo();
+    get isPlaying(){
+        return !this.player.paused;
     }
 
-    replayVideo(){
-        this.pauseVideo();
-        this.player.play();
+    handleVideoReady(){
+
     }
 
-    pauseVideo(){
-        this.player.pause();
+    handleError(){
+
     }
 
-    unpauseVideo(){
-        this.player.play();
+    handleTimeUpdate(time){
+
     }
 
-    stopVideo(){
-        this.playOnReady = false;
-        this.pauseVideo();
-        this.stopBufferMonitor();
+    handlePlay(){
+
     }
 
-    getVideoUrl() {
-        return this.currentVideoUrl;
+    handlePause(){
+
+    }
+
+    handleSeeking(time){
+
+    }
+
+    _startMonitor(){
+        this._boundHandleProgress = () => this._checkBuffer();
+        this.player.addEventListener('progress', this._boundHandleProgress);
+        this._monitorInterval = setInterval(() => this._checkBuffer(), 333);
+    }
+
+    _stopMonitor(){
+        if(this._monitorInterval){
+            clearInterval(this._monitorInterval);
+            this._monitorInterval = null;
+        }
+        if(this._boundHandleProgress){
+            this.player.removeEventListener('progress', this._boundHandleProgress);
+            this._boundHandleProgress = null;
+        }
+    }
+
+    _checkBuffer(){
+        const v = this.player;
+        if (this._readyFired) return;
+        if(!v.duration || isNaN(v.duration) || v.duration === 0) return;
+        if(v.buffered.length === 0) return;
+
+        const bufferedEnd = v.buffered.end(v.buffered.length - 1);
+        const bufferedPercent = bufferedEnd / v.duration;
+
+        if(bufferedPercent >= 0.40){
+            this._readyFired = true;
+            this._stopMonitor();
+            this.handleVideoReady();
+        }
     }
 
 }
