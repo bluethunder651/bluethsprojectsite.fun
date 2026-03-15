@@ -424,6 +424,8 @@ class MusicQuizGame{
         this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
+
+        this.getAudioFromServer(this.currentSong)
         
     }
 
