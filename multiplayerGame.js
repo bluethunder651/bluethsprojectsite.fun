@@ -279,7 +279,7 @@ class MultiplayerGame{
             }
 
             this.videoPlayer.startPoint = 0;
-            this.videoPlayer.bufferLength = 15;
+            this.videoPlayer.bufferLength = 55;
 
             this.videoPlayer.startBufferMonitor();
 
