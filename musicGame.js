@@ -267,7 +267,7 @@ class MusicQuizGame{
 
         const audio = new Audio();
         const fullAudioUrl = audioUrl.startsWith('http') ? audioUrl : `${this.website}${encodeURIComponent(audioUrl)}`;
-        audio.src = audioUrl;
+        audio.src = fullAudioUrl;
         audio.volume = 1.0;
 
         audio.onerror = (e) => {
