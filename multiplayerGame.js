@@ -302,7 +302,7 @@ class MultiplayerGame{
                 videoElement.player.dispose();
             }
 
-            this.videoPlayer = new VideoPlayer($(videoElement));
+            this.videoPlayer = new VideoPlayer(videoElement);
 
             this.videoPlayer.handleVideoReady = () => {
                 console.log("Video ready in player");
