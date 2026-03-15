@@ -50,6 +50,15 @@ class VideoPlayer{
         this.player.load();
 
         this._startMonitor();
+
+        this._fallbackTimer = setTimeout(() => {
+            if(!this._readyFired){
+                console.warn('Load timeout reached, forcing ready after 30s');
+                this._readyFired = true;
+                this._stopMonitor();
+                this.handleVideoReady();
+            }
+        }, 30000)
     }
 
     play(){
@@ -123,6 +132,10 @@ class VideoPlayer{
         if(this._boundHandleProgress){
             this.player.removeEventListener('progress', this._boundHandleProgress);
             this._boundHandleProgress = null;
+        }
+        if(this._fallbackTimer){
+            clearTimeout(this._fallbackTimer);
+            this._fallbackTimer = null;
         }
     }
 
