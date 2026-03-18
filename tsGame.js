@@ -646,7 +646,7 @@ class tsGame{
             if (video.compressed !== 0){
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
             } else{
-                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
             }
             buffer1.src = videoUrl;
             buffer1.load();
@@ -660,7 +660,7 @@ class tsGame{
             if (video.compressed !== 0){
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
             } else{
-                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
             }
             buffer2.src = videoUrl;            
             buffer2.load();
@@ -729,7 +729,7 @@ class tsGame{
         if (video.compressed !== 0){
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else{
-            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
         }
 
         const videoPlayer = document.getElementById('video-player');
@@ -848,7 +848,7 @@ class tsGame{
         if (video.compressed !== 0){
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else{
-            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
         }
         return new Promise((resolve) => {
             videoPlayer.src = videoUrl;
@@ -1030,8 +1030,8 @@ class tsGame{
         if(this.currentPlaylistIndex + 1 >= this.playlist.length) return;
         const videoUrl = '';
         const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
-        if (video.compressed !== 0){
-            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+        if (nextVideo.compressed !== 0){
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else{
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
         }
