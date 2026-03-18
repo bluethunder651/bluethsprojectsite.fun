@@ -644,6 +644,7 @@ class tsGame{
             const video = this.playlist[nextIndex];
             let videoUrl = '';
             if (video.compressed !== 0){
+                console.log("Using compressed version.")
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
             } else{
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
@@ -658,6 +659,7 @@ class tsGame{
             const video = this.playlist[nextNextIndex];
             let videoUrl = '';
             if (video.compressed !== 0){
+                console.log("Using compressed version.")
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
             } else{
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
@@ -727,6 +729,7 @@ class tsGame{
 
         let videoUrl = "";
         if (video.compressed !== 0){
+            console.log("Using compressed version.")
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else{
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
@@ -846,6 +849,7 @@ class tsGame{
         const video = this.playlist[this.currentPlaylistIndex];
         let videoUrl = '';
         if (video.compressed !== 0){
+            console.log("Using compressed version.")
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else{
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
@@ -1031,6 +1035,7 @@ class tsGame{
         let videoUrl = '';
         const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
         if (nextVideo.compressed !== 0){
+            console.log("Using compressed version.")
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else{
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
@@ -1065,6 +1070,7 @@ class tsGame{
         return new Promise((resolve) => {
             let videoUrl = '';
             if(video.compressed !== 0){
+                console.log("Using compressed version.")
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
             } else {
                 videoUrl =  `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
