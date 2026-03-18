@@ -642,7 +642,13 @@ class tsGame{
     
         if(nextIndex < this.playlist.length && this.buffer1Index !== nextIndex) {
             const video = this.playlist[nextIndex];
-            buffer1.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
+            const videoUrl = '';
+            if (video.compressed !== 0){
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+            } else{
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+            }
+            buffer1.src = videoUrl;
             buffer1.load();
             this.buffer1Index = nextIndex;
             console.log("Buffered video: ", nextIndex);
@@ -650,7 +656,13 @@ class tsGame{
 
         if(nextNextIndex < this.playlist.length && this.buffer2Index !== nextNextIndex){
             const video = this.playlist[nextNextIndex];
-            buffer2.src = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${this.token}`;
+            const videoUrl = '';
+            if (video.compressed !== 0){
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+            } else{
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+            }
+            buffer2.src = videoUrl;            
             buffer2.load();
             this.buffer2Index = nextNextIndex;
             console.log("Buffered video: ", nextNextIndex);
@@ -712,7 +724,13 @@ class tsGame{
                 return;
             }
         }
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`
+
+        const videoUrl = "";
+        if (video.compressed !== 0){
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+        } else{
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+        }
 
         const videoPlayer = document.getElementById('video-player');
         if(hidden){
@@ -826,8 +844,12 @@ class tsGame{
 
     async loadVideoNormally(videoPlayer){
         const video = this.playlist[this.currentPlaylistIndex];
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
-
+        const videoUrl = '';
+        if (video.compressed !== 0){
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+        } else{
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+        }
         return new Promise((resolve) => {
             videoPlayer.src = videoUrl;
             videoPlayer.preload = 'auto';
@@ -1006,10 +1028,13 @@ class tsGame{
 
     async preloadNextVideo() {
         if(this.currentPlaylistIndex + 1 >= this.playlist.length) return;
-
+        const videoUrl = '';
         const nextVideo = this.playlist[this.currentPlaylistIndex + 1];
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
-
+        if (video.compressed !== 0){
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+        } else{
+            videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(nextVideo.file_path)}?token=${encodeURIComponent(this.token)}`;
+        }
         const preloader = document.getElementById('video-preload');
 
         return new Promise((resolve) => {
