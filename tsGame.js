@@ -137,8 +137,6 @@ class tsGame{
 
             document.getElementById('next-video').addEventListener('click', () => {
                 player.next_video();
-                player.loadVideo(this.current_song.file_path);
-                player.startPlayback();
             });
 
             videoPlayer.addEventListener('ended', () => {
@@ -268,8 +266,8 @@ class tsGame{
         } else {
             console.warn('Buffer queue empty - loading video directly.');
             this.loadVideo(this.current_song.file_path);
-            this.startPlayback();
         }
+        this.startPlayback();
 
     }
 
@@ -727,6 +725,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
+            this.loadVideo(song.file_path);
             this.startPlayback();
         }
     }
