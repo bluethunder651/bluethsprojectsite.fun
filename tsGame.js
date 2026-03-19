@@ -179,7 +179,7 @@ class tsGame{
 
     initVideoPlayer(){
         const videoElement = document.getElementById('video-player');
-        this.videoPlayer = new this.videoPlayer(videoElement);
+        this.videoPlayer = new VideoPlayer(videoElement);
 
         this.videoPlayer.handleVideoEnded = () => {
             this.videoReady = true;

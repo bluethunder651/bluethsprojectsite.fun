@@ -176,7 +176,7 @@
             <div id="video-screen">
                 <div id="answer-title" class="video-title"></div> 
                 <div class="video-container">
-                    <video id="video-player" playsinline></video>
+                    <video id="video-player" disablePictureInPicture playsinline></video>
                     <video id="video-preload" preload="auto" style="display: none;"></video>
                     <video id="video-buffer1" preload="auto" style="display: none;"></video>
                     <video id="video-buffer2" preload="auto" style="display: none;"></video>
@@ -196,6 +196,7 @@
         </div> 
         <script defer src="tsGame.js"></script>
         <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+        <script defer src="videoPlayer.js"></script>
         <script defer src="controller.js"></script>
     </body>
 </html>
