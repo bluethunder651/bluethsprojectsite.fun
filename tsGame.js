@@ -725,7 +725,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
-            this.loadVideo(this.song.file_path);
+            this.loadVideo(song.file_path);
         }
     }
 
