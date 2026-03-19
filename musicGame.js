@@ -26,6 +26,8 @@ class MusicQuizGame{
         this.isCustomPlaylist = false;
         this.website = 'https://julia.bluethsprojectsite.fun'
         this.currentAudio = null;
+        this.retryAttempts = 0;
+        this.maxRetryAttempts = 2;
         
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
 
@@ -223,8 +225,13 @@ class MusicQuizGame{
                 await this.playYoutube(this.currentSong);
             }
         } catch (e){
-            console.error('Failed to get audio: ', e);
-            document.getElementById('dev-message').innerHTML = `Could not load audio: ${e}`;
+            if (this.retryAttempts < this.maxRetryAttempts){
+                this.retryAttempts++;
+                await this.playCurrentSong();
+            } else {
+                console.error('Failed to get audio: ', e);
+                document.getElementById('dev-message').innerHTML = `Could not load audio: ${e}`;
+            }
         }
     }
 
