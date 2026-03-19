@@ -137,7 +137,8 @@ class tsGame{
 
             document.getElementById('next-video').addEventListener('click', () => {
                 player.next_video();
-                player.loadVideo(this.currentSong.file_path);
+                player.loadVideo(this.current_song.file_path);
+                player.startPlayback();
             });
 
             videoPlayer.addEventListener('ended', () => {
@@ -243,7 +244,7 @@ class tsGame{
         this.videoReady = false;
         this.isLoading = false;
 
-        this.fillButtons(this.currentSong.options);
+        this.fillButtons(this.current_song.options);
 
         if(this.bufferQueue.length > 0){
             const next = this.bufferQueue.shift();
@@ -266,7 +267,8 @@ class tsGame{
             this.videoPlayer.load(next.videoUrl);
         } else {
             console.warn('Buffer queue empty - loading video directly.');
-            this.loadVideo(this.currentSong.file_path);
+            this.loadVideo(this.current_song.file_path);
+            this.startPlayback();
         }
 
     }
@@ -725,7 +727,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
-            this.loadVideo(song.file_path);
+            this.startPlayback();
         }
     }
 
@@ -882,6 +884,7 @@ class tsGame{
             const options = await this.getOptions(song.game_name);
             this.fillButtons(options);
             this.loadVideo(song.file_path);
+            this.startPlayback();
 
         } else {
             this.gameEnded(this.scores, this.highest_streak);
@@ -956,6 +959,21 @@ class tsGame{
         }
 
         return false;
+    }
+
+    async startPlayback(){
+        if(this.playbackStarted) return;
+        this.playbackStarted = true;
+
+        if(this.hardMode){
+            this.videoPlayer.hide();
+        } else {
+            this.videoPlayer.show();
+        }
+
+        this.videoStartTime = Date.now();
+
+        this.videoPlayer.play();
     }
 
     async loadVideoNormally(videoPlayer){
@@ -1237,7 +1255,8 @@ class tsGame{
     async usePreloadedVideo(options){
         //await this.loadVideoWithFallback();
         this.fillButtons(options);
-        this.loadVideo(this.currentSong.file_path);
+        this.loadVideo(this.current_song.file_path);
+        this.startPlayback();
     }
 
     gameEnded(scores, highest_streak){
