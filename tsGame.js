@@ -35,6 +35,10 @@ class tsGame{
         this.buffer1Index = null;
         this.buffer2Index = null;
 
+        this.bufferQueue = [];
+        this.nextBufferFillIndex = 1;
+
+        this.initVideoPlayer();
         this.setupEventListeners();
     }
 
@@ -133,6 +137,7 @@ class tsGame{
 
             document.getElementById('next-video').addEventListener('click', () => {
                 player.next_video();
+                player.loadVideo(this.currentSong.file_path);
             });
 
             videoPlayer.addEventListener('ended', () => {
@@ -170,6 +175,113 @@ class tsGame{
                 }
             })
         });
+    }
+
+    initVideoPlayer(){
+        const videoElement = document.getElementById('video-player');
+        this.videoPlayer = new this.videoPlayer(videoElement);
+
+        this.videoPlayer.handleVideoEnded = () => {
+            this.videoReady = true;
+            this.isLoading = false;
+        
+            this._fillBuffers();
+        };
+
+        this.videoPlayer.handleError = () => {
+            console.error('Video player error - could not load video.');
+            this.isLoading = false;
+        }
+    }
+
+    async _fillBuffers(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) return;
+        }
+
+        const bufferElements = [
+            document.getElementById('video-buffer1'),
+            document.getElementById('video-buffer2')
+        ]
+
+        if(this.nextBufferFillIndex <= this.currentRound){
+            this.nextBufferFillIndex = this.currentRound + 1;
+        }
+
+        while(this.bufferQueue.length < 2 && this.nextBufferFillIndex < this.playlist.length){
+            const slotIndex = this.bufferQueue.length;
+            const video = this.playlist[this.nextBufferFillIndex]
+            let videoUrl = '';
+            if(video.compressed !== 0){
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
+            } else {
+                videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
+            }
+            const el = bufferElements[slotIndex];
+            el.preload = 'auto';
+            el.src = videoUrl;
+            el.load();
+
+            this.bufferQueue.push({videoUrl, playlistIndex: this.nextBufferFillIndex});
+            this.nextBufferFillIndex++;
+        }
+    }
+
+    prepareNextRound(){
+        this.videoPlayer.stop();
+
+        document.querySelectorAll('.answer-btn').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('answered', 'correct', 'incorrect');
+            btn.style.removeProperty('background-color');
+        });
+
+        this.hasAnswered = false;
+        this.answerSubmitted = false;
+        this.playbackStarted = false;
+        this.videoReady = false;
+        this.isLoading = false;
+
+        this.fillButtons(this.currentSong.options);
+
+        if(this.bufferQueue.length > 0){
+            const next = this.bufferQueue.shift();
+
+            const buffer1 = document.getElementById('video-buffer1');
+            const buffer2 = document.getElementById('video-buffer2');
+
+            if(this.bufferQueue.length > 0){
+                buffer1.preload = 'auto';
+                buffer1.src = this.bufferQueue[0].videoUrl;
+                buffer1.load();
+            } else {
+                buffer1.removeAttribute('src');
+                buffer1.load();
+            }
+            buffer2.removeAttribute('src');
+            buffer2.load();
+
+            this.isLoading = true;
+            this.videoPlayer.load(next.videoUrl);
+        } else {
+            console.warn('Buffer queue empty - loading video directly.');
+            this.loadVideo(this.currentSong.file_path);
+        }
+
+    }
+
+    async loadVideo(filePath){
+        if(this.videoReady || this.isLoading) return;
+        this.isLoading = true;
+
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if(!this.token) {this.isLoading = false; return;}
+        }
+
+        let videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(filePath)}?token=${encodeURIComponent(this.token)}`
+        this.videoPlayer.load(videoUrl);
     }
 
     async ping(){
@@ -602,7 +714,7 @@ class tsGame{
 
             const options = await this.getOptions(song.game_name);
 
-            await this.playVideo(this.hardMode);
+            //await this.playVideo(this.hardMode);
 
             loading_screen.innerHTML = '<h3>Loading...</h3>';
 
@@ -613,7 +725,7 @@ class tsGame{
             game_screen.classList.add('active');
 
             this.fillButtons(options);
-            this.preloadBuffers();
+            this.loadVideo(this.song.file_path);
         }
     }
 
@@ -762,13 +874,14 @@ class tsGame{
 
             this.preloadedIndices.delete(this.currentPlaylistIndex);
 
-            await this.loadVideoWithFallback();
+            //await this.loadVideoWithFallback();
 
             const song = this.playlist[this.currentPlaylistIndex];
             this.current_song = song;
 
             const options = await this.getOptions(song.game_name);
             this.fillButtons(options);
+            this.loadVideo(song.file_path);
 
         } else {
             this.gameEnded(this.scores, this.highest_streak);
@@ -1025,8 +1138,8 @@ class tsGame{
 
             const options = await this.getOptions(song.game_name);
 
-            this.usePreloadedVideo(options);
-
+            //this.usePreloadedVideo(options);
+            this.prepareNextRound();
         }
     }
 
@@ -1122,8 +1235,9 @@ class tsGame{
     }
 
     async usePreloadedVideo(options){
-        await this.loadVideoWithFallback();
+        //await this.loadVideoWithFallback();
         this.fillButtons(options);
+        this.loadVideo(this.currentSong.file_path);
     }
 
     gameEnded(scores, highest_streak){
@@ -1147,6 +1261,12 @@ class tsGame{
         if (!codec) return false;
         const codecLower= codec.toLowerCase();
         return codecLower.includes('h264') || codecLower.includes('avc') || codecLower.includes('h.264') || codecLower === 'avc1';
+    }
+
+    showLoadingScreen(message){
+        document.getElementById('loading-screen').style.display = 'block';
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('loading-screen').innerHTML = `<h3>${message}</h3>`;
     }
 
     toggleSection(header){
