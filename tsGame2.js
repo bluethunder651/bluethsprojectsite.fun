@@ -520,7 +520,7 @@ class SingleplayerGame{
 
             if(buttonText === this.currentSong.game_name){
                 console.log('found correct-button')
-                button.id = 'correct_button'
+                button.id = 'correct-button'
             }
         });
     }
