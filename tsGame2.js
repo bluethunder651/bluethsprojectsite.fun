@@ -518,7 +518,8 @@ class SingleplayerGame{
             button.title = buttonText;
             button.dataset.fullTitle = buttonText;
 
-            if(buttonText === this.currentSong?.game_name){
+            if(buttonText === this.currentSong.game_name){
+                console.log('found correct-button')
                 button.id = 'correct_button'
             }
         });
