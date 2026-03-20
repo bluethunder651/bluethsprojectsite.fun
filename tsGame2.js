@@ -180,7 +180,7 @@ class SingleplayerGame{
                     const selectedOption = this.dataset.fullTitle;
 
                     document.getElementById('video-player').classList.remove('video-hidden');
-                    player.submit_answer(selectedOption);
+                    player.submitAnswer(selectedOption);
                 });
             });
 
@@ -298,7 +298,7 @@ class SingleplayerGame{
             if(timeLeft <= 0){
                 clearInterval(timer);
                 timerDisplay.remove();
-                this.submitAanswer(null);
+                this.submitAnswer(null);
             }
         }, 1000)
     }
@@ -316,10 +316,10 @@ class SingleplayerGame{
         button.classList.add('answered');
         this.hasAnswered = true;
 
-        this.submitAanswer(selectedOption);
+        this.submitAnswer(selectedOption);
     }
 
-    async submitAanswer(selectedOption){
+    async submitAnswer(selectedOption){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if(!this.token) return [];
