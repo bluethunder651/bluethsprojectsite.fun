@@ -179,7 +179,7 @@ class SingleplayerGame{
 
                     const selectedOption = this.dataset.fullTitle;
 
-                    this.videoPlayer.show();
+                    document.getElementById('video-player').classList.remove('video-hidden');
                     player.submit_answer(selectedOption);
                 });
             });
