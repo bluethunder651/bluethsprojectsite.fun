@@ -7,6 +7,7 @@ class SingleplayerGame{
         this.codecCache = new Map();
 
         this.hardMode = true;
+        this.time_limit_check = false;
         this.timeLimit = 0;
 
         this.playlist = [];
@@ -163,7 +164,7 @@ class SingleplayerGame{
                     clearTimeout(pressTimer);
                 });
 
-                button.addEventListener('click', (e) => {
+                button.addEventListener('click', function(e) {
                     if(isLongPress){
                         e.preventDefault();
                         return;
@@ -263,7 +264,7 @@ class SingleplayerGame{
         this.videoPlayer.load(videoUrl);
     }
 
-    async startPlayback(game_settings){
+    async startPlayback(){
         if(this.playbackStarted) return;
         this.playbackStarted = true;
 
@@ -276,7 +277,7 @@ class SingleplayerGame{
 
         this.videoPlayer.play();
 
-        if(game_settings.time_limit_check){
+        if(this.time_limit_check){
             this.startTimer(this.timeLimit);
         }
     }
