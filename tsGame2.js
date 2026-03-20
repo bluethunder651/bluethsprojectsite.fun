@@ -358,7 +358,7 @@ class SingleplayerGame{
         }
     }
 
-    prepareNextRound(){
+    async prepareNextRound(){
         this.videoPlayer.stop();
 
         document.querySelectorAll('.answer-btn').forEach(btn => {
@@ -376,7 +376,9 @@ class SingleplayerGame{
         this.videoReady = false;
         this.isLoading = false;
 
-        this.fillButtons(this.currentSong.options);
+        const options = await this.getOptions();
+
+        this.fillButtons(options);
         
         if(this.bufferQueue.length > 0){
             const next = this.bufferQueue.shift();
@@ -785,7 +787,7 @@ class SingleplayerGame{
             const song = this.playlist[0];
             this.currentSong = song;
 
-            const options = await this.getOptions(song.game_name);
+            const options = await this.getOptions();
 
             loading_screen.innerHTML = '<h3>Loading...</h3>'
             
