@@ -400,7 +400,7 @@ class SingleplayerGame{
             this.videoPlayer.load(next.url);
         } else {
             console.warn('Buffer queue empty - loading video directly.');
-            this.loadVideo(this.currentSong.file_path);
+            this.loadVideo(this.currentSong.compressed, this.currentSong.compressed_file_path, this.currentSong.file_path);
         }
     }
 
@@ -792,7 +792,7 @@ class SingleplayerGame{
             game_screen.style.display = 'block';
 
             this.fillButtons(options);
-            this.loadVideo(song.file_path);
+            this.loadVideo(song.compressed, song.compressed_file_path, song.file_path);
             this.startPlayback();
         }
     }
