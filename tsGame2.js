@@ -841,6 +841,7 @@ class SingleplayerGame{
 
             const song = this.playlist[this.currentPlaylistIndex];
             this.currentSong = song;
+            console.log('this.currentSong: ', this.currentSong);
 
             this.prepareNextRound();
             this.startPlayback();
