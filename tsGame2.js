@@ -846,3 +846,5 @@ class SingleplayerGame{
     }
 
 }
+
+const player = new SingleplayerGame();
