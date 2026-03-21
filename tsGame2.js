@@ -792,13 +792,13 @@ class SingleplayerGame{
             const options = await this.getOptions();
 
             loading_screen.innerHTML = '<h3>Loading...</h3>'
-            
-            loading_screen.style.display = 'none';
-            game_screen.style.display = 'block';
 
             this.fillButtons(options);
             this.loadVideo(song.compressed, song.compressed_file_path, song.file_path);
             this.startPlayback();
+
+            loading_screen.style.display = 'none';
+            game_screen.style.display = 'block';
         }
     }
 
