@@ -5,6 +5,7 @@ class SingleplayerGame{
         this.tokenExpiry = null;
         this.mobileMode = false;
         this.codecCache = new Map();
+        this.statusCallbacks = [];
 
         this.hardMode = true;
         this.time_limit_check = false;
@@ -400,6 +401,7 @@ class SingleplayerGame{
 
             this.isLoading = true;
             this.videoPlayer.load(next.url);
+            this._fillBuffers();
         } else {
             console.warn('Buffer queue empty - loading video directly.');
             this.loadVideo(this.currentSong.compressed, this.currentSong.compressed_file_path, this.currentSong.file_path);
