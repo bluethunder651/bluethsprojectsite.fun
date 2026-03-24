@@ -289,6 +289,7 @@ class SingleplayerGame{
         if(this.time_limit_check){
             this.startTimer(this.timeLimit);
         }
+        this._fillBuffers();
     }
 
     startTimer(seconds){
@@ -411,7 +412,6 @@ class SingleplayerGame{
             this.isLoading = true;
             console.log('next.url')
             this.videoPlayer.load(next.videoUrl);
-            this._fillBuffers();
         } else {
             console.warn('Buffer queue empty - loading video directly.');
             this.loadVideo(this.currentSong.compressed, this.currentSong.compressed_file_path, this.currentSong.file_path);
