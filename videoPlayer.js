@@ -46,9 +46,7 @@ class VideoPlayer{
         this.currentVideoUrl = url;
 
         this.player.preload = 'auto';
-        console.log('URL: ', url);
         this.player.src = url;
-        console.log('this.player.src: ', this.player.src);
         this.player.load();
 
         this._startMonitor();
@@ -150,7 +148,7 @@ class VideoPlayer{
         const bufferedEnd = v.buffered.end(v.buffered.length - 1);
         const bufferedPercent = bufferedEnd / v.duration;
 
-        if(bufferedPercent >= 0.25){
+        if(bufferedPercent >= 0.30){
             this._readyFired = true;
             this._stopMonitor();
             this.handleVideoReady();

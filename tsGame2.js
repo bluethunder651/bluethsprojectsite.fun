@@ -48,8 +48,6 @@ class SingleplayerGame{
             this.isLoading = false;
 
             this.startPlayback();
-
-            this._fillBuffers();
         }
 
         this.videoPlayer.handleError = () => {
@@ -60,7 +58,6 @@ class SingleplayerGame{
 
     connectSocket(){
         this.socket.on('connect', () => {
-            console.log("Socket connected, requesting status");
             this.socket.emit('request_server_status');
         });
 
@@ -240,7 +237,6 @@ class SingleplayerGame{
             } else {
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
             }
-            console.log("videoUrl: ", videoUrl);
             const el = bufferElements[slotIndex];
             el.preload = 'auto';
             el.src = videoUrl;
@@ -399,7 +395,6 @@ class SingleplayerGame{
             if(this.bufferQueue.length > 0){
                 buffer1.preload = 'auto';
                 buffer1.src = this.bufferQueue[0].videoUrl;
-                console.log("buffer1.src: ", buffer1.src);
                 buffer1.load();
             } else {
                 buffer1.removeAttribute('src');
@@ -410,7 +405,6 @@ class SingleplayerGame{
             buffer2.load();
 
             this.isLoading = true;
-            console.log('next.url')
             this.videoPlayer.load(next.videoUrl);
         } else {
             console.warn('Buffer queue empty - loading video directly.');
@@ -533,7 +527,6 @@ class SingleplayerGame{
             button.dataset.fullTitle = buttonText;
 
             if(buttonText === this.currentSong.game_name){
-                console.log('found correct-button')
                 button.id = 'correct-button'
             }
         });
@@ -851,7 +844,6 @@ class SingleplayerGame{
 
             const song = this.playlist[this.currentPlaylistIndex];
             this.currentSong = song;
-            console.log('this.currentSong: ', this.currentSong);
 
             this.prepareNextRound();
             this.startPlayback();
