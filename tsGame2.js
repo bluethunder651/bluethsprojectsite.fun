@@ -398,7 +398,7 @@ class SingleplayerGame{
                 bufferElements[nextSlot].src = nextBuffer.videoUrl;
                 bufferElements[nextSlot].load()
             }
-            
+
             this.isLoading = true;
             this.videoPlayer.load(next.videoUrl);
         } else {
@@ -789,8 +789,7 @@ class SingleplayerGame{
             const song = this.playlist[this.currentPlaylistIndex];
             this.currentSong = song;
 
-            this.prepareNextRound();
-            this.startPlayback();
+            await this.prepareNextRound().then(this.startPlayback);
         }
     }
 
