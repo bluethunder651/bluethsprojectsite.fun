@@ -43,9 +43,11 @@ class SingleplayerGame{
         this.videoPlayer = new VideoPlayer(videoElement);
 
         this.videoPlayer.handleVideoReady = () => {
-            console.log('Main video ready (>=40% buffered');
+            console.log('Main video ready (>=40% buffered)');
             this.videoReady = true;
             this.isLoading = false;
+
+            this.startPlayback();
 
             this._fillBuffers();
         }
@@ -800,7 +802,6 @@ class SingleplayerGame{
 
             this.fillButtons(options);
             this.loadVideo(song.compressed, song.compressed_file_path, song.file_path);
-            this.startPlayback();
         }
     }
 
