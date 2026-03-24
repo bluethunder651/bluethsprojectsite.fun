@@ -409,7 +409,8 @@ class SingleplayerGame{
             buffer2.load();
 
             this.isLoading = true;
-            this.videoPlayer.load(next.url);
+            console.log('next.url')
+            this.videoPlayer.load(next.videoUrl);
             this._fillBuffers();
         } else {
             console.warn('Buffer queue empty - loading video directly.');
