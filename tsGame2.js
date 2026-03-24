@@ -240,6 +240,7 @@ class SingleplayerGame{
             } else {
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
             }
+            console.log("videoUrl: ", videoUrl);
             const el = bufferElements[slotIndex];
             el.preload = 'auto';
             el.src = videoUrl;
