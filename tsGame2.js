@@ -855,6 +855,21 @@ class SingleplayerGame{
         }
     }
 
+    gameEnded(scores, highest_streak){
+        const main = document.getElementById('video-player');
+        main.onpause();
+        this.isGameActive = false;
+        const game_screen = document.getElementById('game-screen')
+        const landing_screen = document.getElementById('landing-screen')
+
+        alert(`Game over!\nFinal score: ${scores}\nHighest Streak: ${highest_streak}`)
+
+        game_screen.style.display = 'none';
+        landing_screen.style.display = 'block';
+        landing_screen.classList.add('active');
+        game_screen.classList.remove('active');
+    }
+
 }
 
 const player = new SingleplayerGame();
