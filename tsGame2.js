@@ -42,9 +42,11 @@ class SingleplayerGame{
         const videoElement = document.getElementById('video-player');
         this.videoPlayer = new VideoPlayer(videoElement);
 
-        this.videoPlayer.handleVideoEnded = () => {
+        this.videoPlayer.handleVideoReady = () => {
+            console.log('Main video ready (>=40% buffered');
             this.videoReady = true;
             this.isLoading = false;
+
             this._fillBuffers();
         }
 
@@ -268,6 +270,9 @@ class SingleplayerGame{
     async startPlayback(){
         if(this.playbackStarted) return;
         this.playbackStarted = true;
+
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
 
         if(this.hardMode){
             this.videoPlayer.hide();
@@ -796,9 +801,6 @@ class SingleplayerGame{
             this.fillButtons(options);
             this.loadVideo(song.compressed, song.compressed_file_path, song.file_path);
             this.startPlayback();
-
-            loading_screen.style.display = 'none';
-            game_screen.style.display = 'block';
         }
     }
 
