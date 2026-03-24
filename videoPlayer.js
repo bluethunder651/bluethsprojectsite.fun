@@ -53,7 +53,7 @@ class VideoPlayer{
 
         this._fallbackTimer = setTimeout(() => {
             if(!this._readyFired){
-                console.warn('Load timeout reached, forcing ready after 30s');
+                console.warn('Load timeout reached, forcing ready after 15s');
                 this._readyFired = true;
                 this._stopMonitor();
                 this.handleVideoReady();

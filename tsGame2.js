@@ -258,7 +258,7 @@ class SingleplayerGame{
 
         let videoUrl = '';
 
-        if(compressed !== 0){
+        if(compressed !== 0 && compressed_file_path){
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
         } else {
             videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(file_path)}?token=${encodeURIComponent(this.token)}`;
@@ -389,21 +389,16 @@ class SingleplayerGame{
         if(this.bufferQueue.length > 0){
             const next = this.bufferQueue.shift();
 
-            const buffer1 = document.getElementById('video-buffer1');
-            const buffer2 = document.getElementById('video-buffer2');
+            const bufferElements = [document.getElementById('video-buffer1'),
+                                    document.getElementById('video-buffer2')];
 
             if(this.bufferQueue.length > 0){
-                buffer1.preload = 'auto';
-                buffer1.src = this.bufferQueue[0].videoUrl;
-                buffer1.load();
-            } else {
-                buffer1.removeAttribute('src');
-                buffer1.load();
+                const nextBuffer = this.bufferQueue[0];
+                const nextSlot = this.bufferQueue.length % 2;
+                bufferElements[nextSlot].src = nextBuffer.videoUrl;
+                bufferElements[nextSlot].load()
             }
-
-            buffer2.removeAttribute('src');
-            buffer2.load();
-
+            
             this.isLoading = true;
             this.videoPlayer.load(next.videoUrl);
         } else {
@@ -437,58 +432,6 @@ class SingleplayerGame{
         } catch (error) {
             return {online: false, error: error.name === 'AbortError' ? 'Timeout' : 'Connection Failed'}
         }
-    }
-
-    collectFilterSelections(){
-        const selections = {
-            tags: {include: [], exclude: []},
-            languages: { include: [], exclude: [] },
-            decades: { include: [], exclude: [] },
-            difficulties: { include: [], exclude: [] },
-            genres: { include: [], exclude: [] },
-            production_companies: { include: [], exclude: [] },
-            networks: { include: [], exclude: [] },
-            countries: { include: [], exclude: [] },
-            special_openings: {include: [], exclude: []}
-        }
-
-        const listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
-
-        listIds.forEach(listId => {
-            const section = listId.split('-')[0];
-            let target;
-
-            if(section === 'production') target = 'production_companies';
-            else target = section;
-
-            const list = document.getElementById(listId);
-            if(!list) return;
-
-            list.querySelectorAll('.tristate-checkbox').forEach(checkbox => {
-                const value = checkbox.value;
-                const state = checkbox.dataset.tristate || 'null';
-
-                if(state === 'include'){
-                    selections[target].include.push(value);
-                } else if (state === 'exclude'){
-                    selections[target].exclude.push(value);
-                }
-            });
-        });
-
-        const special_openings = document.getElementById('special-checkbox');
-        if(!special_openings) return;
-
-        const value = special_openings.value;
-        const state = special_openings.dataset.tristate || 'null';
-
-        if(state === 'include'){
-            selections['special_openings'].include.push(value);
-        } else if (state === 'exclude'){
-            selections['special_openings'].exclude.push(value);
-        }
-
-        return selections
     }
 
     async getOptions(){
@@ -788,6 +731,7 @@ class SingleplayerGame{
             this.shuffleArray(this.playlist)
 
             this.currentPlaylistIndex = 0;
+            this.currentRound = 0;
 
             const song = this.playlist[0];
             this.currentSong = song;
@@ -852,7 +796,7 @@ class SingleplayerGame{
 
     gameEnded(scores, highest_streak){
         const main = document.getElementById('video-player');
-        main.onpause();
+        main.pause();
         this.isGameActive = false;
         const game_screen = document.getElementById('game-screen')
         const landing_screen = document.getElementById('landing-screen')
