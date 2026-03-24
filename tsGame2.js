@@ -398,6 +398,7 @@ class SingleplayerGame{
             if(this.bufferQueue.length > 0){
                 buffer1.preload = 'auto';
                 buffer1.src = this.bufferQueue[0].url;
+                console.log("buffer1.src: ", buffer1.src);
                 buffer1.load();
             } else {
                 buffer1.removeAttribute('src');
