@@ -231,7 +231,7 @@ class SingleplayerGame{
 
         while(this.bufferQueue.length < 2 && this.nextBufferFillIndex < this.playlist.length){
             const slotIndex = this.bufferQueue.length;
-            const video = this.playlist[thisnextBufferFillIndex];
+            const video = this.playlist[this.nextBufferFillIndex];
             let videoUrl = '';
             if(video.compressed !== 0){
                 videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.compressed_file_path)}?token=${encodeURIComponent(this.token)}`;
