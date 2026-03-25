@@ -278,6 +278,7 @@ class SingleplayerGame{
         } else {
             this.videoPlayer.show();
         }
+
         this.videoStartTime = Date.now();
 
         this.videoPlayer.play();
@@ -385,6 +386,12 @@ class SingleplayerGame{
         const options = await this.getOptions();
 
         this.fillButtons(options);
+
+        if(this.hardMode){
+            this.videoPlayer.hide();
+        } else {
+            this.videoPlayer.show();
+        }
         
         if(this.bufferQueue.length > 0){
             const next = this.bufferQueue.shift();
