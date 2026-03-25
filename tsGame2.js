@@ -799,7 +799,7 @@ class SingleplayerGame{
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'block';
 
-            await this.prepareNextRound().then(this.startPlayback);
+            await this.prepareNextRound().then(await this.startPlayback);
         }
     }
 
