@@ -796,6 +796,9 @@ class SingleplayerGame{
             const song = this.playlist[this.currentPlaylistIndex];
             this.currentSong = song;
 
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('loading-screen').style.display = 'block';
+
             await this.prepareNextRound().then(this.startPlayback);
         }
     }
