@@ -71,7 +71,7 @@
                     
                     console.log('document.referrer: ', document.referrer);
 
-                    if(document.referrer === `${serverUrl}/forgot-password.html`){
+                    if(`${serverUrl}/forgot-password.html` in document.referrer){
                         setTimeout(() => {
                             window.location.href = 'index.html';
                         }, 2000);
