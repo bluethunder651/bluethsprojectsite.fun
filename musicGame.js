@@ -157,7 +157,7 @@ class MusicQuizGame{
 
         document.getElementById('play-again').addEventListener('click', () => {
             this.currentRound = 1;
-
+            
             self.startNewRound();
             self.showScreen('game-screen');
         });
@@ -169,12 +169,15 @@ class MusicQuizGame{
         const loadPlaylistBtn = document.getElementById('load-playlist');
         if (loadPlaylistBtn){
             loadPlaylistBtn.addEventListener('click', () => {
-                const url = document.getElementById('youtube-playlist-url').value();
+                const url = document.getElementById('youtube-playlist-url').value;
                 if (url) {
                     this.loadCustomPlaylist(url);
                 }
             });
         }
+
+        document.getElementById('go-home-2').addEventListener('click', () => window.location.href =  'https://bluethsprojectsite.fun');
+    
     }
 
     handleReplay() {
