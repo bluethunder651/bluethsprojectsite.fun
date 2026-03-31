@@ -100,6 +100,10 @@ class MusicQuizGame{
             });
         });
 
+        document.getElementById('youtube-playlist-url').addEventListener('input', () => {
+            document.getElementById('confirm-difficulty').disabled = false;
+        })
+
         document.getElementById('confirm-difficulty').addEventListener('click', () => {
             self.showScreen('playlist-screen')
         });
