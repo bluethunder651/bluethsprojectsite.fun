@@ -822,6 +822,28 @@ class MusicQuizGame{
             .trim(); 
     }
 
+    extractArtistFromTitle(title){
+        const patterns = [
+            /^([^-]+)-\s*(.+)$/,
+            /^(.+?)\s*[-–—]\s*(.+)$/,
+            /(.+?)\s+by\s+(.+)$/i,
+        ];
+        
+        for (const pattern of patterns) {
+            const match = title.match(pattern);
+            if (match) {
+                if (pattern === patterns[0] || pattern === patterns[1]) {
+                    return match[1].trim();
+                }
+                if (pattern === patterns[2]) {
+                    return match[2].trim();
+                }
+            }
+        }
+        
+        return null;        
+    }
+
 }
 
 const game = new MusicQuizGame();
