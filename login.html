@@ -30,6 +30,7 @@
                 <a href="register.html">Create Account</a>
                 <a href="forgot-password.html">Forgot Password?</a>
                 <a href="index.html">Home</a>
+                <a href="continue-as-guest.hmtl">Continue as Guest</a>
             </div>
         </div>
     </body>
@@ -68,9 +69,17 @@
                     
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    setTimeout(() => {
-                        window.history.go(-1);
-                    }, 2000);
+                    console.log('document.referrer: ', document.referrer);
+
+                    if(document.referrer === `${serverUrl}/forgot-password.html`){
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+                    } else {
+                        setTimeout(() => {
+                            window.history.go(-1);
+                        }, 2000);
+                    }
                 } else {
                     errorEl.textContent = data.error || 'Login failed';
                     errorEl.style.display = 'block';
