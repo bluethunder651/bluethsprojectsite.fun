@@ -725,12 +725,6 @@ class MusicQuizGame{
             document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
             document.getElementById('start-round').disabled = false;
 
-            if(!window.songDatabase.custom){
-                window.songDatabase.custom = [];
-            }
-
-            window.songDatabase.custom = playlistSongs;
-
             this.selectedPlaylist = 'custom'
         }
     }
