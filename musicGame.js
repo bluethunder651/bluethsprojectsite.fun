@@ -785,6 +785,7 @@ class MusicQuizGame{
                 }));
 
                 allVideos = [...allVideos, ...validVideos];
+                console.log('allVideos: ', allVideos);
                 nextPageToken = videosData.nextPageToken;
             } while (nextPageToken);
             
