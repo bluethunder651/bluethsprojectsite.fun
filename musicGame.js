@@ -771,20 +771,58 @@ class MusicQuizGame{
 
                 const videosData = await videosResponse.json();
 
-                const validVideos = videosData.items.filter(item => 
-                    item.snippet && 
-                    item.snippet.title && 
-                    item.snippet.title !== 'Private video' && 
-                    item.snippet.title !== 'Deleted video'
-                ).map(item => ({
-                    title: this.cleanVideoTitle(item.snippet.title),
-                    artist: item.snippet.channelId || 'Unknown Artist',
-                    year: new Date().getFullYear().toString(),
-                    genre: 'custom',
-                    videoId: item.snippet.resourceId.videoId
-                }));
+                const videoIds = videosData.items.filter(item => 
+                    item.snippet &&
+                    item.snippet.title &&
+                    item.snippet.title !== 'Private Video' &&
+                    item.snippet.title !== 'Deleted Video'
+                ).map(item => item.snippet.resourceId.videoId);
 
-                allVideos = [...allVideos, ...validVideos];
+                if (videoIds.length > 0){
+                    const videoDetailsResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoIds.join(',')}&key=${this.YOUTUBE_API_KEY}`);
+
+                    if (videoDetailsResponse.ok){
+                        const videoDetailsData = await videoDetailsResponse.json();
+
+                        const channelMap = {};
+                        videoDetailsData.items.forEach(video => {
+                            if(video.id && video.snippet){
+                                channelMap[video.id] = video.snippet.channelTitle;
+                            }
+                        });
+
+                        const validVideos = videosData.items.filter(item => 
+                            item.snippet &&
+                            item.snippet.title &&
+                            item.snippet.title !== 'Private Video' &&
+                            item.snippet.title !== 'Deleted Video'
+                        ).map(item => ({
+                            title: this.cleanVideoTitle(item.snippet.title),
+                            artist: channelMap[item.snippet.resourceId.videoId] || 'Unknown Artist',
+                            year: new Date().getFullYear().toString(),
+                            genre: 'custom',
+                            videoId: item.snippet.resourceId.videoId
+                         }));
+
+                        allVideos = [...allVideos, ...validVideos];
+                    } else {
+                        const fallbackVideos = videosData.items.filter(item =>
+                            item.snippet && 
+                            item.snippet.title && 
+                            item.snippet.title !== 'Private video' && 
+                            item.snippet.title !== 'Deleted video'
+                        ).map(item => ({
+                            title: this.cleanVideoTitle(item.snippet.title),
+                            artist: 'Unknown Artist',
+                            year: new Date().getFullYear().toString(),
+                            genre: 'custom',
+                            videoId: item.snippet.resourceId.videoId
+                        }));
+
+                        allVideos = [...allVideos, ...fallbackVideos];
+
+                    }
+                }
                 console.log('allVideos: ', allVideos);
                 nextPageToken = videosData.nextPageToken;
             } while (nextPageToken);
