@@ -807,6 +807,21 @@ class MusicQuizGame{
         }
     }
 
+    cleanVideoTitle(title){
+        return title
+            .replace(/\s*\([^)]*official[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*official[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*video[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*video[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*audio[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*audio[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
+            .replace(/\s*\|.*$/, '') // Remove everything after |
+            .replace(/\s*-\s*$/, '') // Remove trailing dash
+            .trim(); 
+    }
+
 }
 
 const game = new MusicQuizGame();
