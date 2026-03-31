@@ -778,7 +778,7 @@ class MusicQuizGame{
                     item.snippet.title !== 'Deleted video'
                 ).map(item => ({
                     title: this.cleanVideoTitle(item.snippet.title),
-                    artist: item.snippet.channelTitle || 'Unknown Artist',
+                    artist: item.snippet.channelId || 'Unknown Artist',
                     year: new Date().getFullYear().toString(),
                     genre: 'custom',
                     videoId: item.snippet.resourceId.videoId
