@@ -28,6 +28,7 @@ class MusicQuizGame{
         this.currentAudio = null;
         this.retryAttempts = 0;
         this.maxRetryAttempts = 2;
+        this.playedSongs = {};
         
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
 
@@ -229,7 +230,7 @@ class MusicQuizGame{
             if(audioUrl){
                 this.playLocalAudio(audioUrl);
             } else {
-                await this.playYouTube(this.currentSong);
+                this.startNewRound();
             }
         } catch (e){
             if (this.retryAttempts < this.maxRetryAttempts){
@@ -452,6 +453,10 @@ class MusicQuizGame{
         }
         this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
 
+        while(this.currentSong in this.playedSongs){
+            this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
+        }
+
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
 
         this.playCurrentSong();
@@ -466,7 +471,7 @@ class MusicQuizGame{
 
     processTextGuess(title, artist) {
         if(!this.currentSong) return;
-
+        this.playedSongs.append(this.currentSong);
         this.stopPlayback();
 
         let points = 0;
@@ -713,6 +718,33 @@ class MusicQuizGame{
         }
     }
 
+    playVideoWithIframe(videoId, song) {
+        const startTime = this.randomStartTime;
+        const endTime = startTime + this.snippetDuration;
+        
+        // Using end parameter to stop automatically
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}&end=${endTime}&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0&playsinline=1`;
+
+        console.log(`Playing with iframe: ${startTime} to ${endTime}`);
+        
+        const playerDiv = document.createElement('div');
+        playerDiv.innerHTML = `
+            <iframe 
+                width="0" 
+                height="0"
+                src="${embedUrl}"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                style="position:absolute; width:0; height:0; border:0; display:none;">
+            </iframe>
+        `;
+        document.body.appendChild(playerDiv);
+
+        setTimeout(() => {
+            playerDiv.remove();
+        }, 20000);
+    }
+
     async loadCustomPlaylist(url){
         const playlistId = this.extractPlaylistId(url);
 
@@ -764,7 +796,7 @@ class MusicQuizGame{
 
             do{
                 const videosResponse = await fetch(
-                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
+                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=100&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
                 );
 
                 if (!videosResponse.ok){
