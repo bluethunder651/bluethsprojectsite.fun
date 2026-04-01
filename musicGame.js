@@ -763,7 +763,7 @@ class MusicQuizGame{
         this.players[this.currentPlayerIndex].score += points;
         document.getElementById('result-message').innerHTML = message;
         
-        setTimeout(() => this.nextTurn(message), 5000);
+        this.nextTurn(message);
     }
 
     nextTurn(message) {
@@ -779,13 +779,15 @@ class MusicQuizGame{
             this.currentRound++;
             
             if (this.currentRound > this.maxRounds) {
-                document.getElementById('loading-screen').style.display = 'none';
-                this.endGame();
-                return;
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    this.endGame();
+                    return;
+                }, 5000);
             }
         }
         
-        this.startNewRound();
+        setTimeout(() => this.startNewRound(), 5000);
     }   
 
     checkPartialMatch(guess, target) {
