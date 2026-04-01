@@ -28,7 +28,7 @@ class MusicQuizGame{
         this.currentAudio = null;
         this.retryAttempts = 0;
         this.maxRetryAttempts = 2;
-        this.playedSongs = {};
+        this.playedSongs = [];
         
         this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
 
