@@ -798,7 +798,7 @@ class MusicQuizGame{
                             item.snippet.title !== 'Deleted Video'
                         ).map(item => ({
                             title: this.cleanVideoTitle(item.snippet.title),
-                            artist: channelMap[item.snippet.resourceId.videoId] || 'Unknown Artist',
+                            artist: this.cleanArtistName(channelMap[item.snippet.resourceId.videoId]) || 'Unknown Artist',
                             year: new Date().getFullYear().toString(),
                             genre: 'custom',
                             videoId: item.snippet.resourceId.videoId
@@ -852,6 +852,21 @@ class MusicQuizGame{
             .replace(/\s*\[[^\]]*video[^\]]*\]/gi, '')
             .replace(/\s*\([^)]*audio[^)]*\)/gi, '')
             .replace(/\s*\[[^\]]*audio[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
+            .replace(/\s*\|.*$/, '') // Remove everything after |
+            .replace(/\s*-\s*$/, '') // Remove trailing dash
+            .trim(); 
+    }
+
+    cleanArtistName(title){
+        return title
+            .replace(/\s*\([^)]* - topic[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]* - topic[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*vevo[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*vevo[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*official[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*official[^\]]*\]/gi, '')
             .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
             .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
             .replace(/\s*\|.*$/, '') // Remove everything after |
