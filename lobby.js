@@ -62,6 +62,7 @@ class MultiplayerLobby{
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendChatMessage();
         });
+        //document.getElementById('big-filter-header').addEventListener('click', () => this.toggleFilters());
         document.querySelector('.filter-header').addEventListener('click', () => this.toggleFilters());
         document.getElementById('max-rounds').addEventListener('click', () => {
             this.maxRounds = document.getElementById('max-rounds').checked;
