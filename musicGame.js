@@ -37,28 +37,104 @@ class MusicQuizGame{
     }
 
     initVoiceRecognition() {
-        if ('webkitSpeechRecognition' in window) {
-            this.recognition = new webkitSpeechRecognition();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition){
+            this.recognition = new SpeechRecognition();
             this.recognition.continuous = false;
             this.recognition.interimResults = false;
             this.recognition.lang = 'en-US';
-            
+
+            this.recognition.maxAlternatives = 1;
+
             const self = this;
-            
+
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
+                const confidence = event.results[0][0].confidence;
+
+                console.log(`Voice recognition confidence: ${confidence}`);
                 document.getElementById('voice-status').textContent = '🎤 Heard: "' + transcript + '"';
                 self.processVoiceGuess(transcript);
             };
-            
+
             this.recognition.onstart = () => {
                 document.getElementById('voice-status').classList.add('listening');
                 document.getElementById('voice-status').textContent = '🎤 Listening...';
+
+                if(this.isMobileDevice()){
+                    this.showMicrophoneIndicator(true);
+                }
             };
-            
+
             this.recognition.onend = () => {
                 document.getElementById('voice-status').classList.remove('listening');
+
+                if(this.isMobileDevice()){
+                    this.showMicrophoneIndicator(false);
+                }
             };
+
+            this.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                
+                let errorMessage = '🎤 ';
+                switch(event.error) {
+                    case 'not-allowed':
+                        errorMessage += 'Microphone permission denied. Please allow microphone access.';
+                        break;
+                    case 'audio-capture':
+                        errorMessage += 'No microphone found or microphone unavailable.';
+                        break;
+                    case 'network':
+                        errorMessage += 'Network error. Please check your connection.';
+                        break;
+                    case 'aborted':
+                        errorMessage += 'Voice input was aborted.';
+                        break;
+                    case 'no-speech':
+                        errorMessage += 'No speech detected. Please try again.';
+                        break;
+                    default:
+                        errorMessage += `Voice recognition error: ${event.error}`;
+                    }
+                
+                document.getElementById('voice-status').textContent = errorMessage;
+
+                setTimeout(() => {
+                    if (document.getElementById('voice-status').textContent === errorMessage){
+                        document.getElementById('voice-status').textContent = '🎤';
+                    }
+                }, 3000);
+                
+            };
+
+        } else {
+            console.warn('Speech recognition not supported');
+            const voiceBtn = document.getElementById('voice-input');
+            if(voiceBtn){
+                voiceBtn.disabled = true;
+                voiceBtn.title = 'Voice Recogntion not supported';
+            }
+            document.getElementById('voice-status').textContent = '🎤 Not supported';
+        }
+
+    }
+
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    showMicrophoneIndicator(isActive){
+        const voiceBtn = document.getElementById('voice-input');
+        if(voiceBtn){
+            if (isActive){
+                voiceBtn.classList.add('mic-active');
+                voiceBtn.style.animation = 'pulse 1s infinite';
+            } else {
+                voiceBtn.classList.remove('mic-active');
+                voiceBtn.style.animation = '';
+            }
         }
     }
 
