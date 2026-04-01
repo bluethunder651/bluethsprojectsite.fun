@@ -768,6 +768,8 @@ class MusicQuizGame{
 
     nextTurn(message) {
 
+        this.stopPlayback();
+
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'block';
         document.getElementById('loading-message').textContent = message;
@@ -782,12 +784,12 @@ class MusicQuizGame{
                 setTimeout(() => {
                     document.getElementById('loading-screen').style.display = 'none';
                     this.endGame();
-                    return;
                 }, 5000);
+                return;
             }
         }
         
-        setTimeout(() => this.startNewRound(), 5000);
+        setTimeout(() => this.startNewRound(), 2500);
     }   
 
     checkPartialMatch(guess, target) {
