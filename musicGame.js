@@ -869,6 +869,7 @@ class MusicQuizGame{
             .replace(/\s*\[[^\]]*official[^\]]*\]/gi, '')
             .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
             .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
+            .replace(/\s*-\s*(topic|vevo|official|lyrics?)(\s*|$)/gi, '')
             .replace(/\s*\|.*$/, '') // Remove everything after |
             .replace(/\s*-\s*$/, '') // Remove trailing dash
             .trim(); 
