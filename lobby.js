@@ -64,7 +64,7 @@ class MultiplayerLobby{
         });
         document.getElementById('big-filter-header').addEventListener('click', () => this.toggleFilters());
         document.querySelectorAll('.filter-header').forEach(id => {
-            id.addEventListener('click', () => {
+            id.addEventListener('click', function() {
                 const header = this;
                 this.toggleSection(header);
             })
