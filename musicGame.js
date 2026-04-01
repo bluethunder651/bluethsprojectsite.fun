@@ -390,6 +390,9 @@ class MusicQuizGame{
             document.getElementById('play-snippet').disabled = false;
         }
 
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+
         const playPromise = audio.play();
 
         if(playPromise !== undefined){
@@ -761,6 +764,10 @@ class MusicQuizGame{
     }
 
     nextTurn() {
+
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('loading-screen').style.display = 'block';
+
         this.currentPlayerIndex++;
         
         if (this.currentPlayerIndex >= this.players.length) {
