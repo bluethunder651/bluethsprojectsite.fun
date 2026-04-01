@@ -292,7 +292,7 @@ class MultiplayerLobby{
     }
 
     toggleFilters() {
-        const content = document.getElementById('host-filters');
+        const content = document.getElementById('filter-options');
         const arrow = document.querySelector('.filter-header .arrow');
 
         if(content.style.display === 'none'){
