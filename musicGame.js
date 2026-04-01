@@ -861,8 +861,8 @@ class MusicQuizGame{
 
     cleanArtistName(title){
         return title
-            .replace(/\s*\([^)]* - topic[^)]*\)/gi, '')
-            .replace(/\s*\[[^\]]* - topic[^\]]*\]/gi, '')
+            .replace(/\s*\([^)]*topic[^)]*\)/gi, '')
+            .replace(/\s*\[[^\]]*topic[^\]]*\]/gi, '')
             .replace(/\s*\([^)]*vevo[^)]*\)/gi, '')
             .replace(/\s*\[[^\]]*vevo[^\]]*\]/gi, '')
             .replace(/\s*\([^)]*official[^)]*\)/gi, '')
