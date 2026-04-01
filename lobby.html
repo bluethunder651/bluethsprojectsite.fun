@@ -73,8 +73,125 @@
                     <div class="filter-header" onclick="toggleFilters()">
                         Advanced Filters <span class="arrow">▼</span>
                     </div>
-                    <div id="host-filters" class="filter-content" style="display: none;">
-                        <div id="host-filters-loading">Loading filters...</div>
+                    <div id="filter-options" style="display: none;">
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Tags <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content" id="filter-content">
+                                <div id="tags-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Language <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="languages-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Decade <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="decades-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Difficulty <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="difficulties-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Genre <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="genres-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Production Company <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="production-companies-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Network <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="networks-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Country <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div id="countries-list"></div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Special Openings<span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                            <div id="special"></div>
+                            <div class="tristate-item">
+                                <label class="tristate-container">
+                                    <input type="checkbox" class="tristate-checkbox" id="special-checkbox" value="special-openings" data-tristate="null">
+                                    <span class="tristate-label">Special Openings</span>
+                                    <span class="tristate-state" id="special-checkbox-state">(null)</span>
+                                </label>
+                            </div>
+                        </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Random Start Time <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div>
+                                    <label>
+                                        <input type="checkbox" id="enable-random-start">
+                                        Enable Random Start Time
+                                    </label>
+                                    <div id="random-start-fields" style="display: none;">
+                                        <label>
+                                            Min: <input type="number" id="start-min" min="0" max="95" value="0">%
+                                        </label>
+                                        <label>
+                                            Max: <input type="number" id="start-max" min="5" max="100" value="100">%
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <div class="filter-header">
+                                Hint Mode <span class="arrow">▼</span>
+                            </div>
+                            <div class="filter-content">
+                                <div>
+                                    <label>
+                                        <input type="checkbox" id="enable-hint-mode">
+                                        Enable Hint Mode
+                                    </label>
+                                    <div id="hint-percent-field" style="display: none;">
+                                        <label>
+                                            Reveal Percent: <input type="number" id="reveal-percent" min="0" max="100" value="25">%
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="button-group">
