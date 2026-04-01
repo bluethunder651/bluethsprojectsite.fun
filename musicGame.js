@@ -440,6 +440,9 @@ class MusicQuizGame{
         this.replaysLeft = 1;
         this.isPreloaded = false;
 
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('loading-screen').style.display = 'block';
+
         document.getElementById('replay-snippet').disabled = false;
         document.getElementById('play-snippet').disabled = false;
         document.getElementById('title-guess').value = '';
@@ -760,13 +763,14 @@ class MusicQuizGame{
         this.players[this.currentPlayerIndex].score += points;
         document.getElementById('result-message').innerHTML = message;
         
-        setTimeout(() => this.nextTurn(), 5000);
+        setTimeout(() => this.nextTurn(message), 5000);
     }
 
-    nextTurn() {
+    nextTurn(message) {
 
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'block';
+        document.getElementById('loading-message').textContent = message;
 
         this.currentPlayerIndex++;
         
@@ -775,6 +779,7 @@ class MusicQuizGame{
             this.currentRound++;
             
             if (this.currentRound > this.maxRounds) {
+                document.getElementById('loading-screen').style.display = 'none';
                 this.endGame();
                 return;
             }
