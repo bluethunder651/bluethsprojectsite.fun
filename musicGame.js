@@ -384,6 +384,8 @@ class MusicQuizGame{
                 case 3: difficulty = 'medium'; break;
                 case 4: difficulty = 'medium'; break;
             }
+        } else if(this.isCustomPlaylist) {
+            difficulty = 'custom difficulty'
         } else {
             difficulty = this.difficulty
         }
