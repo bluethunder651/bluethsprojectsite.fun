@@ -118,6 +118,7 @@ class SingleplayerGame{
             document.querySelectorAll('.filter-header').forEach(id => {
                 id.addEventListener('click', () => {
                     const header = this;
+                    console.log('header: ', header)
                     player.toggleSection(header);
                 });
             });
