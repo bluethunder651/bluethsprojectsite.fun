@@ -539,10 +539,94 @@ class MusicQuizGame{
         
     }
 
-    processVoiceGuess(transcript){
-        console.log('Voice transcript: ', transcript);
-        document.getElementById('voice-status').textContent = `Heard: ${transcript}`;
-        document.getElementById('title-guess').value = transcript;
+    processVoiceGuess(transcript) {
+        console.log("Transcript: ", transcript);
+        
+        const cleanTranscript = transcript.toLowerCase().trim();
+        
+        const guessIndicators = [
+            'this is', 'it\'s', 'its', 'that is', 'thats', 'i think it\'s',
+            'i think its', 'maybe', 'perhaps', 'is it', 'could be'
+        ];
+        
+        let processedTranscript = cleanTranscript;
+        guessIndicators.forEach(indicator => {
+            processedTranscript = processedTranscript.replace(indicator, '');
+        });
+        
+        const currentArtists = this.currentSong.artist.split(/[&,]+|\sand\s|\sfeat\.?\s|\sft\.?\s/i).map(a => a.trim().toLowerCase());
+        
+        let titleGuess = processedTranscript;
+        let artistGuess = '';
+        
+        const separators = [' by ', ' from ', ' - ', ' – ', ' — ', ' with ', ' and ', ' & '];
+        for (const separator of separators) {
+            if (processedTranscript.includes(separator)) {
+                const parts = processedTranscript.split(separator);
+                titleGuess = parts[0].trim();
+                artistGuess = parts[1] ? parts[1].trim() : '';
+                break;
+            }
+        }
+        
+        if (!artistGuess) {
+            for (const artist of currentArtists) {
+                const artistWords = artist.split(/\s+/);
+                
+                if (processedTranscript.includes(artist)) {
+                    const artistIndex = processedTranscript.indexOf(artist);
+                    titleGuess = processedTranscript.substring(0, artistIndex).trim();
+                    artistGuess = artist;
+                    break;
+                }
+                
+                for (const word of artistWords) {
+                    if (word.length > 3 && processedTranscript.includes(word)) {
+                        const wordIndex = processedTranscript.indexOf(word);
+                        titleGuess = processedTranscript.substring(0, wordIndex).trim();
+                        artistGuess = processedTranscript.substring(wordIndex).trim();
+                        break;
+                    }
+                }
+                if (artistGuess) break;
+            }
+        }
+        
+        if (!artistGuess) {
+            for (const artist of currentArtists) {
+                if (this.checkPartialMatch(processedTranscript, artist) || 
+                    this.checkNormalizedMatch(processedTranscript, artist)) {
+                    // Assume everything is the artist guess
+                    artistGuess = processedTranscript;
+                    titleGuess = '';
+                    break;
+                }
+            }
+        }
+        
+        console.log('Parsed - Title:', titleGuess, 'Artist:', artistGuess);
+        console.log('Current song artists:', currentArtists);
+        
+        this.processTextGuess(titleGuess, artistGuess);
+    }
+
+    findPossibleArtistInTranscript(transcript) {
+        if (!this.currentSong) return null;
+        
+        const currentArtist = this.currentSong.artist.toLowerCase();
+        const artistWords = currentArtist.split(/[&\s]+/);
+        
+        for (const word of artistWords) {
+            if (word.length > 2 && transcript.includes(word)) {
+                const wordIndex = transcript.indexOf(word);
+                const titleGuess = transcript.substring(0, wordIndex).trim();
+                const artistGuess = transcript.substring(wordIndex).trim();
+                
+                return { title: titleGuess, artist: artistGuess };
+            }
+        }
+        
+        return null;
     }
 
     processTextGuess(title, artist) {
