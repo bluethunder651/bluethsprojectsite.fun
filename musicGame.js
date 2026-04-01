@@ -229,7 +229,7 @@ class MusicQuizGame{
             if(audioUrl){
                 this.playLocalAudio(audioUrl);
             } else {
-                await this.playYoutube(this.currentSong);
+                await this.playYouTube(this.currentSong);
             }
         } catch (e){
             if (this.retryAttempts < this.maxRetryAttempts){
