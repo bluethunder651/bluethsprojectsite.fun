@@ -250,6 +250,23 @@ body {
   cursor: pointer;
 }
 
+.advanced-filter-header {
+  background: #f0f0f0;
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.advanced-filter-header:hover {
+  background: #e0e0e0;
+}
+
 .filter-header {
   background: #f0f0f0;
   padding: 12px 15px;

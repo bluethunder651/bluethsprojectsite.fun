@@ -62,8 +62,13 @@ class MultiplayerLobby{
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendChatMessage();
         });
-        //document.getElementById('big-filter-header').addEventListener('click', () => this.toggleFilters());
-        document.querySelector('.filter-header').addEventListener('click', () => this.toggleFilters());
+        document.getElementById('big-filter-header').addEventListener('click', () => this.toggleFilters());
+        document.querySelectorAll('.filter-header').forEach(id => {
+            id.addEventListener('click', () => {
+                const header = this;
+                this.toggleSection(header);
+            })
+        });
         document.getElementById('max-rounds').addEventListener('click', () => {
             this.maxRounds = document.getElementById('max-rounds').checked;
             if(this.maxRounds){
@@ -371,6 +376,14 @@ class MultiplayerLobby{
             arrow.textContent = '▼';
         }
     }
+
+    toggleSection(header){
+        const content = header.nextElementSibling;
+        content.classList.toggle('active');
+        const arrow = header.querySelector('.arrow');
+        arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
+    }
+
 
     collectFilterSelections(){
         const selections = {
