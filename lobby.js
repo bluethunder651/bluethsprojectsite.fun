@@ -231,7 +231,7 @@ class MultiplayerLobby{
             });
             if(response.ok){
                 this.filterMetadata = await response.json();
-                this.populateFilters('host-filters');
+                this.populateFilters('filter-options');
             }
         } catch (error) {
             console.error('Failed to load filters: ', error);
@@ -239,8 +239,13 @@ class MultiplayerLobby{
     }
 
     populateFilters(containerId){
+        const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
         const container = document.getElementById(containerId);
         if (!container || !this.filterMetadata) return;
+
+        filterSelections.forEach(id => {
+            document.getElementById(id).innerHTML = '';
+        })
 
         container.innerHTML = '';
 
@@ -255,40 +260,102 @@ class MultiplayerLobby{
             { name: 'countries', title: 'Countries'}
         ]
 
-        categories.forEach(category => {
-            if(this.filterMetadata[category.name] && this.filterMetadata[category.name].length > 0){
-                const section = document.createElement('div');
-                section.className = 'filter-category';
-                section.innerHTML = `<h4>${category.title}</h4>`;
+        categories.forEach(key => {
+            if(!container || !containerId[key]) return;
 
-                const itemsDiv = document.createElement('div');
-                itemsDiv.className = 'filter-items';
+            containerId[key].forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'tristate-item';
 
-                this.filterMetadata[category.name].forEach(item => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'filter-item';
-                    itemDiv.innerHTML = `
-                        <input type="checkbox" class="filter-checkbox" data-category="${category.name}" value=${item.toLowerCase()}">
-                        <label>${item}</label>
-                    `;
-                    itemsDiv.appendChild(itemDiv);
+                const value = item.trim().toLowerCase();
+
+                div.innerHTML = `
+                    <label class="tristate-container">
+                        <input type="checkbox" class="tristate-checkbox" value="${value}" data-tristate="null">
+                        <span class="tristate-label">${item}</span>
+                        <span class="tristate-state>(null)</span>
+                    </label>
+                `;
+
+                container.appendChild(div);
+
+                const checkbox = div.querySelector('.tristate-checkbox');
+                const stateSpan = div.querySelector('.tristate-state');
+
+                checkbox.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.cycleTristate(checkbox);
+
+                    const state = checkbox.dataset.tristate || 'null';
+
+                    if(state === 'include'){
+                        stateSpan.textContent = '(include)';
+                    } else if (state === 'exclude'){
+                        stateSpan.textContent = '(exclude)';
+                    } else {
+                        stateSpan.textContent = '(null)';
+                    }
                 });
-
-                section.appendChild(itemsDiv);
-                container.appendChild(section);
-            }
+            });
         });
 
-        const specialSection = document.createElement('div');
-        specialSection.className = 'filter-category';
-        specialSection.innerHTML = `
-            <h4>Special Openings</h4>
-            <div class="filter-item">
-                <input type="checkbox" id="special-openings-filter" class="filter-checkbox" data-category="special">
-                <label>Include Special Openings</label>
-            </div>
-        `;
-        container.appendChild(specialSection)
+        const specialCheckbox = document.getElementById('special-checkbox');
+
+        if(specialCheckbox){
+            specialCheckbox.dataset.tristate = 'null';
+            specialCheckbox.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.cycleTristate(specialCheckbox);
+
+                const specialCheckboxState = document.getElementById('special-checkbox-state');
+
+                const state = specialCheckbox.dataset.tristate || 'null';
+
+                if (state === 'include'){
+                    specialCheckboxState.textContent = '(include)';
+                } else if (state === 'exclude'){
+                    specialCheckboxState.textContent = '(exclude)';
+                } else {
+                    specialCheckboxState.textContent = '(null)';
+                }
+            });
+        }
+    }
+
+    cycleTristate(checkbox){
+        const currentState = checkbox.dataset.tristate || 'null';
+        let newState;
+
+        switch(currentState){
+            case 'null':
+                newState = 'include';
+                break;
+            case 'include':
+                newState = 'exclude';
+                break;
+            case 'exclude':
+                newState = 'null';
+                break;
+            default:
+                newState = 'include';
+        }
+
+        this.setTristateState(checkbox, newState);
+    }
+
+    setTristateState(checkbox, state){
+        checkbox.dataset.tristate = state;
+        checkbox.classList.remove('indeterminate');
+        checkbox.checked = false;
+
+        if (state === 'include'){
+            checkbox.classList.add('checked');
+        } else if (state === 'exclude'){
+            checkbox.classList.remove('checked');
+            checkbox.classList.add('indeterminate');
+        } else {
+            checkbox.classList.remove('indeterminate');
+        }
     }
 
     toggleFilters() {
@@ -302,6 +369,57 @@ class MultiplayerLobby{
             content.style.display = 'none';
             arrow.textContent = '▼';
         }
+    }
+
+    collectFilterSelections(){
+        const selections = {
+            tags: {include: [], exclude: []},
+            languages: { include: [], exclude: [] },
+            decades: { include: [], exclude: [] },
+            difficulties: { include: [], exclude: [] },
+            genres: { include: [], exclude: [] },
+            production_companies: { include: [], exclude: [] },
+            networks: { include: [], exclude: [] },
+            countries: { include: [], exclude: [] },
+            special_openings: {include: [], exclude: []},            
+        }
+
+        const listIds = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
+
+        listIds.forEach(listId => {
+            const section = listId.split('-')[0];
+            let target;
+
+            if(section === 'production') target = 'production_companies';
+            else target = section;
+
+            const list = document.getElementById(listId);
+            if(!list) return;
+
+            list.querySelectorAll('.tristate-checkbox').forEach(checkbox => {
+                const value = checkbox.value;
+                const state = checkbox.dataset.tristate || 'null';
+
+                if(state === 'include'){
+                    selections[target].include.push(value);
+                } else if (state === 'exclude'){
+                    selections[target].exclude.push(value);
+                }
+            });
+        });
+
+        const special_openings = document.getElementById('special-checkbox');
+        if(!special_openings) return;
+        const value = special_openings.value;
+        const state = special_openings.dataset.tristate || 'null';
+
+        if(state === 'include'){
+            selections['special_openings'].include.push(value);
+        } else if (state === 'exclude'){
+            selections['special_openings'].exclude.push(value);
+        }
+
+        return selections
     }
 
     async fetchGames() {
@@ -674,7 +792,7 @@ class MultiplayerLobby{
 
         console.log(`Max Players: ${maxPlayers}, Rounds: ${rounds}, Hard Mode: ${hardMode}, Time Limit: ${timeLimit}`);
 
-        const filters = this.gatherFilters();
+        const filters = this.collectFilterSelections();
 
         try {
             const response = await fetch(`${this.website}/api/local/multiplayer/create`, {
@@ -719,33 +837,6 @@ class MultiplayerLobby{
             console.error('Failed to create game: ', error);
             alert('Failed to create game');
         }
-    }
-
-    gatherFilters(){
-        const filters = {
-            tags: { include: [], exclude: [] },
-            languages: { include: [], exclude: [] },
-            decades: { include: [], exclude: [] },
-            difficulties: { include: [], exclude: [] },
-            genres: { include: [], exclude: [] },
-            production_companies: { include: [], exclude: [] },
-            networks: { include: [], exclude: [] },
-            countries: { include: [], exclude: [] },
-            special_openings: { include: [], exclude: [] }           
-        }
-
-        document.querySelectorAll('#host-filters .filter-checkbox:checked').forEach(checkbox => {
-            const category = checkbox.dataset.category;
-            const value = checkbox.value;
-
-            if (category === 'special'){
-                filters.special_openings.include = ['special'];
-            } else {
-                filters[category].include.push(value);
-            }
-        });
-
-        return filters;
     }
 
     async toggleReady(ready){
