@@ -471,7 +471,7 @@ class MusicQuizGame{
 
     processTextGuess(title, artist) {
         if(!this.currentSong) return;
-        this.playedSongs.append(this.currentSong);
+        this.playedSongs.push(this.currentSong);
         this.stopPlayback();
 
         let points = 0;
