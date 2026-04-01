@@ -43,7 +43,6 @@ class SingleplayerGame{
         this.videoPlayer = new VideoPlayer(videoElement);
 
         this.videoPlayer.handleVideoReady = () => {
-            console.log('Main video ready (>=40% buffered)');
             this.videoReady = true;
             this.isLoading = false;
 
@@ -802,6 +801,14 @@ class SingleplayerGame{
             await this.prepareNextRound();
         }
     }
+
+    toggleSection(header){
+        const content = header.nextElementSibling;
+        content.classList.toggle('active');
+        const arrow = header.querySelector('.arrow');
+        arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
+    }
+
 
     gameEnded(scores, highest_streak){
         const main = document.getElementById('video-player');
