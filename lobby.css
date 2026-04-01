@@ -285,12 +285,13 @@ body {
 }
 
 .filter-content {
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  max-height: 400px;
-  overflow-y: auto;
+  display: none;
+}
+
+.filter-content.active {
+    display: block;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .filter-category {
