@@ -369,6 +369,7 @@ class MultiplayerLobby{
         const arrow = document.querySelector('.advanced-filter-header .arrow');
 
         if(content.style.display === 'none' || !content.style.display){
+            console.log("content showing")
             content.style.display = 'block';
             arrow.textContent = '▲';
         } else {
