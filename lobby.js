@@ -253,8 +253,6 @@ class MultiplayerLobby{
             document.getElementById(id).innerHTML = '';
         })
 
-        container.innerHTML = '';
-
         const categories = [
             { name: 'tags', title: 'Tags'},
             { name: 'languages', title: 'Languages' },
