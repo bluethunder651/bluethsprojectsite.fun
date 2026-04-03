@@ -47,9 +47,6 @@ class MultiplayerLobby{
     }
 
     setupEventListeners(){
-        document.addEventListener('DOMContentLoaded', async () => {
-            this.filterMetadata = await lobby.loadFilterMetadata();
-        })
         document.getElementById('set-name-btn').addEventListener('click', () => this.setPlayerName());
         document.getElementById('player-name').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.setPlayerName();
@@ -65,8 +62,9 @@ class MultiplayerLobby{
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendChatMessage();
         });
-        document.getElementById('big-filter-header').addEventListener('click', () => {
+        document.getElementById('big-filter-header').addEventListener('click', async () => {
             this.toggleFilters();
+            this.filterMetadata = await this.loadFilterMetadata();
             this.populateFilters();
         });
         document.querySelectorAll('.filter-header').forEach(id => {
