@@ -66,7 +66,7 @@ class MultiplayerLobby{
         document.querySelectorAll('.filter-header').forEach(id => {
             id.addEventListener('click', function() {
                 const header = this;
-                this.toggleSection(header);
+                lobby.toggleSection(header);
             })
         });
         document.getElementById('max-rounds').addEventListener('click', () => {
