@@ -255,14 +255,14 @@ class MultiplayerLobby{
         })
 
         const categories = [
-            { name: 'tags', title: 'Tags'},
-            { name: 'languages', title: 'Languages' },
-            { name: 'decades', title: 'Decades' },
-            { name: 'difficulties', title: 'Difficulties' },
-            { name: 'genres', title: 'Genres' },
-            { name: 'production_companies', title: 'Production Companies'},
-            { name: 'networks', title: 'Networks'},
-            { name: 'countries', title: 'Countries'}
+            { key: 'tags', section: 'tags-list'},
+            { key: 'languages', section: 'languages-list' },
+            { key: 'decades', section: 'decades-list' },
+            { key: 'difficulties', section: 'difficulties-list' },
+            { key: 'genres', section: 'genres-list' },
+            { key: 'production_companies', section: 'production-companies-list' },
+            { key: 'networks', section: 'networks-list' },
+            { key: 'countries', section: 'countries-list' }   
         ]
 
         categories.forEach(({key, section}) => {
