@@ -269,6 +269,9 @@ class MultiplayerLobby{
 
         categories.forEach(({key, section}) => {
             const container = document.getElementById(section);
+            console.log('container: ', container);
+            console.log('this.filterMetadata', this.filterMetadata);
+            console.log('this.filterMetadata[key]: ', this.filterMetadata[key]);
             if(!container || !this.filterMetadata[key]) return;
 
             this.filterMetadata[key].forEach(item => {
