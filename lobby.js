@@ -246,8 +246,6 @@ class MultiplayerLobby{
 
     populateFilters(containerId){
         const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
-        const container = document.getElementById(containerId);
-        if (!container || !this.filterMetadata) return;
 
         filterSelections.forEach(id => {
             document.getElementById(id).innerHTML = '';
@@ -264,7 +262,8 @@ class MultiplayerLobby{
             { name: 'countries', title: 'Countries'}
         ]
 
-        categories.forEach(key => {
+        categories.forEach(({key, section}) => {
+            const container = document.getElementById(section);
             if(!container || !containerId[key]) return;
 
             containerId[key].forEach(item => {
