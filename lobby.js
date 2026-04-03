@@ -47,6 +47,9 @@ class MultiplayerLobby{
     }
 
     setupEventListeners(){
+        document.addEventListener('DOMContentLoaded', async () => {
+            this.filterMetadata = await lobby.loadFilterMetadata();
+        })
         document.getElementById('set-name-btn').addEventListener('click', () => this.setPlayerName());
         document.getElementById('player-name').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.setPlayerName();
@@ -62,7 +65,10 @@ class MultiplayerLobby{
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendChatMessage();
         });
-        document.getElementById('big-filter-header').addEventListener('click', () => this.toggleFilters());
+        document.getElementById('big-filter-header').addEventListener('click', () => {
+            this.toggleFilters();
+            this.populateFilters();
+        });
         document.querySelectorAll('.filter-header').forEach(id => {
             id.addEventListener('click', function() {
                 const header = this;
@@ -236,15 +242,14 @@ class MultiplayerLobby{
                 }
             });
             if(response.ok){
-                this.filterMetadata = await response.json();
-                this.populateFilters('filter-options');
+                return await response.json();
             }
         } catch (error) {
             console.error('Failed to load filters: ', error);
         }
     }
 
-    populateFilters(containerId){
+    populateFilters(){
         const filterSelections = ['tags-list', 'languages-list', 'decades-list', 'difficulties-list', 'genres-list', 'production-companies-list', 'networks-list', 'countries-list'];
 
         filterSelections.forEach(id => {
@@ -264,9 +269,9 @@ class MultiplayerLobby{
 
         categories.forEach(({key, section}) => {
             const container = document.getElementById(section);
-            if(!container || !containerId[key]) return;
+            if(!container || !this.filterMetadata[key]) return;
 
-            containerId[key].forEach(item => {
+            this.filterMetadata[key].forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'tristate-item';
 
