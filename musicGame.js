@@ -444,7 +444,7 @@ class MusicQuizGame{
     }
 
     prepareRounds(){
-        round = 1;
+        let round = 1;
         while(round < this.maxRounds){
             let difficulty;
             const percentile = round / this.maxRounds
