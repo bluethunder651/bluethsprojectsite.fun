@@ -989,7 +989,7 @@ class MusicQuizGame{
             if(response.ok){
                 const data = await response.json();
                 console.log("Data: ", data);
-                const videos = data.allVideos;
+                let videos = data.allVideos;
 
                 videos = Array.from(videos);
                 
