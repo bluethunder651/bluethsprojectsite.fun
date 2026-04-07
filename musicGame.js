@@ -140,6 +140,10 @@ class MusicQuizGame{
         
         const self = this;
 
+        document.addEventListener('DOMContentLoaded', async function() {
+            const response = await fetch(`${this.website}/api/music/load-seen-songs`)
+        });
+
         const startBtn = document.getElementById('start-game');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
