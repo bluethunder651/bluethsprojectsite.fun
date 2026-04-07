@@ -295,7 +295,7 @@ class MusicQuizGame{
 
     async preloadNextSong(){
         if(!this.playlist) return;
-
+        console.log('Running preloadNextSong, this.playlist.length: ', this.playlist.length);
         if(this.playlist.length < this.currentRound){
             nextSong = this.playlist[this.currentRound];
         } else {
