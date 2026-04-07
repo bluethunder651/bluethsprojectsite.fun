@@ -965,7 +965,12 @@ class MusicQuizGame{
 
         try{            
 
-            const response = await fetch(`${this.website}/api/music/youtube-api-call/${playlistId}`)
+            const response = await fetch(`${this.website}/api/music/youtube-api-call/${playlistId}`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            })
 
             if(response.ok){
                 const data = await response.json();
