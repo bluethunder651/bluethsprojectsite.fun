@@ -28,6 +28,8 @@ class MusicQuizGame{
         this.retryAttempts = 0;
         this.maxRetryAttempts = 2;
         this.playedSongs = [];
+        this.maxRounds = 4;
+        this.playlist = [];
     
         this.setupEventListeners();
         this.initVoiceRecognition();
@@ -440,6 +442,114 @@ class MusicQuizGame{
         return Math.floor(Math.random() * (45 - 15 + 1)) + 15;
     }
 
+    prepareRounds(){
+        round = 1;
+        while(round < this.maxRounds){
+            let difficulty;
+            const percentile = round / this.maxRounds
+            let intensity;
+            if(percentile >= .75){
+                intensity = 4
+            } else if (percentile >= 50){
+                intensity = 3
+            } else if (percentile >= 25){
+                intensity = 2
+            } else {
+                intensity = 1
+            }
+            if (this.difficulty === "progressive"){
+                switch(intensity) {
+                    case 1: difficulty = 'easy'; break;
+                    case 2: difficulty = 'medium'; break;
+                    case 3: difficulty = 'hard'; break;
+                    case 4: difficulty = 'expert'; break;
+                }
+            } else if(this.difficulty === "progressive-e"){
+                switch(intensity){
+                    case 1: difficulty = 'easy'; break;
+                    case 2: difficulty = 'easy'; break;
+                    case 3: difficulty = 'medium'; break;
+                    case 4: difficulty = 'medium'; break;
+                }
+            } else if(this.isCustomPlaylist) {
+                difficulty = 'custom difficulty'
+            } else {
+                difficulty = this.difficulty
+            }
+            document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
+            let availableSongs;
+
+            if(this.isCustomPlaylist && this.customPlaylist){
+                availableSongs = this.customPlaylist;
+                document.getElementById('difficulty').textContent = 'Custom Playlist';
+            }else{
+                availableSongs = songDatabase[difficulty];
+
+                if (this.selectedPlaylist !== 'family') {
+                    switch(this.selectedPlaylist) {
+                        case 'pop':
+                            availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'pop');
+                            break;
+                        case 'rock':
+                            availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'rock');
+                            break;
+                        case 'classical':
+                            availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'classical');
+                        case '80s':
+                            availableSongs = availableSongs.filter(song => {
+                                const year = parseInt(song.year);
+                                return year >= 1980 && year < 1990;
+                            });
+                            break;
+                        case '90s':
+                            availableSongs = availableSongs.filter(song => {
+                                const year = parseInt(song.year);
+                                return year >= 1990 && year < 2000;
+                            });
+                            break;
+                        case '00s':
+                            availableSongs = availableSongs.filter(song => {
+                                const year = parseInt(song.year);
+                                return year >= 2000 && year < 2010;
+                            });
+                            break;
+                        case '10s':
+                            availableSongs = availableSongs.filter(song => {
+                                const year = parseInt(song.year);
+                                return year >= 2010 && year < 2020;
+                            });
+                            break;
+                        case '20s':
+                            availableSongs = availableSongs.filter(song => {
+                                const year = parseInt(song.year);
+                                return year >= 2020 && year < 2030;
+                            });
+                            break;
+                    }
+                }
+            }
+
+
+
+            if (availableSongs.length === 0){ 
+                console.warn(`No songs found for ${this.selectedPlaylist} playlist in ${difficulty} difficulty`);
+                document.getElementById('dev-message').innerHTML = 'No songs available for this selection. Using all songs.';
+                availableSongs = songDatabase[difficulty]
+            }
+
+            let currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
+            
+            while(currentSong in this.playlist){
+                currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
+            }
+
+            this.playlist.push(currentSong)
+
+            round++;
+        }
+        console.log("Playlist: ", this.playlist);
+    }
     startNewRound() {
         this.replaysLeft = 1;
         this.isPreloaded = false;
@@ -456,94 +566,9 @@ class MusicQuizGame{
 
         document.getElementById('round-number').textContent = this.currentRound;
 
-        let difficulty;
-        if (this.difficulty === "progressive"){
-            switch(this.currentRound) {
-                case 1: difficulty = 'easy'; break;
-                case 2: difficulty = 'medium'; break;
-                case 3: difficulty = 'hard'; break;
-                case 4: difficulty = 'expert'; break;
-            }
-        } else if(this.difficulty === "progressive-e"){
-            switch(this.currentRound){
-                case 1: difficulty = 'easy'; break;
-                case 2: difficulty = 'easy'; break;
-                case 3: difficulty = 'medium'; break;
-                case 4: difficulty = 'medium'; break;
-            }
-        } else if(this.isCustomPlaylist) {
-            difficulty = 'custom difficulty'
-        } else {
-            difficulty = this.difficulty
-        }
-        document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-
-        let availableSongs;
-
-        if(this.isCustomPlaylist && this.customPlaylist){
-            availableSongs = this.customPlaylist;
-            document.getElementById('difficulty').textContent = 'Custom Playlist';
-        }else{
-            availableSongs = songDatabase[difficulty];
-
-            if (this.selectedPlaylist !== 'family') {
-                switch(this.selectedPlaylist) {
-                    case 'pop':
-                        availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'pop');
-                        break;
-                    case 'rock':
-                        availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'rock');
-                        break;
-                    case 'classical':
-                        availableSongs = availableSongs.filter(song => song.genre.toLowerCase() === 'classical');
-                    case '80s':
-                        availableSongs = availableSongs.filter(song => {
-                            const year = parseInt(song.year);
-                            return year >= 1980 && year < 1990;
-                        });
-                        break;
-                    case '90s':
-                        availableSongs = availableSongs.filter(song => {
-                            const year = parseInt(song.year);
-                            return year >= 1990 && year < 2000;
-                        });
-                        break;
-                    case '00s':
-                        availableSongs = availableSongs.filter(song => {
-                            const year = parseInt(song.year);
-                            return year >= 2000 && year < 2010;
-                        });
-                        break;
-                    case '10s':
-                        availableSongs = availableSongs.filter(song => {
-                            const year = parseInt(song.year);
-                            return year >= 2010 && year < 2020;
-                        });
-                        break;
-                    case '20s':
-                        availableSongs = availableSongs.filter(song => {
-                            const year = parseInt(song.year);
-                            return year >= 2020 && year < 2030;
-                        });
-                        break;
-                }
-            }
-        }
-
-
-
-        if (availableSongs.length === 0){ 
-            console.warn(`No songs found for ${this.selectedPlaylist} playlist in ${difficulty} difficulty`);
-            document.getElementById('dev-message').innerHTML = 'No songs available for this selection. Using all songs.';
-            availableSongs = songDatabase[difficulty]
-        }
-        this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
-
-        while(this.currentSong in this.playedSongs){
-            this.currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
-        }
-
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
+
+        this.currentSong = this.playlist[this.currentRound];
 
         this.playCurrentSong();
         
