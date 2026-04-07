@@ -959,6 +959,17 @@ class MusicQuizGame{
                     'Referer': window.location.origin
                 }
             });
+
+            if (response.ok){
+                const data = await response.json();
+                if(data.length === 0){
+                    throw new Error('No valid videos found in playlist');
+                } 
+                allVideos = [...allVideos, ...data];
+            }           
+
+            return allVideos;
+
         } catch (error) {
             console.log('Error fetching playlist: ', error);
             statusDiv.className = 'playlist-status error';
