@@ -994,13 +994,13 @@ class MusicQuizGame{
                 videos = Object.keys(videos).map((key) => [key, videos[key]]);
                 console.log('Array From Videos: ', videos)
                 videos.forEach(video => {
-                    console.log('Video: ', video.Object);
+                    console.log('Video: ', video[1]);
                     allVideos.push({
-                        title: video.title,
-                        artist: video.artist,
-                        year: video.year,
-                        genre: video.genre,
-                        videoId: video.id
+                        title: video[1].title,
+                        artist: video[1].artist,
+                        year: video[1].year,
+                        genre: video[1].genre,
+                        videoId: video[1].id
                     });
                 });
             }
