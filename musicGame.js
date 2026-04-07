@@ -297,7 +297,7 @@ class MusicQuizGame{
         if(!this.playlist) return;
         console.log('Running preloadNextSong, this.playlist.length: ', this.playlist.length);
         if(this.currentRound < this.playlist.length){
-            nextSong = this.playlist[this.currentRound];
+            const nextSong = this.playlist[this.currentRound];
         } else {
             return;
         }
