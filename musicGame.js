@@ -931,10 +931,9 @@ class MusicQuizGame{
 
         console.log('Playlist songs: ', playlistSongs, ', Playlist Length: ', playlistSongs.length)
 
-        if(playlistSongs && playlistSongs.length > 0){
+        if(playlistSongs && Object.keys(playlistSongs).length > 0){
             this.customPlaylist = playlistSongs;
             this.isCustomPlaylist = true;
-            console.log('this.isCustomPlaylist is True')
             document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
             document.getElementById('start-round').disabled = false;
 
@@ -995,7 +994,7 @@ class MusicQuizGame{
             }
 
             statusDiv.className = 'playlist-status success';
-            statusDiv.textContent = `Loaded ${allVideos.length} songs`;
+            statusDiv.textContent = `Loaded ${Object.keys(allVideos).length} songs`;
 
             return allVideos;
         
