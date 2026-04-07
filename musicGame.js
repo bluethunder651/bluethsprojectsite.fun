@@ -9,6 +9,7 @@ class MusicQuizGame{
         this.replaysLeft = 1;
         this.deviceId = null;
         this.token = null;
+        this.tokenExpiry = null;
         this.useYouTubeFallback = true;
         this.recognition = null;
         this.youtubePlayer = null;
