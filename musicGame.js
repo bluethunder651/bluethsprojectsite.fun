@@ -992,15 +992,16 @@ class MusicQuizGame{
                 let videos = data.allVideos;
 
                 videos = Array.from(videos);
-                
+                console.log('Array From Videos: ', videos)
                 videos.forEach(video => {
+                    console.log('Video: ', video);
                     allVideos.push({
                         title: video.title,
                         artist: video.artist,
                         year: video.year,
                         genre: video.genre,
                         videoId: video.id
-                    })
+                    });
                 });
             }
             if(allVideos.length === 0){
