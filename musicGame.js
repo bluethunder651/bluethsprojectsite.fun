@@ -30,6 +30,7 @@ class MusicQuizGame{
         this.playedSongs = [];
         this.maxRounds = 4;
         this.playlist = [];
+        this.nextSongURL = '';
     
         this.setupEventListeners();
         this.initVoiceRecognition();
@@ -292,6 +293,18 @@ class MusicQuizGame{
         }
     }
 
+    async preloadNextSong(){
+        if(!this.playlist) return;
+
+        if(this.playlist.length < this.currentRound){
+            nextSong = this.playlist[this.currentRound];
+        } else {
+            return;
+        }
+        
+        this.nextSongURL = await this.getAudioFromServer(nextSong);
+    }
+
     async playCurrentSong(){
         if(!this.currentSong) return;
 
@@ -309,7 +322,11 @@ class MusicQuizGame{
         document.getElementById('replay-snippet').disabled = true;
 
         try{
-            const audioUrl = await this.getAudioFromServer(this.currentSong);
+            if(this.nextSongURL !== ""){
+                const audioUrl = this.nextSongURL;
+            } else {
+                const audioUrl = await this.getAudioFromServer(this.currentSong);
+            }
 
             if(audioUrl){
                 this.playLocalAudio(audioUrl);
@@ -445,7 +462,7 @@ class MusicQuizGame{
 
     prepareRounds(){
         let round = 1;
-        while(round < this.maxRounds){
+        while(round < this.maxRounds + 1){
             let difficulty;
             const percentile = round / this.maxRounds
             let intensity;
@@ -569,10 +586,10 @@ class MusicQuizGame{
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
 
-        this.currentSong = this.playlist[this.currentRound];
+        this.currentSong = this.playlist[this.currentRound - 1];
 
         this.playCurrentSong();
-        
+        this.preloadNextSong();
     }
 
     processVoiceGuess(transcript) {
