@@ -991,6 +991,8 @@ class MusicQuizGame{
                 console.log("Data: ", data);
                 const videos = data.allVideos;
 
+                videos = Array.from(videos);
+                
                 videos.forEach(video => {
                     allVideos.push({
                         title: video.title,
