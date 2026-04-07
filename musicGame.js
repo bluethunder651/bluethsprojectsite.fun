@@ -965,8 +965,12 @@ class MusicQuizGame{
                 if(data.length === 0){
                     throw new Error('No valid videos found in playlist');
                 } 
+                console.log('Data: ', data);
                 allVideos = [...allVideos, ...data];
             }           
+
+            statusDiv.className = 'playlist-status success';
+            statusDiv.textContent = `Loaded ${allVideos.length} songs`;
 
             return allVideos;
 

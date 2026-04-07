@@ -14,6 +14,7 @@ class MultiplayerGame{
         this.hardMode = false;
         this.timeLimit = 0;
 
+        this.fetchedPlaylist = false;
         this.playlist = [];
         this.currentSong = null;
         this.currentPlaylistIndex = 0;
@@ -23,6 +24,8 @@ class MultiplayerGame{
         this.isLoading = false;
         this.playbackStarted = false;
         this.leaderboardShown = false;
+        this.recent_franchises = [];
+        this.played_videos = [];
 
         this.bufferQueue = [];
         this.nextBufferFillIndex = 1;
@@ -304,6 +307,8 @@ class MultiplayerGame{
     }
 
     async fetchInitialPlaylist() {
+        if(this.fetchedPlaylist) return;
+        this.fetchedPlaylist = true;
         try{
             const response = await fetch(`${this.website}/api/local/multiplayer/game/${this.gameCode}/playlist`, {
                 headers: {
@@ -339,8 +344,6 @@ class MultiplayerGame{
         }
 
         this.videoStartTime = Date.now()
-
-        const time_limit_check = game_settings.time_limit_check;
 
         this.videoPlayer.play();
 
@@ -409,7 +412,6 @@ class MultiplayerGame{
     }
 
     showAnswerReveal(answer){
-        console.log(`correct answer: ${answer}`)
         const correctButton = Array.from(document.querySelectorAll('.answer-btn')).find(btn => btn.dataset.fullTitle === answer.correctAnswer);
         if(correctButton){
             console.log('correct button found')
@@ -804,46 +806,6 @@ class MultiplayerGame{
         }
     }
 
-    async loadVideoNormally(videoPlayer){
-        const video = this.playlist[this.currentPlaylistIndex];
-        const videoUrl = `${this.website}/api/local/videos/${encodeURIComponent(video.file_path)}?token=${encodeURIComponent(this.token)}`;
-
-        return new Promise((resolve) => {
-            videoPlayer.src = videoUrl;
-            videoPlayer.preload = 'auto';
-
-            const timeout = setTimeout(() => {
-                console.log(`Loading timeout for video ${this.currentPlaylistIndex + 1}`);
-                resolve();
-            }, 15000);
-
-            videoPlayer.addEventListener('loadedmetadata', () => {
-                clearTimeout(timeout);
-                resolve();
-            }, {once: true});
-
-            videoPlayer.addEventListener('error', () => {
-                clearTimeout(timeout);
-                console.log(`Error loading video ${this.currentPlaylistIndex + 1}`);
-                resolve();
-            }, {once: true});
-
-            videoPlayer.load();
-        });
-    }
-
-    async checkVideoCompatibility(video_path){
-        if(this.codecCache.has(video_path)){
-            return this.codecCache.get(video_path);
-        }
-
-        const h264Extensions = ['.mp4', '.m4v', '.mov']
-        const isCompatible = h264Extensions.some(ext => video_path.toLowerCase().endsWith(ext));
-
-        this.codecCache.set(video_path, isCompatible);
-        return isCompatible;
-    }
-
     async join(){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
@@ -971,6 +933,10 @@ class MultiplayerGame{
     }
 
     startHeartbeat(){
+        this.tokenResetInterval = setInterval(() => {
+            this.refreshToken();
+            console.log("Refreshed Token")
+        }, 180000)
         this.heartbeatInterval = setInterval(() => {
             if(this.socket && this.socket.connected){
                 this.socket.emit('heartbeat', {

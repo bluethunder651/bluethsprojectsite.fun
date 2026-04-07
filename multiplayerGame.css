@@ -319,3 +319,42 @@ video {
 #mobile-indicator {
     animation: pulse 2s infinite;
 }
+
+.video-js .vjs-control-bar,
+.video-js .vjs-big-play-button,
+.video-js .vjs-modal-dialog,
+.video-js .vjs-text-track-display,
+.video-js .vjs-poster,
+.video-js .vjs-loading-spinner,
+.video-js .vjs-error-display,
+.video-js .vjs-menu-button,
+.video-js .vjs-time-control,
+.video-js .vjs-progress-control,
+.video-js .vjs-remaining-time,
+.video-js .vjs-playback-rate,
+.video-js .vjs-chapters-button,
+.video-js .vjs-descriptions-button,
+.video-js .vjs-subtitles-button,
+.video-js .vjs-audio-button,
+.video-js .vjs-captions-button,
+.video-js .vjs-control {
+    display: none !important;
+}
+
+.video-js.vjs-hide-controls .vjs-control-bar {
+    display: none !important;
+}
+
+.video-js.vjs-controls-disabled .vjs-control-bar,
+.video-js.vjs-using-native-controls .vjs-control-bar,
+.video-js.vjs-user-inactive.vjs-playing .vjs-control-bar {
+    display: none !important;
+}
+
+.vjs-modal-dialog {
+    display: none !important;
+}
+
+.vjs-text-track-display {
+    display: none !important;
+}

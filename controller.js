@@ -70,18 +70,20 @@ class Controller {
                 const logoutBtn = document.getElementById('logout-btn');
                 const usernameDisplay = document.getElementById('username-display');
 
-                console.log('Data.user: ', data.user)
+                if(loginBtn){
+                    console.log('Data.user: ', data.user)
 
-                if(data.user){
-                    loginBtn.style.display = 'none';
-                    registerBtn.style.display = 'none';
-                    logoutBtn.style.display = 'inline-block';
-                    usernameDisplay.textContent = `Welcome, ${data.user.username}!`;
-                } else {
-                    loginBtn.style.display = 'inline-block';
-                    registerBtn.style.display = 'inline-block';
-                    logoutBtn.style.display = 'none';
-                    usernameDisplay.textContent = "";
+                    if(data.user){
+                        loginBtn.style.display = 'none';
+                        registerBtn.style.display = 'none';
+                        logoutBtn.style.display = 'inline-block';
+                        usernameDisplay.textContent = `Welcome, ${data.user.username}!`;
+                    } else {
+                        loginBtn.style.display = 'inline-block';
+                        registerBtn.style.display = 'inline-block';
+                        logoutBtn.style.display = 'none';
+                        usernameDisplay.textContent = "";
+                    }
                 }
             });
     }

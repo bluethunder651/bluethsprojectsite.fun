@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Callback</title>
+    </head>
+    <body>
+        <script>
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if(code){
+                fetch('https://bluethsprojectsite.fun/api/music/spotify-callback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({code: code})
+                }
+                ).then(response => response.json())
+                .then(data => {
+                    console.log('Auth Sucessful!', data);
+                    window.location.href = 'musicGame.html';
+                })
+            }
+        </script>
+    </body>
+</html>
