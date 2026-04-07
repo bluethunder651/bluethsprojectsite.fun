@@ -12,7 +12,7 @@
 
             if(code){
                 fetch(`https://julia.bluethsprojectsite.fun/api/music/spotify-callback/${code}`
-                ).then(response => response.json())
+                ).then(response => response.text())
                 .then(data => {
                     console.log('Auth Sucessful!', data);
                     window.location.href = 'musicGame.html';
