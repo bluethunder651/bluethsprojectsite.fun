@@ -442,6 +442,7 @@ class MusicQuizGame{
             if(this.replaysLeft > 0){
                 document.getElementById('replay-snippet').disabled = false;
             }
+            document.getElementById('submit-guess').disabled = false;
         }, this.snippetDuration * 1000);
 
         document.getElementById('dev-message').innerHTML = 'Playing...'
@@ -589,6 +590,8 @@ class MusicQuizGame{
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
 
         this.currentSong = this.playlist[this.currentRound - 1];
+
+        document.getElementById('submit-guess').disabled = true;
 
         this.playCurrentSong();
         this.preloadNextSong();
