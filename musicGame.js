@@ -141,7 +141,11 @@ class MusicQuizGame{
         const self = this;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            const response = await fetch(`${this.website}/api/music/load-seen-songs`)
+            const response = await fetch(`${self.website}/api/music/load-seen-songs`, {
+                headers:{
+                    'Referer': window.location.origin
+                }
+            })
         });
 
         const startBtn = document.getElementById('start-game');
