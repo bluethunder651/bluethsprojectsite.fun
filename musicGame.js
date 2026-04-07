@@ -216,6 +216,7 @@ class MusicQuizGame{
         });
 
         document.getElementById('start-round').addEventListener('click', () => {
+            self.prepareRounds();
             self.startNewRound();
             self.showScreen('game-screen');
         });
