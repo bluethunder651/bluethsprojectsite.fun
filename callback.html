@@ -11,7 +11,7 @@
             const code = urlParams.get('code');
 
             if(code){
-                fetch(`https://bluethsprojectsite.fun/api/music/spotify-callback/${code}`
+                fetch(`https://julia.bluethsprojectsite.fun/api/music/spotify-callback/${code}`
                 ).then(response => response.json())
                 .then(data => {
                     console.log('Auth Sucessful!', data);
