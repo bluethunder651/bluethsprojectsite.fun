@@ -296,10 +296,11 @@ class MusicQuizGame{
     async preloadNextSong(){
         if(!this.playlist) return;
         console.log('Running preloadNextSong, this.playlist.length: ', this.playlist.length);
+        let nextSong;
         if(this.currentRound < this.playlist.length){
-            const nextSong = this.playlist[this.currentRound];
+            nextSong = this.playlist[this.currentRound];
         } else {
-            return;
+            nextSong = this.playlist[0];
         }
 
         this.nextSongURL = await this.getAudioFromServer(nextSong);
