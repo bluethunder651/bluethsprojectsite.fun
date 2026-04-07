@@ -965,11 +965,11 @@ class MusicQuizGame{
 
         try{            
 
-            response = await fetch(`${this.website}/api/music/youtube-api-call/${playlistId}`)
+            const response = await fetch(`${this.website}/api/music/youtube-api-call/${playlistId}`)
 
             if(response.ok){
-                data = await response.json();
-                allVideos = data.allVideos;
+                const data = await response.json();
+                const allVideos = data.allVideos;
             }
             if(allVideos.length === 0){
                 throw new Error('No valid videos found in playlist');
