@@ -940,7 +940,7 @@ class MusicQuizGame{
         ]
     }
 
-    extractYouTubePlaylistId(url) {
+    extractPlaylistId(url) {
         const patterns = [
             /[&?]list=([^&]+)/i,
             /youtube\.com\/playlist\?list=([^&]+)/i,
