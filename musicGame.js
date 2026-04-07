@@ -994,7 +994,7 @@ class MusicQuizGame{
                 videos = Object.keys(videos).map((key) => [key, videos[key]]);
                 console.log('Array From Videos: ', videos)
                 videos.forEach(video => {
-                    console.log('Video: ', video);
+                    console.log('Video: ', video.Object);
                     allVideos.push({
                         title: video.title,
                         artist: video.artist,
