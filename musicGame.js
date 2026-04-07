@@ -931,7 +931,9 @@ class MusicQuizGame{
 
         console.log('Playlist songs: ', playlistSongs, ', Playlist Length: ', playlistSongs.length)
 
-        if(playlistSongs && Object.keys(playlistSongs).length > 0){
+
+
+        if(playlistSongs && playlistSongs.length > 0){
             this.customPlaylist = playlistSongs;
             this.isCustomPlaylist = true;
             document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
@@ -987,14 +989,24 @@ class MusicQuizGame{
             if(response.ok){
                 const data = await response.json();
                 console.log("Data: ", data);
-                allVideos = data.allVideos;
+                videos = data.allVideos;
+
+                videos.forEach(video => {
+                    allVideos.push({
+                        title: video.title,
+                        artist: video.artist,
+                        year: video.year,
+                        genre: video.genre,
+                        videoId: video.id
+                    })
+                });
             }
             if(allVideos.length === 0){
                 throw new Error('No valid videos found in playlist');
             }
 
             statusDiv.className = 'playlist-status success';
-            statusDiv.textContent = `Loaded ${Object.keys(allVideos).length} songs`;
+            statusDiv.textContent = `Loaded ${allVideos.length} songs`;
 
             return allVideos;
         
