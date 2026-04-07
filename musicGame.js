@@ -975,7 +975,7 @@ class MusicQuizGame{
         statusDiv.textContent = 'Loading playlist...';
 
         try{            
-
+            let allVideos = [];
             const response = await fetch(`${this.website}/api/music/youtube-api-call/${playlistId}`, {
                 headers: {
                     'X-Auth-Token': this.token,
@@ -985,7 +985,7 @@ class MusicQuizGame{
 
             if(response.ok){
                 const data = await response.json();
-                const allVideos = data.allVideos;
+                allVideos = data.allVideos;
             }
             if(allVideos.length === 0){
                 throw new Error('No valid videos found in playlist');
