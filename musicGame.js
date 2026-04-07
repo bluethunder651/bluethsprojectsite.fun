@@ -929,6 +929,8 @@ class MusicQuizGame{
 
         const playlistSongs = await this.fetchPlaylistItems(playlistId);
 
+        console.log('Playlist songs: ', playlistSongs)
+
         if(playlistSongs && playlistSongs.length > 0){
             this.customPlaylist = playlistSongs;
             this.isCustomPlaylist = true;
