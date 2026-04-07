@@ -934,7 +934,7 @@ class MusicQuizGame{
         if(playlistSongs && playlistSongs.length > 0){
             this.customPlaylist = playlistSongs;
             this.isCustomPlaylist = true;
-
+            console.log('this.isCustomPlaylist is True')
             document.querySelectorAll('.playlist-card').forEach(c => c.classList.remove('selected'));
             document.getElementById('start-round').disabled = false;
 
