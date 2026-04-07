@@ -28,9 +28,7 @@ class MusicQuizGame{
         this.retryAttempts = 0;
         this.maxRetryAttempts = 2;
         this.playedSongs = [];
-        
-        this.YOUTUBE_API_KEY = 'AIzaSyDejNIPtcOOfuvrCNqorr2s1Yh_hEpFOc8'; 
-
+    
         this.setupEventListeners();
         this.initVoiceRecognition();
     }
@@ -848,47 +846,6 @@ class MusicQuizGame{
             `Winner: ${sorted[0].name} with ${sorted[0].score} points!`;
         
         this.showScreen('scoreboard-screen');
-    }    
-
-    async playYouTube(song) {
-        console.log("Fallback: Playing song with YouTube API:", song);
-        if(!song || !song.title) return false;
-
-        try {
-            // Generate random start time if not set
-            if (!this.randomStartTime) {
-                this.randomStartTime = this.getRandomStartTime();
-            }
-            
-            document.getElementById('dev-message').innerHTML = '🔍 Searching for song...';
-
-            const searchQuery = encodeURIComponent(`${song.title} ${song.artist} audio`);
-            const response = await fetch(
-                `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&type=video&key=${this.YOUTUBE_API_KEY}&maxResults=1`
-            );
-            
-            if (!response.ok) {
-                throw new Error('YouTube API error');
-            }
-            
-            const data = await response.json();
-            
-            if (!data.items || data.items.length === 0) {
-                document.getElementById('dev-message').innerHTML = '❌ No videos found';
-                return false;
-            }
-
-            const videoId = data.items[0].id.videoId;
-            
-            // Play with random start and end times
-            this.playVideoWithIframe(videoId, song);
-            return true;
-            
-        } catch (e) {
-            console.error('YouTube API failed:', e);
-            document.getElementById('dev-message').innerHTML = '⚠️ Could not play this song. Try another!';
-            return false;
-        }
     }
 
     playVideoWithIframe(videoId, song) {
@@ -923,15 +880,11 @@ class MusicQuizGame{
 
         if(!playlistId){
             document.getElementById('playlist-status').className = 'playlist-status error';
-            document.getElementById('playlist-status').textContent = 'Invalid YouTube playlist URL';
+            document.getElementById('playlist-status').textContent = 'Invalid playlist URL';
             return;
         }
 
-        const playlistSongs = await this.fetchPlaylistItems(playlistId);
-
-        console.log('Playlist songs: ', playlistSongs, ', Playlist Length: ', playlistSongs.length)
-
-
+        const playlistSongs = await this.fetchPlaylistItems(playlistId, url);
 
         if(playlistSongs && playlistSongs.length > 0){
             this.customPlaylist = playlistSongs;
@@ -945,11 +898,22 @@ class MusicQuizGame{
 
     extractSpotifyPlaylistId(url){
         const patterns = [
-            
+            /spotify\.com\/playlist\/([a-zA-Z0-9]+)/i,
+            /(?:open\.)?spotify\.com\/playlist\/([a-zA-Z0-9]+)/i,
+            /spotify\.com\/playlist\/([a-zA-Z0-9]+)(?:\?[^#]*)?/i
         ]
+
+        for (const pattern of patterns){
+            const match = url.match(pattern);
+            if(match){
+                return match[1];
+            }
+        }
+
+        return null;
     }
 
-    extractPlaylistId(url) {
+    extractYouTubePlaylistId(url){
         const patterns = [
             /[&?]list=([^&]+)/i,
             /youtube\.com\/playlist\?list=([^&]+)/i,
@@ -962,10 +926,48 @@ class MusicQuizGame{
                 return match[1];
             }
         }
-        return null;
+        return null;        
     }
 
-    async fetchPlaylistItems(playlistId){
+    extractPlaylistId(url) {
+        if(url.includes('spotify')){
+            return this.extractSpotifyPlaylistId(url);
+        } else if (url.includes('youtube') || url.includes('youtu.be')){
+            return this.extractYouTubePlaylistId(url);
+        } else {
+            return null;
+        }
+    }
+
+    async fetchSpotifyPlaylistItems(playlistId){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }     
+        
+        const statusDiv = document.getElementById('playlist-status');
+        if (!statusDiv) return null;
+        
+        statusDiv.className = 'playlist-status loading';
+        statusDiv.textContent = 'Loading playlist...';
+
+        try{
+            let allVideos = [];
+            const response = await fetch(`${this.website}/api/music/spotify-api-call/${playlistId}`, {
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin
+                }
+            });
+        } catch (error) {
+            console.log('Error fetching playlist: ', error);
+            statusDiv.className = 'playlist-status error';
+            statusDiv.textContent = 'Failed to load playlist. Please check the URL.';
+            return null;
+        }        
+    }
+
+    async fetchYouTubePlaylistItems(playlistId){
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
@@ -1018,6 +1020,16 @@ class MusicQuizGame{
             statusDiv.className = 'playlist-status error';
             statusDiv.textContent = 'Failed to load playlist. Please check the URL.';
             return null;
+        }        
+    }
+
+    async fetchPlaylistItems(playlistId, url){
+        if(url.includes('spotify')){
+            return await this.fetchSpotifyPlaylistItems(playlistId);
+        } else if (url.includes('youtube') || url.includes('youtu.be')){
+            return await this.fetchYouTubePlaylistItems(playlistId);
+        } else {
+            return null;
         }
     }
 
@@ -1031,8 +1043,8 @@ class MusicQuizGame{
             .replace(/\s*\[[^\]]*audio[^\]]*\]/gi, '')
             .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
             .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
-            .replace(/\s*\|.*$/, '') // Remove everything after |
-            .replace(/\s*-\s*$/, '') // Remove trailing dash
+            .replace(/\s*\|.*$/, '') 
+            .replace(/\s*-\s*$/, '') 
             .trim(); 
     }
 
@@ -1047,8 +1059,8 @@ class MusicQuizGame{
             .replace(/\s*\([^)]*lyrics?[^)]*\)/gi, '')
             .replace(/\s*\[[^\]]*lyrics?[^\]]*\]/gi, '')
             .replace(/\s*-\s*(topic|vevo|official|lyrics?)(\s*|$)/gi, '')
-            .replace(/\s*\|.*$/, '') // Remove everything after |
-            .replace(/\s*-\s*$/, '') // Remove trailing dash
+            .replace(/\s*\|.*$/, '') 
+            .replace(/\s*-\s*$/, '') 
             .trim(); 
     }
 
