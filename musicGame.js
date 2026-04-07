@@ -345,6 +345,11 @@ class MusicQuizGame{
     }
 
     async getAudioFromServer(song){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
         const songId = this.generateSongId(song);
 
         const response = await fetch(`${this.website}/api/music/audio`, {
@@ -957,6 +962,11 @@ class MusicQuizGame{
     }
 
     async fetchPlaylistItems(playlistId){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
         const statusDiv = document.getElementById('playlist-status');
         if (!statusDiv) return null;
         
@@ -1044,6 +1054,26 @@ class MusicQuizGame{
         }
         
         return null;        
+    }
+
+    async refreshToken() {
+        try{
+            const response = await fetch(`${this.website}/api/local/token`, {
+                headers: {
+                    'Referer': window.location.origin
+                }
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                this.token = data.token;
+                this.tokenExpiry = Date.now() + (data.expires_in * 1000);
+                return true;
+            }
+        } catch (error) {
+            console.log('Server not available');
+            return false;
+        }
     }
 
 }
