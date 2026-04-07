@@ -301,7 +301,7 @@ class MusicQuizGame{
         } else {
             return;
         }
-        
+
         this.nextSongURL = await this.getAudioFromServer(nextSong);
     }
 
@@ -322,10 +322,11 @@ class MusicQuizGame{
         document.getElementById('replay-snippet').disabled = true;
 
         try{
+            let audioUrl = '';
             if(this.nextSongURL !== ""){
-                const audioUrl = this.nextSongURL;
+                audioUrl = this.nextSongURL;
             } else {
-                const audioUrl = await this.getAudioFromServer(this.currentSong);
+                audioUrl = await this.getAudioFromServer(this.currentSong);
             }
 
             if(audioUrl){
