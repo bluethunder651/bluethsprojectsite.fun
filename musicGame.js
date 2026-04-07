@@ -1,7 +1,5 @@
 class MusicQuizGame{
-    constructor() {
-        console.log("Game constructor starting...");
-        
+    constructor() {        
         this.players = [];
         this.currentPlayerIndex = 0;
         this.currentRound = 1;
@@ -417,14 +415,8 @@ class MusicQuizGame{
     }
 
     stopPlayback(){
-        if(this.youtubePlayer){
-            try{
-                if(this.youtubePlayer.pauseVideo){
-                    this.youtubePlayer.pauseVideo();
-                }
-            }catch (e) {
-                console.log("Error stopping YouTube: ", e);
-            }
+        if(this.currentAudio){
+            this.currentAudio.pause();
         }
     }
 
@@ -761,7 +753,6 @@ class MusicQuizGame{
         }
         
         this.players[this.currentPlayerIndex].score += points;
-        document.getElementById('result-message').innerHTML = message;
         
         this.nextTurn(message);
     }
@@ -943,7 +934,13 @@ class MusicQuizGame{
         }
     }
 
-    extractPlaylistId(url) {
+    extractSpotifyPlaylistId(url){
+        const patterns = [
+            
+        ]
+    }
+
+    extractYouTubePlaylistId(url) {
         const patterns = [
             /[&?]list=([^&]+)/i,
             /youtube\.com\/playlist\?list=([^&]+)/i,
@@ -966,77 +963,14 @@ class MusicQuizGame{
         statusDiv.className = 'playlist-status loading';
         statusDiv.textContent = 'Loading playlist...';
 
-        try{
-            let allVideos = [];
-            let nextPageToken = '';
+        try{            
 
-            do{
-                const videosResponse = await fetch(
-                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=100&playlistId=${playlistId}&key=${this.YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
-                );
+            response = await fetch(`${this.website}/api/music/youtube-api-call/${playlistId}`)
 
-                if (!videosResponse.ok){
-                    throw new Error('Failed to fetch playlist items');
-                }
-
-                const videosData = await videosResponse.json();
-
-                const videoIds = videosData.items.filter(item => 
-                    item.snippet &&
-                    item.snippet.title &&
-                    item.snippet.title !== 'Private Video' &&
-                    item.snippet.title !== 'Deleted Video'
-                ).map(item => item.snippet.resourceId.videoId);
-
-                if (videoIds.length > 0){
-                    const videoDetailsResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoIds.join(',')}&key=${this.YOUTUBE_API_KEY}`);
-
-                    if (videoDetailsResponse.ok){
-                        const videoDetailsData = await videoDetailsResponse.json();
-
-                        const channelMap = {};
-                        videoDetailsData.items.forEach(video => {
-                            if(video.id && video.snippet){
-                                channelMap[video.id] = video.snippet.channelTitle;
-                            }
-                        });
-
-                        const validVideos = videosData.items.filter(item => 
-                            item.snippet &&
-                            item.snippet.title &&
-                            item.snippet.title !== 'Private Video' &&
-                            item.snippet.title !== 'Deleted Video'
-                        ).map(item => ({
-                            title: this.cleanVideoTitle(item.snippet.title),
-                            artist: this.cleanArtistName(channelMap[item.snippet.resourceId.videoId]) || 'Unknown Artist',
-                            year: new Date().getFullYear().toString(),
-                            genre: 'custom',
-                            videoId: item.snippet.resourceId.videoId
-                         }));
-
-                        allVideos = [...allVideos, ...validVideos];
-                    } else {
-                        const fallbackVideos = videosData.items.filter(item =>
-                            item.snippet && 
-                            item.snippet.title && 
-                            item.snippet.title !== 'Private video' && 
-                            item.snippet.title !== 'Deleted video'
-                        ).map(item => ({
-                            title: this.cleanVideoTitle(item.snippet.title),
-                            artist: 'Unknown Artist',
-                            year: new Date().getFullYear().toString(),
-                            genre: 'custom',
-                            videoId: item.snippet.resourceId.videoId
-                        }));
-
-                        allVideos = [...allVideos, ...fallbackVideos];
-
-                    }
-                }
-                console.log('allVideos: ', allVideos);
-                nextPageToken = videosData.nextPageToken;
-            } while (nextPageToken);
-            
+            if(response.ok){
+                data = await response.json();
+                allVideos = data.allVideos;
+            }
             if(allVideos.length === 0){
                 throw new Error('No valid videos found in playlist');
             }
