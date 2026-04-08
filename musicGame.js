@@ -596,7 +596,12 @@ class MusicQuizGame{
         document.getElementById('replay-snippet').disabled = false;
         document.getElementById('play-snippet').disabled = false;
         document.getElementById('title-guess').value = '';
-        document.getElementById('artist-guess').value = '';
+        if(this.isArtistPlaylist){
+            document.getElementById('artist-guess').textContent = this.artistForArtistPlaylist;
+            document.getElementById('artist-guess').value = this.artistForArtistPlaylist;
+        } else {
+            document.getElementById('artist-guess').value = '';
+        }
         document.getElementById('dev-message').innerHTML = 'Loading song...';
         document.getElementById('voice-status').textContent = '🎤';
 
@@ -1151,6 +1156,7 @@ class MusicQuizGame{
         }
 
         this.isArtistPlaylist = true;
+        this.artistForArtistPlaylist = artist;
 
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();

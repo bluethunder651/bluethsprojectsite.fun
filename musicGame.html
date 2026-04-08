@@ -50,8 +50,8 @@
       <button class="btn difficulty-btn" data-difficulty="progressive">Progressive</button>
       <button class="btn difficulty-btn" data-difficulty="progressive-e">Progressive-E</button>
       <div class="playlist-input-section">
-        <h3>Or Use Your Own Playlist</h3>
-        <input type="text" id="youtube-playlist-url" placeholder="Paste YouTube or Spotify playlist URL here">
+        <h3>Or Use Your Own Playlist/Artist</h3>
+        <input type="text" id="youtube-playlist-url" placeholder="Paste playlist URL here or write artist's name (be accurate)">
         <button id="load-playlist" class="btn btn-secondary">Load Playlist</button>
         <div id="playlist-status" class="playlist-status"></div>
       </div>
@@ -91,11 +91,6 @@
           <div class="playlist-card" data-playlist="custom">
             <h3>Custom Playlist</h3>
             <p style="font-size: 0.8em; color: #666;">(Use URL from previous screen)</p>
-          </div>
-          <div class="playlist-card" data-playlist="artist" id="artist-playcard">
-            <h3>Custom Artist</h3>
-            <p style="font-size: 0.8em; color: #666;">(Input artist below)</p>
-            <input type="text" id="artist-input" style="display: none;">
           </div>
         </div>
         <button id="start-round" class="btn btn-primary" disabled>Start Game!</button>
