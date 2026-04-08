@@ -469,11 +469,11 @@ class MusicQuizGame{
             let difficulty;
             const percentile = round / this.maxRounds
             let intensity;
-            if(percentile >= .75){
+            if(percentile > .75){
                 intensity = 4
-            } else if (percentile >= 50){
+            } else if (percentile > 50){
                 intensity = 3
-            } else if (percentile >= 25){
+            } else if (percentile > 25){
                 intensity = 2
             } else {
                 intensity = 1
