@@ -31,6 +31,7 @@ class MusicQuizGame{
         this.maxRounds = 4;
         this.playlist = [];
         this.nextSongURL = '';
+        this.currentIndex = 0;
     
         this.setupEventListeners();
         this.initVoiceRecognition();
@@ -252,6 +253,7 @@ class MusicQuizGame{
 
         document.getElementById('play-again').addEventListener('click', () => {
             this.currentRound = 1;
+            this.currentIndex = 0;
             
             self.startNewRound();
             self.showScreen('game-screen');
@@ -303,7 +305,7 @@ class MusicQuizGame{
         console.log('Running preloadNextSong, this.playlist.length: ', this.playlist.length);
         let nextSong;
         if(this.currentRound < this.playlist.length){
-            nextSong = this.playlist[this.currentRound];
+            nextSong = this.playlist[this.currentIndex];
         } else {
             nextSong = this.playlist[0];
         }
@@ -629,7 +631,9 @@ class MusicQuizGame{
         }
         document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
-        this.currentSong = this.playlist[this.currentRound - 1];
+        this.currentSong = this.playlist[this.currentIndex];
+
+        this.currentIndex++;
 
         document.getElementById('submit-guess').disabled = true;
 
