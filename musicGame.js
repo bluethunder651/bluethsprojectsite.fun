@@ -590,6 +590,7 @@ class MusicQuizGame{
         document.getElementById('voice-status').textContent = '🎤';
 
         document.getElementById('round-number').textContent = this.currentRound;
+        document.getElementById('max-round-number').textContent = this.maxRounds;
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
 
