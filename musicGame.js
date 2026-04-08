@@ -205,7 +205,7 @@ class MusicQuizGame{
             self.showScreen('rounds-screen');
         });
 
-        documnet.getElementById('confirm-rounds').addEventListener('click', () => {
+        document.getElementById('confirm-rounds').addEventListener('click', () => {
             this.maxRounds = document.getElementById('rounds-input').value();
             self.showScreen('difficulty-screen');
         });
