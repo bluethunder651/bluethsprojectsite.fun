@@ -497,7 +497,6 @@ class MusicQuizGame{
             } else {
                 difficulty = this.difficulty
             }
-            document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
             let availableSongs;
 
@@ -588,6 +587,39 @@ class MusicQuizGame{
         document.getElementById('round-number').textContent = this.currentRound;
 
         document.getElementById('current-player').innerHTML = `${this.players[this.currentPlayerIndex].name}'s Turn`;
+
+        let difficulty;
+        const percentile = this.currentRound / this.maxRounds
+        let intensity;
+        if(percentile > .75){
+            intensity = 4
+        } else if (percentile > .50){
+            intensity = 3
+        } else if (percentile > .25){
+            intensity = 2
+        } else {
+            intensity = 1
+        }
+        if (this.difficulty === "progressive"){
+            switch(intensity) {
+                case 1: difficulty = 'easy'; break;
+                case 2: difficulty = 'medium'; break;
+                case 3: difficulty = 'hard'; break;
+                case 4: difficulty = 'expert'; break;
+            }
+        } else if(this.difficulty === "progressive-e"){
+            switch(intensity){
+                case 1: difficulty = 'easy'; break;
+                case 2: difficulty = 'easy'; break;
+                case 3: difficulty = 'medium'; break;
+                case 4: difficulty = 'medium'; break;
+            }
+        } else if(this.isCustomPlaylist) {
+            difficulty = 'custom difficulty'
+        } else {
+            difficulty = this.difficulty
+        }
+        document.getElementById('difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
         this.currentSong = this.playlist[this.currentRound - 1];
 
