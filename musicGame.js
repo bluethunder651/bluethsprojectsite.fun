@@ -567,6 +567,7 @@ class MusicQuizGame{
             
             while(currentSong in this.playlist){
                 currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
+                console.log('Current song in this.playlist. Choosing new song: ', currentSong)
             }
 
             this.playlist.push(currentSong)
