@@ -1042,7 +1042,7 @@ class MusicQuizGame{
         } else if (url.includes('youtube') || url.includes('youtu.be')){
             return this.extractYouTubePlaylistId(url);
         } else {
-            return null;
+            return url;
         }
     }
 
