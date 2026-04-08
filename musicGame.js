@@ -202,6 +202,11 @@ class MusicQuizGame{
                     score: 0
                 });
             }
+            self.showScreen('rounds-screen');
+        });
+
+        documnet.getElementById('confirm-rounds').addEventListener('click', () => {
+            this.maxRounds = document.getElementById('rounds-input').value();
             self.showScreen('difficulty-screen');
         });
         
