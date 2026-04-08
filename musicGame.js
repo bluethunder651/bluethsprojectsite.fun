@@ -206,7 +206,7 @@ class MusicQuizGame{
         });
 
         document.getElementById('confirm-rounds').addEventListener('click', () => {
-            this.maxRounds = document.getElementById('rounds-input').value();
+            this.maxRounds = document.getElementById('rounds-input').value || 4;
             self.showScreen('difficulty-screen');
         });
         
