@@ -513,6 +513,7 @@ class MusicQuizGame{
                 document.getElementById('difficulty').textContent = 'Custom Playlist';
             }else{
                 availableSongs = songDatabase[difficulty];
+                availableSongs = availableSongs.filter(song => song.genre.toLowerCase() !== 'anime');
 
                 if (this.selectedPlaylist !== 'family') {
                     switch(this.selectedPlaylist) {
