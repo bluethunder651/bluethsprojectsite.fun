@@ -223,11 +223,7 @@ class MusicQuizGame{
                 console.log('Selected playlist:', this.selectedPlaylist);
             });
         });
-
-        document.getElementById('artist-playcard').addEventListener('click', () => {
-            document.getElementById('artist-input').style.display = 'block';
-        })
-
+        
         document.getElementById('start-round').addEventListener('click', () => {
             self.prepareRounds();
             self.startNewRound();
