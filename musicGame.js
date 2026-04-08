@@ -470,7 +470,7 @@ class MusicQuizGame{
 
     prepareRounds(){
         let round = 1;
-        console.log("Total number of rounds needed: " ((this.maxRounds * this.players.length) + 1))
+        console.log("Total number of rounds needed: ", ((this.maxRounds * this.players.length) + 1))
         while(round < (this.maxRounds * this.players.length) + 1){
             let difficulty;
             const percentile = round / this.maxRounds
