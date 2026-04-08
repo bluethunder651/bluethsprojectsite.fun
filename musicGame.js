@@ -1158,7 +1158,7 @@ class MusicQuizGame{
         }       
        
         try{
-            let allVideos;
+            let allVideos = [];
             const response = await fetch(`${this.website}/api/music/artist-playlist`, {
                 method: 'POST',
                 headers: {
