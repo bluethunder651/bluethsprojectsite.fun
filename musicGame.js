@@ -23,6 +23,8 @@ class MusicQuizGame{
         this.hasSeekedThisPlay = false;
         this.customPlaylist = null;
         this.isCustomPlaylist = false;
+        this.artistPlaylist = null;
+        this.isArtistPlaylist = false;
         this.website = 'https://julia.bluethsprojectsite.fun'
         this.currentAudio = null;
         this.retryAttempts = 0;
@@ -221,6 +223,10 @@ class MusicQuizGame{
                 console.log('Selected playlist:', this.selectedPlaylist);
             });
         });
+
+        document.getElementById('artist-playcard').addEventListener('click', () => {
+            document.getElementById('artist-input').style.display = 'block';
+        })
 
         document.getElementById('start-round').addEventListener('click', () => {
             self.prepareRounds();
@@ -1139,13 +1145,67 @@ class MusicQuizGame{
         }        
     }
 
+    async fetchArtistPlaylistItems(artist){
+        if (artist.toLowerCase().includes('.com') || artist.toLowerCase().includes('http') || artist.toLowerCase() === ''){
+            return;
+        }
+
+        this.isArtistPlaylist = true;
+
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }       
+       
+        try{
+            let allVideos;
+            const response = await fetch(`${this.website}/api/music/artist-playlist`, {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': this.token,
+                    'Referer': window.location.origin,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    artist: artist
+                })
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                let videos = data.allVideos;
+                videos = Object.keys(videos).map((key) => [key, videos[key]]);
+                console.log('Array From Videos: ', videos)
+                videos.forEach(video => {
+                    console.log('Video: ', video[1]);
+                    allVideos.push({
+                        title: video[1].title,
+                        artist: video[1].artist,
+                        year: video[1].year,
+                        genre: video[1].genre,
+                    });
+                });
+
+            }
+
+            if(allVideos.length === 0){
+                throw new Error('No valid videos found in playlist');
+            }
+
+            return allVideos;
+        } catch (error) {
+            console.log('Error fetching playlist: ', error);
+            return null;
+        }        
+    }
+
     async fetchPlaylistItems(playlistId, url){
         if(url.includes('spotify')){
             return await this.fetchSpotifyPlaylistItems(playlistId);
         } else if (url.includes('youtube') || url.includes('youtu.be')){
             return await this.fetchYouTubePlaylistItems(playlistId);
         } else {
-            return null;
+            return await this.fetchArtistPlaylistItems(playlistId);
         }
     }
 
