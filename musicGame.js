@@ -162,6 +162,13 @@ class MusicQuizGame{
             });
         }
 
+        const pairDeviceBtn = document.getElementById('pair-device');
+        if(pairDeviceBtn){
+            pairDeviceBtn.addEventListener('click', () => {
+                
+            })
+        }
+
         const backBtn = document.getElementById('back-button');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
@@ -223,7 +230,7 @@ class MusicQuizGame{
                 console.log('Selected playlist:', this.selectedPlaylist);
             });
         });
-        
+
         document.getElementById('start-round').addEventListener('click', () => {
             self.prepareRounds();
             self.startNewRound();
@@ -1193,6 +1200,9 @@ class MusicQuizGame{
             if(allVideos.length === 0){
                 throw new Error('No valid videos found in playlist');
             }
+
+            statusDiv.className = 'playlist-status success';
+            statusDiv.textContent = `Loaded ${allVideos.length} songs`;
 
             return allVideos;
         } catch (error) {
