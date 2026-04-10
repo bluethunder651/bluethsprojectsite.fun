@@ -1164,7 +1164,13 @@ class MusicQuizGame{
         if(Date.now() > this.tokenExpiry){
             await this.refreshToken();
             if (!this.token) return [];
-        }       
+        }      
+        
+        const statusDiv = document.getElementById('playlist-status');
+        if (!statusDiv) return null;
+        
+        statusDiv.className = 'playlist-status loading';
+        statusDiv.textContent = 'Loading playlist...';
        
         try{
             let allVideos = [];
@@ -1207,6 +1213,8 @@ class MusicQuizGame{
             return allVideos;
         } catch (error) {
             console.log('Error fetching playlist: ', error);
+            statusDiv.className = 'playlist-status error';
+            statusDiv.textContent = 'Failed to load playlist. Please check the URL.';
             return null;
         }        
     }
