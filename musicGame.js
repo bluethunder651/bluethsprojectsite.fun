@@ -342,13 +342,17 @@ class MusicQuizGame{
             let audioUrl = '';
             if(this.nextSongURL !== ""){
                 audioUrl = this.nextSongURL;
+                console.log("NextSongURL is not null, sending: ", audioUrl)
             } else {
                 audioUrl = await this.getAudioFromServer(this.currentSong);
+                console.log('NextSongURL is null, sending: ', audioUrl)
             }
 
             if(audioUrl){
+                console.log('Audio URL is not null. Playing: ', audioUrl)
                 this.playLocalAudio(audioUrl);
             } else {
+                console.log('Audio URL was null.')
                 this.startNewRound();
             }
         } catch (e){
