@@ -590,7 +590,7 @@ class MusicQuizGame{
             let title = this.cleanTitle(currentSong.title);
             let seenSong = `${title}|${artist}`;
 
-            while(seenSong in seenSongs){
+            while(seenSongs.includes(seenSong)){
                 console.log('Song: ', seenSong, ' found in seenSongs. Rerandomizing.')
                 currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
                 artist = this.cleanArtist(currentSong.artist);
