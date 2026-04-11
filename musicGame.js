@@ -487,6 +487,7 @@ class MusicQuizGame{
 
     prepareRounds(){
         let round = 1;
+        const seenSongs = []
         console.log("Total number of rounds needed: ", ((this.maxRounds * this.players.length) + 1))
         while(round < (this.maxRounds * this.players.length) + 1){
             let difficulty;
@@ -584,17 +585,34 @@ class MusicQuizGame{
 
             let currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
             
-            while(currentSong in this.playlist){
+            let artist = this.cleanArtist(currentSong.artist);
+            let title = this.cleanTitle(currentSong.title);
+            let seenSong = `${title}|${artist}`;
+
+            while(seenSong in seenSongs){
                 currentSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
+                artist = this.cleanArtist(currentSong.artist);
+                title = this.cleanTitle(currentSong.title);
+                seenSong = `${title}|${artist}`;
                 console.log('Current song in this.playlist. Choosing new song: ', currentSong)
             }
 
-            this.playlist.push(currentSong)
+            seenSongs.push(seenSong);
+            this.playlist.push(currentSong);
             console.log("Round: ", round, ", Current Song: ", currentSong);
             round++;
         }
         console.log("Playlist: ", this.playlist);
     }
+
+    cleanTitle(title){
+        return title.split('(')[0].split('-')[0].split('[')[0].strip()
+    }
+
+    cleanArtist(artist){
+        return artist.split('&')[0].split(',')[0].split(' feat')[0].split(' Ft')[0].split('-')[0].strip()
+    }
+
     startNewRound() {
         this.replaysLeft = 1;
         this.isPreloaded = false;
