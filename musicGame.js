@@ -606,11 +606,11 @@ class MusicQuizGame{
     }
 
     cleanTitle(title){
-        return title.split('(')[0].split('-')[0].split('[')[0].strip()
+        return title.split('(')[0].split('-')[0].split('[')[0].trim()
     }
 
     cleanArtist(artist){
-        return artist.split('&')[0].split(',')[0].split(' feat')[0].split(' Ft')[0].split('-')[0].strip()
+        return artist.split('&')[0].split(',')[0].split(' feat')[0].split(' Ft')[0].split('-')[0].trim()
     }
 
     startNewRound() {
