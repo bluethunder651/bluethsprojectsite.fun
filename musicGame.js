@@ -659,6 +659,7 @@ class MusicQuizGame{
         document.getElementById('submit-guess').disabled = true;
 
         this.playCurrentSong();
+        this.nextSongURL = '';
         this.preloadNextSong();
     }
 
