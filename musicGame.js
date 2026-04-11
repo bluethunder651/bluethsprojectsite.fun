@@ -338,6 +338,8 @@ class MusicQuizGame{
         document.getElementById('play-snippet').disabled = true;
         document.getElementById('replay-snippet').disabled = true;
 
+        console.log('Current Round: ', this.currentRound, ', Current Index: ', this.currentIndex);
+
         try{
             let audioUrl = '';
             if(this.nextSongURL !== ""){
