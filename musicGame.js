@@ -345,6 +345,7 @@ class MusicQuizGame{
             if(this.nextSongURL !== ""){
                 audioUrl = this.nextSongURL;
                 console.log("NextSongURL is not null, sending: ", audioUrl)
+                this.nextSongURL = '';
             } else {
                 audioUrl = await this.getAudioFromServer(this.currentSong);
                 console.log('NextSongURL is null, sending: ', audioUrl)
@@ -677,7 +678,6 @@ class MusicQuizGame{
         document.getElementById('submit-guess').disabled = true;
 
         this.playCurrentSong();
-        this.nextSongURL = '';
         this.preloadNextSong();
     }
 
