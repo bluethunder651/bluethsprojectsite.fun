@@ -531,6 +531,7 @@ class MusicQuizGame{
             }else{
                 availableSongs = songDatabase[difficulty];
                 availableSongs = availableSongs.filter(song => song.genre.toLowerCase() !== 'anime');
+                availableSongs = availableSongs.filter(song => song.genre.toLowerCase() !== 'j-pop')
 
                 if (this.selectedPlaylist !== 'family') {
                     switch(this.selectedPlaylist) {
