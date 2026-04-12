@@ -489,7 +489,8 @@ class MusicQuizGame{
 
     prepareRounds(){
         let round = 1;
-        const seenSongs = []
+        const seenSongs = [];
+        this.playlist = [];
         console.log("Total number of rounds needed: ", ((this.maxRounds * this.players.length) + 1))
         while(round < (this.maxRounds * this.players.length) + 1){
             let difficulty;
