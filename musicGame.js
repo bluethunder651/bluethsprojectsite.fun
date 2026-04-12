@@ -264,6 +264,7 @@ class MusicQuizGame{
             this.currentRound = 1;
             this.currentIndex = 0;
             
+            self.prepareRounds();
             self.startNewRound();
             self.showScreen('game-screen');
         });
