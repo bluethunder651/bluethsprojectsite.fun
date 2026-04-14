@@ -682,10 +682,7 @@ class MusicQuizGame{
 
         document.getElementById('submit-guess').disabled = true;
 
-        this.playCurrentSong();
-        if (this.currentRound != 1){
-            this.preloadNextSong();
-        }
+        this.playCurrentSong().then(this.preloadNextSong());
     }
 
     processVoiceGuess(transcript) {
