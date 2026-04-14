@@ -352,6 +352,14 @@ class MusicQuizGame{
                 console.log('NextSongURL is null, sending: ', audioUrl)
             }
 
+            console.log("This.currentSong.title: ", this.currentSong.title, ", audioURL: ", audioUrl);
+
+            if(!audioUrl.includes(this.currentSong.title)){
+
+                await this.playCurrentSong();
+                return;
+            }
+
             if(audioUrl){
                 console.log('Audio URL is not null. Playing: ', audioUrl)
                 this.playLocalAudio(audioUrl);
@@ -360,15 +368,17 @@ class MusicQuizGame{
                 this.startNewRound();
             }
         } catch (e){
+            console.log('Error: ', e);
             if (this.retryAttempts < this.maxRetryAttempts){
                 this.retryAttempts++;
                 await this.playCurrentSong();
+                return
             } else {
                 console.error('Failed to get audio: ', e);
                 document.getElementById('dev-message').innerHTML = `Could not load audio: ${e}`;
             }
         }
-        
+
     this.preloadNextSong()
     }
 
