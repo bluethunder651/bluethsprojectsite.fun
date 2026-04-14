@@ -354,7 +354,7 @@ class MusicQuizGame{
 
             console.log("This.currentSong.title: ", this.currentSong.title, ", audioURL: ", audioUrl);
 
-            if(!audioUrl.includes(this.currentSong.title)){
+            if(!audioUrl.includes(this.currentSong.title.replace(/[^a-zA-Z0-9]/g, '_'))){
 
                 await this.playCurrentSong();
                 return;
