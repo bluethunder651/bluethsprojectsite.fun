@@ -341,7 +341,6 @@ class MusicQuizGame{
 
         console.log('Current Round: ', this.currentRound, ', Current Index: ', this.currentIndex);
 
-        return new Promise((resolve, reject) => {
         try{
             let audioUrl = '';
             if(this.nextSongURL !== ""){
@@ -349,7 +348,7 @@ class MusicQuizGame{
                 console.log("NextSongURL is not null, sending: ", audioUrl)
                 this.nextSongURL = '';
             } else {
-                audioUrl = this.getAudioFromServer(this.currentSong);
+                audioUrl = await this.getAudioFromServer(this.currentSong);
                 console.log('NextSongURL is null, sending: ', audioUrl)
             }
 
@@ -360,19 +359,17 @@ class MusicQuizGame{
                 console.log('Audio URL was null.')
                 this.startNewRound();
             }
-            resolve();
         } catch (e){
             if (this.retryAttempts < this.maxRetryAttempts){
                 this.retryAttempts++;
-                this.playCurrentSong();
+                await this.playCurrentSong();
             } else {
                 console.error('Failed to get audio: ', e);
                 document.getElementById('dev-message').innerHTML = `Could not load audio: ${e}`;
-                reject( `Could not load audio: ${e}`);
             }
         }
-        })
-       
+        
+    this.preloadNextSong()
     }
 
     createPlayerInputs(numPlayers) {
@@ -687,7 +684,7 @@ class MusicQuizGame{
 
         document.getElementById('submit-guess').disabled = true;
 
-        this.playCurrentSong().then(this.preloadNextSong());
+        this.playCurrentSong();
     }
 
     processVoiceGuess(transcript) {
