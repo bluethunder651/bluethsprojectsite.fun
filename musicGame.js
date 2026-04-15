@@ -215,10 +215,15 @@ class MusicQuizGame{
             self.showScreen('rounds-screen');
         });
 
+
+
         document.getElementById('confirm-rounds').addEventListener('click', () => {
             this.maxRounds = document.getElementById('rounds-input').value || 4;
+            this.snippetDuration = document.getElementById('duration-input').value || 15;
             self.showScreen('difficulty-screen');
         });
+
+
         
         document.querySelectorAll('.playlist-card').forEach(card => {
             card.addEventListener('click', (e) => {
