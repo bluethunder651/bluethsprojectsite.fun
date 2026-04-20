@@ -34,6 +34,8 @@ class MusicQuizGame{
         this.playlist = [];
         this.nextSongURL = '';
         this.currentIndex = 0;
+        this.gameCode = '';
+        this.pairedGameCode = '';
     
         this.setupEventListeners();
         this.initVoiceRecognition();
@@ -165,7 +167,8 @@ class MusicQuizGame{
         const pairDeviceBtn = document.getElementById('pair-device');
         if(pairDeviceBtn){
             pairDeviceBtn.addEventListener('click', () => {
-                
+                self.generateCode();
+                self.showScreen('pair-device-screen');
             })
         }
 
@@ -237,9 +240,13 @@ class MusicQuizGame{
         });
 
         document.getElementById('start-round').addEventListener('click', () => {
-            self.prepareRounds();
-            self.startNewRound();
-            self.showScreen('game-screen');
+                self.prepareRounds();
+                self.startNewRound();
+            if(this.pairedGameCode !== ''){
+                self.showScreen('game-screen');
+            } else {
+                
+            }
         });
 
         document.getElementById('play-snippet').addEventListener('click', () => {
@@ -290,6 +297,26 @@ class MusicQuizGame{
 
         document.getElementById('go-home-2').addEventListener('click', () => window.location.href =  'https://bluethsprojectsite.fun');
     
+    }
+
+    async generateCode(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+
+        const response = await fetch(`${this.website}/api/local/music/pair-devices`, {
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin
+            }
+        });
+
+        if (response.ok){
+            const data = await response.json();
+            this.gameCode = data.code;
+            document.getElementById('device-code').textContent = this.gameCode;
+        }
     }
 
     handleReplay() {
@@ -479,7 +506,7 @@ class MusicQuizGame{
         this.currentAudio = audio;
 
         setTimeout(() => {
-            document.getElementById('dev-message').innerHTML = "Playback finished";
+            document.getElementById('dev-message').innerHTML = audioUrl;
             if(this.replaysLeft > 0){
                 document.getElementById('replay-snippet').disabled = false;
             }
