@@ -558,8 +558,11 @@ class MusicQuizGame{
             document.getElementById('play-snippet').disabled = false;
         }
 
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
+        if(this.pairedDevice){
+            this.showScreen('game-screen-no-input');
+        } else {
+            this.showScreen('game-screen');
+        }
 
         const playPromise = audio.play();
 
@@ -735,8 +738,7 @@ class MusicQuizGame{
         this.replaysLeft = 1;
         this.isPreloaded = false;
 
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('loading-screen').style.display = 'block';
+        this.showScreen('loading-screen');
 
         document.getElementById('replay-snippet').disabled = false;
         document.getElementById('play-snippet').disabled = false;
@@ -1021,8 +1023,7 @@ class MusicQuizGame{
 
         this.stopPlayback();
 
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('loading-screen').style.display = 'block';
+        this.showScreen('loading-screen');
         document.getElementById('loading-message').textContent = message;
 
         this.currentPlayerIndex++;

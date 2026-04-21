@@ -131,6 +131,30 @@
           <div id="result-message"></div>
         </div>
       </div>
+      <div id="game-screen-no-input" class="screen">
+        <div class="game-header">
+          <div id="round-info">Round <span id="round-number">1</span>/<span id="max-round-number">4</span> - <span id="difficulty">Easy</span></div>
+          <div id="scores"></div>
+          <div id="current-player">Player 1's Turn</div>
+        </div>
+        <div class="game-area">
+          <div id="dev-message"></div>
+          <div id="album-art" class="album-placeholder">🎵</div>
+      </div>
+      <div id="game-screen-input-only" class="screen">
+          <div id="playback-controls">
+            <button id="play-snippet" class="btn btn-play">Play Snippet</button>
+            <button id="replay-snippet" class="btn btn-replay" disabled>Replay</button>
+          </div>
+          <div id="guess-area">
+            <div id="voice-status" class="voice-indicator">Click mic to speak</div>
+            <button id="voice-input" class="btn btn-mic">Guess by Voice</button>
+            <div class="or-divider">- or -</div>
+            <input type="text" id="title-guess" placeholder="Song Title">
+            <input type="text" id="artist-guess" placeholder="Artist">
+            <button id="submit-guess" class="btn btn-primary">Submit Guess</button>
+          </div>
+      </div>
       <div id="scoreboard-screen" class="screen">
         <h2>Final Scores</h2>
         <div id="final-scores"></div>
