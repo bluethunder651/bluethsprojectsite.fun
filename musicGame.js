@@ -36,8 +36,18 @@ class MusicQuizGame{
         this.currentIndex = 0;
         this.gameCode = '';
         this.pairedGameCode = '';
+
+        this.socket = io(this.website, {
+            path: '/socket.io/',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            timeout: 30000,
+        })
     
         this.setupEventListeners();
+        this.connectSocket();
         this.initVoiceRecognition();
     }
 
@@ -128,6 +138,17 @@ class MusicQuizGame{
 
     isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    connectSocket() {
+        this.socket.on('code_recieved', (data) => {
+            if(this.gameCode === data.code){
+                this.playlist = data.playlist;
+                this.maxRounds = data.rounds;
+                this.difficulty = data.difficulty;
+                this.startNewRound();
+            }
+        });
     }
 
     showMicrophoneIndicator(isActive){
@@ -240,12 +261,17 @@ class MusicQuizGame{
         });
 
         document.getElementById('start-round').addEventListener('click', () => {
-                self.prepareRounds();
+            self.prepareRounds();
+            if(this.pairedGameCode === ''){
                 self.startNewRound();
-            if(this.pairedGameCode !== ''){
                 self.showScreen('game-screen');
             } else {
-                
+                this.socket.emit('code_received', {
+                    code: this.pairedGameCode,
+                    playlist: this.playlist,
+                    rounds: this.maxRounds,
+                    difficulty: this.difficulty
+                });
             }
         });
 
