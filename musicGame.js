@@ -172,6 +172,18 @@ class MusicQuizGame{
             if(this.gameCode === data.code){
                 this.handleReplay();
             }
+        });       
+        
+        this.socket.on('reset_play_snippet_confirm', (data) => {
+            if(this.pairedGameCode === data.code){
+                document.getElementById('play-snippet').disabled = false;
+            }
+        });
+
+        this.socket.on('reset_replay_snippet_confirm', (data) => {
+            if(this.pairedGameCode === data.code){
+                document.getElementById('replay-snippet').disabled = false;
+            }
         });        
     }
 
@@ -627,6 +639,9 @@ class MusicQuizGame{
             console.error('Audio error: ', e);
             document.getElementById('dev-message').innerHTML = 'Playback failed: ', e;
             document.getElementById('play-snippet').disabled = false;
+            this.socket.emit('reset_play_snippet', {
+                code: this.gameCode
+            });
         }
 
         this.showScreen('game-screen')
@@ -645,6 +660,9 @@ class MusicQuizGame{
                 console.error('Playback failed: ', error);
                 document.getElementById('dev-message').innerHTML = 'Playback failed: ', error;
                 document.getElementById('play-snippet').disabled = false;
+                this.socket.emit('reset_play_snippet', {
+                    code: this.gameCode
+                });
             });
         }
         
@@ -654,6 +672,9 @@ class MusicQuizGame{
             document.getElementById('dev-message').innerHTML = 'Playback finished';
             if(this.replaysLeft > 0){
                 document.getElementById('replay-snippet').disabled = false;
+                this.socket.emit('reset_replay_snippet', {
+                    code: this.gameCode
+                });
             }
             document.getElementById('submit-guess').disabled = false;
         }, this.snippetDuration * 1000);
