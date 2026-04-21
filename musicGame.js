@@ -141,7 +141,7 @@ class MusicQuizGame{
     }
 
     connectSocket() {
-        this.socket.on('code_received', (data) => {
+        this.socket.on('music_code_received', (data) => {
             console.log('Code Received!')
             console.log('This.gamecode: ', this.gameCode, ", data.code: ", data.code);
             if(this.gameCode === data.code){
@@ -263,13 +263,19 @@ class MusicQuizGame{
         });
 
         document.getElementById('start-round').addEventListener('click', () => {
+            if(Date.now() > this.tokenExpiry){
+                await this.refreshToken();
+                if (!this.token) return [];
+            }
+
             self.prepareRounds();
             if(this.pairedGameCode === ''){
                 self.startNewRound();
                 self.showScreen('game-screen');
             } else {
                 console.log('Sending out code!');
-                this.socket.emit('code_received', {
+                this.socket.emit('music_code_sent', {
+                    token: this.token,
                     code: this.pairedGameCode,
                     playlist: this.playlist,
                     rounds: this.maxRounds,
