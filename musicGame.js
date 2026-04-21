@@ -316,7 +316,7 @@ class MusicQuizGame{
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                pairedCode: document.getElementById('pair-device-code').textContent
+                pairedCode: document.getElementById('pair-device-code').value
             })
         });
 
@@ -537,7 +537,7 @@ class MusicQuizGame{
         this.currentAudio = audio;
 
         setTimeout(() => {
-            document.getElementById('dev-message').innerHTML = audioUrl;
+            document.getElementById('dev-message').innerHTML = 'Playback finished';
             if(this.replaysLeft > 0){
                 document.getElementById('replay-snippet').disabled = false;
             }
