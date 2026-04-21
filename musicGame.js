@@ -37,6 +37,7 @@ class MusicQuizGame{
         this.gameCode = '';
         this.pairedGameCode = '';
         this.pairedDevice = false;
+        this.sentCode = false;
 
         this.socket = io(this.website, {
             path: '/socket.io/',
@@ -154,6 +155,12 @@ class MusicQuizGame{
                 this.startNewRound();
             }
         });
+
+        this.socket.on('music_guess_submitted', (data) => {
+            if(this.gameCode === data.code){
+                this.processTextGuess(data.title, data.artist);
+            }
+        })
     }
 
     showMicrophoneIndicator(isActive){
@@ -277,6 +284,7 @@ class MusicQuizGame{
                 self.showScreen('game-screen');
             } else {
                 console.log('Sending out code!');
+                this.sentCode = true;
                 this.socket.emit('music_code_sent', {
                     token: this.token,
                     code: this.pairedGameCode,
@@ -285,6 +293,9 @@ class MusicQuizGame{
                     difficulty: this.difficulty,
                     players: this.players
                 });
+                this.showScreen('game-screen');
+                document.getElementById('dev-message').style.display = 'none';
+                document.getElementById('album-art').style.display = 'none';
             }
         });
 
@@ -305,10 +316,23 @@ class MusicQuizGame{
             }
         });
 
-        document.getElementById('submit-guess').addEventListener('click', () => {
+        document.getElementById('submit-guess').addEventListener('click', async () => {
             const titleGuess = document.getElementById('title-guess').value;
             const artistGuess = document.getElementById('artist-guess').value;
-            self.processTextGuess(titleGuess, artistGuess);
+            if(this.sentCode){
+                if(Date.now() > this.tokenExpiry){
+                    await this.refreshToken();
+                    if (!this.token) return [];
+                }
+                this.socket.emit('music_submit_guess', {
+                    token: this.token,
+                    code: this.pairedGameCode,
+                    title: titleGuess,
+                    artist: artistGuess
+                });
+            } else {
+                self.processTextGuess(titleGuess, artistGuess);
+            }
         });
 
         document.getElementById('play-again').addEventListener('click', () => {
@@ -560,10 +584,13 @@ class MusicQuizGame{
             document.getElementById('play-snippet').disabled = false;
         }
 
+        this.showScreen('game-screen')
         if(this.pairedDevice){
-            this.showScreen('game-screen-no-input');
+            document.getElementById('playback-controls').style.display = 'none';
+            document.getElementById('guess-area').style.display = 'none'
         } else {
-            this.showScreen('game-screen');
+            document.getElementById('playback-controls').style.display = 'block';
+            document.getElementById('guess-area').style.display = 'block'
         }
 
         const playPromise = audio.play();
