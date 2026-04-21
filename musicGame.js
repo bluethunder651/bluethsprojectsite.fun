@@ -160,7 +160,19 @@ class MusicQuizGame{
             if(this.gameCode === data.code){
                 this.processTextGuess(data.title, data.artist);
             }
-        })
+        });
+
+        this.socket.on('music_play_snippet_confirm', (data) => {
+            if(this.gameCode === data.code){
+                this.playCurrentSong();
+            }
+        });
+
+        this.socket.on('music_replay_snippet_confirm', (data) => {
+            if(this.gameCode === data.code){
+                this.handleReplay();
+            }
+        });        
     }
 
     showMicrophoneIndicator(isActive){
@@ -299,13 +311,39 @@ class MusicQuizGame{
             }
         });
 
-        document.getElementById('play-snippet').addEventListener('click', () => {
-            self.playCurrentSong();
+        document.getElementById('play-snippet').addEventListener('click', async () => {
+            if(this.sentCode){
+                if(Date.now() > this.tokenExpiry){
+                    await this.refreshToken();
+                    if (!this.token) return [];
+                }
+                this.socket.emit('music_play_snippet', {
+                    'token': this.token,
+                    'code': this.pairedGameCode
+                })
+            } else {
+                self.playCurrentSong();
+            }
             document.getElementById('play-snippet').disabled = true;
         });
 
-        document.getElementById('replay-snippet').addEventListener('click', () => {
-            self.handleReplay();
+        document.getElementById('replay-snippet').addEventListener('click', async () => {
+            if (this.sentCode){
+                if(Date.now() > this.tokenExpiry){
+                    await this.refreshToken();
+                    if (!this.token) return [];
+                }
+                this.socket.emit('music_replay_snippet', {
+                    token: this.token,
+                    code: this.pairedGameCode
+                })
+                this.replaysLeft--;
+                if (this.replaysLeft === 0) {
+                    document.getElementById('replay-snippet').disabled = true;
+                }
+            } else {
+                self.handleReplay();
+            }
         });
 
         document.getElementById('voice-input').addEventListener('click', () => {
@@ -330,6 +368,13 @@ class MusicQuizGame{
                     title: titleGuess,
                     artist: artistGuess
                 });
+                document.getElementById('title-guess').value = '';
+                if(this.isArtistPlaylist){
+                    document.getElementById('artist-guess').textContent = this.artistForArtistPlaylist;
+                    document.getElementById('artist-guess').value = this.artistForArtistPlaylist;
+                } else {
+                    document.getElementById('artist-guess').value = '';
+                }
             } else {
                 self.processTextGuess(titleGuess, artistGuess);
             }
