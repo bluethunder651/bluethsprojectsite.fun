@@ -36,6 +36,7 @@ class MusicQuizGame{
         this.currentIndex = 0;
         this.gameCode = '';
         this.pairedGameCode = '';
+        this.pairedDevice = false;
 
         this.socket = io(this.website, {
             path: '/socket.io/',
@@ -145,6 +146,7 @@ class MusicQuizGame{
             console.log('Code Received!')
             console.log('This.gamecode: ', this.gameCode, ", data.code: ", data.code);
             if(this.gameCode === data.code){
+                this.pairedDevice = true;
                 this.playlist = data.playlist;
                 this.maxRounds = data.rounds;
                 this.difficulty = data.difficulty;
