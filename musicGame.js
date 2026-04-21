@@ -262,7 +262,7 @@ class MusicQuizGame{
             });
         });
 
-        document.getElementById('start-round').addEventListener('click', () => {
+        document.getElementById('start-round').addEventListener('click', async () => {
             if(Date.now() > this.tokenExpiry){
                 await this.refreshToken();
                 if (!this.token) return [];
