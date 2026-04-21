@@ -141,7 +141,7 @@ class MusicQuizGame{
     }
 
     connectSocket() {
-        this.socket.on('code_recieved', (data) => {
+        this.socket.on('code_received', (data) => {
             if(this.gameCode === data.code){
                 this.playlist = data.playlist;
                 this.maxRounds = data.rounds;
