@@ -148,6 +148,7 @@ class MusicQuizGame{
                 this.playlist = data.playlist;
                 this.maxRounds = data.rounds;
                 this.difficulty = data.difficulty;
+                this.players = data.players;
                 this.startNewRound();
             }
         });
@@ -279,7 +280,8 @@ class MusicQuizGame{
                     code: this.pairedGameCode,
                     playlist: this.playlist,
                     rounds: this.maxRounds,
-                    difficulty: this.difficulty
+                    difficulty: this.difficulty,
+                    players: this.players
                 });
             }
         });
