@@ -184,7 +184,20 @@ class MusicQuizGame{
             if(this.pairedGameCode === data.code){
                 document.getElementById('replay-snippet').disabled = false;
             }
-        });        
+        });
+           
+        this.socket.on('disable_play_snippet_confirm', (data) => {
+            if(this.pairedGameCode === data.code){
+                document.getElementById('play-snippet').disabled = true;
+            }
+        });
+
+        this.socket.on('disable_replay_snippet_confirm', (data) => {
+            if(this.pairedGameCode === data.code){
+                document.getElementById('replay-snippet').disabled = true;
+            }
+        });
+
     }
 
     showMicrophoneIndicator(isActive){
@@ -337,6 +350,9 @@ class MusicQuizGame{
                 self.playCurrentSong();
             }
             document.getElementById('play-snippet').disabled = true;
+            this.socket.emit('disable_play_snippet', {
+                code: this.gameCode
+            });
         });
 
         document.getElementById('replay-snippet').addEventListener('click', async () => {
@@ -475,6 +491,9 @@ class MusicQuizGame{
             this.replaysLeft--;
             if (this.replaysLeft === 0) {
                 document.getElementById('replay-snippet').disabled = true;
+                this.socket.emit('disable_replay_snippet', {
+                    code: this.gameCode
+                });
             }
 
             const playPromise = this.currentAudio.play();
@@ -484,6 +503,9 @@ class MusicQuizGame{
                     console.error('Playback failed: ', error);
                     document.getElementById('dev-message').innerHTML = 'Playback failed: ', error;
                     document.getElementById('play-snippet').disabled = false;
+                    this.socket.emit('reset_play_snippet', {
+                        code: this.gameCode
+                    });
                 });
             }
             
@@ -522,6 +544,13 @@ class MusicQuizGame{
         document.getElementById('play-snippet').disabled = true;
         document.getElementById('replay-snippet').disabled = true;
 
+        this.socket.emit('disable_play_snippet', {
+            code: this.gameCode
+        });
+
+        this.socket.emit('disable_replay_snippet', {
+            code: this.gameCode
+        });
         console.log('Current Round: ', this.currentRound, ', Current Index: ', this.currentIndex);
 
         try{
@@ -837,6 +866,12 @@ class MusicQuizGame{
 
         document.getElementById('replay-snippet').disabled = false;
         document.getElementById('play-snippet').disabled = false;
+        this.socket.emit('reset_replay_snippet', {
+            code: this.gameCode
+        });     
+        this.socket.emit('reset_replay_snippet', {
+            code: this.gameCode
+        });
         document.getElementById('title-guess').value = '';
         if(this.isArtistPlaylist){
             document.getElementById('artist-guess').textContent = this.artistForArtistPlaylist;
