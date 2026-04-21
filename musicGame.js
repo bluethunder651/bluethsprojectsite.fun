@@ -296,7 +296,38 @@ class MusicQuizGame{
         }
 
         document.getElementById('go-home-2').addEventListener('click', () => window.location.href =  'https://bluethsprojectsite.fun');
-    
+        
+        document.getElementById('confirm-pair-device-code').addEventListener('click', () => {
+            this.confirmPairedDevice();
+        })
+    }
+
+    async confirmPairedDevice(){
+        if(Date.now() > this.tokenExpiry){
+            await this.refreshToken();
+            if (!this.token) return [];
+        }
+        
+        const response = await fetch(`${this.website}/api/local/music/check-paired-device`, {
+            method: 'POST',
+            headers: {
+                'X-Auth-Token': this.token,
+                'Referer': window.location.origin,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                pairedCode: document.getElementById('pair-device-code').textContent
+            })
+        });
+
+        if(response.ok){
+            const data = await response.json();
+            this.pairedGameCode = data.code;
+            this.showScreen('player-screen');
+        }
+        else {
+            document.getElementById('pair-device-tagline').textContent = 'Code not recognized'
+        }
     }
 
     async generateCode(){
