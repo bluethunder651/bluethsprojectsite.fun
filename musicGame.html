@@ -66,78 +66,78 @@
         </div>
         <button id="confirm-difficulty" class="btn btn-primary" disabled>Continue</button>
       </div>
-        <div id="playlist-screen" class="screen">
-          <h2>Choose Your Music</h2>
-          <div class="playlist-grid">
-            <div class="playlist-card" data-playlist="family">
-              <h3>Family Favorites</h3>
-            </div>
-            <div class="playlist-card" data-playlist="80s">
-              <h3>80s</h3>
-            </div>
-            <div class="playlist-card" data-playlist="90s">
-              <h3>90s</h3>
-            </div>
-            <div class="playlist-card" data-playlist="00s">
-              <h3>00s</h3>
-            </div>
-            <div class="playlist-card" data-playlist="10s">
-              <h3>10s</h3>
-            </div>
-            <div class="playlist-card" data-playlist="20s">
-              <h3>20s</h3>
-            </div>
-            <div class="playlist-card" data-playlist="rock">
-              <h3>Rock</h3>
-            </div>
-            <div class="playlist-card" data-playlist="pop">
-              <h3>Pop</h3>
-            </div>
-            <div class="playlist-card" data-playlist="classical">
-              <h3>Classical</h3>
-            </div>
-            <div class="playlist-card" data-playlist="custom">
-              <h3>Custom Playlist</h3>
-              <p style="font-size: 0.8em; color: #666;">(Use URL from previous screen)</p>
-            </div>
+      <div id="playlist-screen" class="screen">
+        <h2>Choose Your Music</h2>
+        <div class="playlist-grid">
+          <div class="playlist-card" data-playlist="family">
+            <h3>Family Favorites</h3>
           </div>
-          <button id="start-round" class="btn btn-primary" disabled>Start Game!</button>
-        </div>
-        <div id="loading-screen" class="screen">
-          <h3 id="loading-message">Loading...</h3>
-        </div>
-        <div id="game-screen" class="screen">
-          <div class="game-header">
-            <div id="round-info">Round <span id="round-number">1</span>/<span id="max-round-number">4</span> - <span id="difficulty">Easy</span></div>
-            <div id="scores"></div>
-            <div id="current-player">Player 1's Turn</div>
+          <div class="playlist-card" data-playlist="80s">
+            <h3>80s</h3>
           </div>
-          <div class="game-area">
-            <div id="dev-message"></div>
-            <div id="album-art" class="album-placeholder">🎵</div>
-            <div id="playback-controls">
-              <button id="play-snippet" class="btn btn-play">Play Snippet</button>
-              <button id="replay-snippet" class="btn btn-replay" disabled>Replay</button>
-            </div>
-            <div id="guess-area">
-              <div id="voice-status" class="voice-indicator">Click mic to speak</div>
-              <button id="voice-input" class="btn btn-mic">Guess by Voice</button>
-              <div class="or-divider">- or -</div>
-              <input type="text" id="title-guess" placeholder="Song Title">
-              <input type="text" id="artist-guess" placeholder="Artist">
-              <button id="submit-guess" class="btn btn-primary">Submit Guess</button>
-            </div>
-            <div id="result-message"></div>
+          <div class="playlist-card" data-playlist="90s">
+            <h3>90s</h3>
+          </div>
+          <div class="playlist-card" data-playlist="00s">
+            <h3>00s</h3>
+          </div>
+          <div class="playlist-card" data-playlist="10s">
+            <h3>10s</h3>
+          </div>
+          <div class="playlist-card" data-playlist="20s">
+            <h3>20s</h3>
+          </div>
+          <div class="playlist-card" data-playlist="rock">
+            <h3>Rock</h3>
+          </div>
+          <div class="playlist-card" data-playlist="pop">
+            <h3>Pop</h3>
+          </div>
+          <div class="playlist-card" data-playlist="classical">
+            <h3>Classical</h3>
+          </div>
+          <div class="playlist-card" data-playlist="custom">
+            <h3>Custom Playlist</h3>
+            <p style="font-size: 0.8em; color: #666;">(Use URL from previous screen)</p>
           </div>
         </div>
-        <div id="scoreboard-screen" class="screen">
-          <h2>Final Scores</h2>
-          <div id="final-scores"></div>
-          <div id="winner-announcement"></div>
-          <button id="play-again" class="btn btn-primary">Play Again</button>
-          <button id="new-game" class="btn btn-primary">New Game</button>
-          <button id="go-home-2" class="btn btn-primary">Home</button>
+        <button id="start-round" class="btn btn-primary" disabled>Start Game!</button>
+      </div>
+      <div id="loading-screen" class="screen">
+        <h3 id="loading-message">Loading...</h3>
+      </div>
+      <div id="game-screen" class="screen">
+        <div class="game-header">
+          <div id="round-info">Round <span id="round-number">1</span>/<span id="max-round-number">4</span> - <span id="difficulty">Easy</span></div>
+          <div id="scores"></div>
+          <div id="current-player">Player 1's Turn</div>
         </div>
+        <div class="game-area">
+          <div id="dev-message"></div>
+          <div id="album-art" class="album-placeholder">🎵</div>
+          <div id="playback-controls">
+            <button id="play-snippet" class="btn btn-play">Play Snippet</button>
+            <button id="replay-snippet" class="btn btn-replay" disabled>Replay</button>
+          </div>
+          <div id="guess-area">
+            <div id="voice-status" class="voice-indicator">Click mic to speak</div>
+            <button id="voice-input" class="btn btn-mic">Guess by Voice</button>
+            <div class="or-divider">- or -</div>
+            <input type="text" id="title-guess" placeholder="Song Title">
+            <input type="text" id="artist-guess" placeholder="Artist">
+            <button id="submit-guess" class="btn btn-primary">Submit Guess</button>
+          </div>
+          <div id="result-message"></div>
+        </div>
+      </div>
+      <div id="scoreboard-screen" class="screen">
+        <h2>Final Scores</h2>
+        <div id="final-scores"></div>
+        <div id="winner-announcement"></div>
+        <button id="play-again" class="btn btn-primary">Play Again</button>
+        <button id="new-game" class="btn btn-primary">New Game</button>
+        <button id="go-home-2" class="btn btn-primary">Home</button>
+      </div>
     </div>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
