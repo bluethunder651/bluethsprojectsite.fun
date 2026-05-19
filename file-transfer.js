@@ -10,7 +10,7 @@ class FileTransfer{
     setupEventListeners() {
     }
 
-    verifyAdmin(){
+    async verifyAdmin(){
         const adminResponse = await fetch(`${this.website}/api/auth/verify-admin`);
 
         if (adminResponse.ok){
