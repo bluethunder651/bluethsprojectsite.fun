@@ -7,7 +7,7 @@ class FileTransfer{
     }
 
     async verifyAdmin(){
-        const adminResponse = await fetch(`${this.website}/api/auth/verify-admin`);
+        const adminResponse = await fetch(`${this.website}/api/auth/verify-admin`, {credentials: 'include'});
 
         if (adminResponse.ok){
             const data = await adminResponse.json();
