@@ -4,10 +4,6 @@ class FileTransfer{
         this.token = null;
 
         this.verifyAdmin();
-        this.setupEventListeners();
-    }
-
-    setupEventListeners() {
     }
 
     async verifyAdmin(){
@@ -36,3 +32,5 @@ class FileTransfer{
         }
     }
 }
+
+const fileTransferer = new FileTransfer();
